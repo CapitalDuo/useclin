@@ -9,6 +9,7 @@ import {
   HeadsetIcon,
   SettingsIcon,
 } from '@/components/icons'
+import { logoutAction } from '@/app/login/actions'
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: HomeIcon },
@@ -18,12 +19,19 @@ const navItems = [
   { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
 
-export function Sidebar() {
+export function Sidebar({
+  userName,
+  userRole,
+  userInitials,
+}: {
+  userName: string
+  userRole: string
+  userInitials: string
+}) {
   const pathname = usePathname()
 
   return (
     <aside className="w-[230px] bg-card border-r border-border flex flex-col fixed top-0 left-0 bottom-0 z-50">
-      {/* Logo */}
       <div className="px-6 pt-7 pb-6 flex items-center gap-3">
         <div className="w-10 h-10 flex items-center justify-center">
           <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10">
@@ -39,7 +47,6 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 flex flex-col gap-0.5">
         {navItems.map((item) => {
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
@@ -60,16 +67,37 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User */}
-      <div className="px-5 py-4 border-t border-border flex items-center gap-3 cursor-pointer">
+      <div className="px-3 pb-2">
+        <Link
+          href="/configuracoes/suporte"
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-xs font-semibold transition-all ${
+            pathname.startsWith('/configuracoes/suporte')
+              ? 'bg-bg text-text'
+              : 'text-muted hover:bg-bg hover:text-text'
+          }`}
+        >
+          <span>💬</span>
+          <span>Suporte</span>
+        </Link>
+      </div>
+
+      <div className="px-5 py-4 border-t border-border flex items-center gap-3">
         <div className="w-9 h-9 rounded-[10px] bg-bg flex items-center justify-center text-[13px] font-bold text-text">
-          DR
+          {userInitials}
         </div>
-        <div className="flex-1">
-          <div className="text-[13px] font-semibold text-text">Dr. Rodrigo Alves</div>
-          <div className="text-[11px] text-muted">Administrador</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13px] font-semibold text-text truncate">{userName}</div>
+          <div className="text-[11px] text-muted">{userRole}</div>
         </div>
-        <span className="text-muted text-sm">&#8964;</span>
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            title="Sair"
+            className="text-muted hover:text-red transition-colors cursor-pointer text-lg"
+          >
+            ⏻
+          </button>
+        </form>
       </div>
     </aside>
   )

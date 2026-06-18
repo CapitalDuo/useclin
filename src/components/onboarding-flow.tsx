@@ -21,42 +21,29 @@ const WEEKDAYS = [
   { key: 'dom', label: 'Domingo' },
 ]
 
-interface ClinicData {
-  nome: string
-  telefone: string
-  cnpj: string
-  endereco: string
-}
+interface ClinicData { telefone: string; cnpj: string; endereco: string }
+interface MyProfile { especialidade: string; registro: string }
+interface Professional { nome: string; especialidade: string; registro: string }
+interface DaySchedule { aberto: boolean; inicio: string; fim: string }
+interface WhatsAppData { instancia: string; numero: string }
 
-interface Professional {
-  nome: string
-  especialidade: string
-  registro: string
-}
-
-interface DaySchedule {
-  aberto: boolean
-  inicio: string
-  fim: string
-}
-
-interface WhatsAppData {
-  instancia: string
-  numero: string
-}
-
-export function OnboardingFlow() {
+export function OnboardingFlow({
+  userName,
+  clinicName,
+  initialClinic,
+}: {
+  userName: string
+  clinicName: string
+  initialClinic: ClinicData
+}) {
   const [step, setStep] = useState(0)
-  const [clinic, setClinic] = useState<ClinicData>({ nome: '', telefone: '', cnpj: '', endereco: '' })
-  const [professionals, setProfessionals] = useState<Professional[]>([{ nome: '', especialidade: '', registro: '' }])
+  const [clinic, setClinic] = useState<ClinicData>(initialClinic)
+  const [myProfile, setMyProfile] = useState<MyProfile>({ especialidade: '', registro: '' })
+  const [extras, setExtras] = useState<Professional[]>([])
   const [schedule, setSchedule] = useState<Record<string, DaySchedule>>(() => {
     const initial: Record<string, DaySchedule> = {}
     WEEKDAYS.forEach(d => {
-      initial[d.key] = {
-        aberto: d.key !== 'dom',
-        inicio: '08:00',
-        fim: '18:00',
-      }
+      initial[d.key] = { aberto: d.key !== 'dom', inicio: '08:00', fim: '18:00' }
     })
     return initial
   })
@@ -74,19 +61,18 @@ export function OnboardingFlow() {
     if (step > 0) setStep(step - 1)
   }
 
-  function addProfessional() {
-    setProfessionals([...professionals, { nome: '', especialidade: '', registro: '' }])
+  function addExtra() {
+    setExtras([...extras, { nome: '', especialidade: '', registro: '' }])
   }
 
-  function updateProfessional(index: number, field: keyof Professional, value: string) {
-    const updated = [...professionals]
+  function updateExtra(index: number, field: keyof Professional, value: string) {
+    const updated = [...extras]
     updated[index] = { ...updated[index], [field]: value }
-    setProfessionals(updated)
+    setExtras(updated)
   }
 
-  function removeProfessional(index: number) {
-    if (professionals.length <= 1) return
-    setProfessionals(professionals.filter((_, i) => i !== index))
+  function removeExtra(index: number) {
+    setExtras(extras.filter((_, i) => i !== index))
   }
 
   function updateSchedule(key: string, field: keyof DaySchedule, value: string | boolean) {
@@ -102,7 +88,13 @@ export function OnboardingFlow() {
   async function handleFinish() {
     setSaving(true)
     setSaveError(null)
-    const result = await completeOnboarding({ clinic, professionals, schedule, whatsapp })
+    const result = await completeOnboarding({
+      clinic,
+      myProfile,
+      additionalProfessionals: extras,
+      schedule,
+      whatsapp,
+    })
     if (!result.ok) {
       setSaving(false)
       setSaveError(result.error)
@@ -113,7 +105,6 @@ export function OnboardingFlow() {
 
   return (
     <div className="w-full max-w-[640px]">
-      {/* Logo */}
       <div className="flex items-center justify-center gap-3 mb-8">
         <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10">
           <circle cx="20" cy="20" r="18" stroke="#d4c5a9" strokeWidth="1.5" />
@@ -127,9 +118,7 @@ export function OnboardingFlow() {
         </div>
       </div>
 
-      {/* Card */}
       <div className="bg-card border border-border rounded-[18px] p-8 shadow-sm">
-        {/* Progress bar */}
         <div className="flex gap-2 mb-8">
           {STEPS.map((_, i) => (
             <div
@@ -141,31 +130,31 @@ export function OnboardingFlow() {
           ))}
         </div>
 
-        {/* Step header */}
         <div className="text-center mb-7">
           <div className="text-2xl mb-1">{STEPS[step].icon}</div>
           <h2 className="font-playfair text-xl font-extrabold tracking-tight">
             {step === 0 && 'Dados da Clínica'}
-            {step === 1 && 'Profissionais'}
+            {step === 1 && 'Seu perfil profissional'}
             {step === 2 && 'Horários de Funcionamento'}
             {step === 3 && (qrStep ? 'Conectar WhatsApp' : 'WhatsApp Business')}
             {step === 4 && 'Tudo pronto!'}
           </h2>
           <p className="text-sm text-muted mt-1">
-            {step === 0 && 'Informações básicas do seu negócio'}
-            {step === 1 && 'Cadastre os profissionais da clínica'}
+            {step === 0 && `Complete o cadastro de ${clinicName}`}
+            {step === 1 && 'Seus dados profissionais e outros membros da equipe'}
             {step === 2 && 'Defina os dias e horários de atendimento'}
             {step === 3 && (qrStep ? 'Escaneie o QR Code com o WhatsApp' : 'Conecte o WhatsApp para atendimentos')}
             {step === 4 && 'Confira as informações e comece a usar'}
           </p>
         </div>
 
-        {/* Step content */}
         <div className="min-h-[280px]">
-          {/* Step 1: Clinic data */}
           {step === 0 && (
             <div className="flex flex-col gap-5">
-              <Field label="Nome da clínica" placeholder="Ex: Clínica Bella Vita" value={clinic.nome} onChange={v => setClinic({ ...clinic, nome: v })} />
+              <div className="bg-bg rounded-[10px] px-4 py-3">
+                <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Clínica</div>
+                <div className="text-sm font-semibold">{clinicName}</div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Telefone" placeholder="(11) 99999-9999" value={clinic.telefone} onChange={v => setClinic({ ...clinic, telefone: v })} />
                 <Field label="CNPJ (opcional)" placeholder="00.000.000/0001-00" value={clinic.cnpj} onChange={v => setClinic({ ...clinic, cnpj: v })} />
@@ -174,38 +163,51 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {/* Step 2: Professionals */}
           {step === 1 && (
-            <div className="flex flex-col gap-4">
-              {professionals.map((prof, i) => (
+            <div className="flex flex-col gap-5">
+              <div className="bg-bg rounded-[12px] p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-[10px] bg-card flex items-center justify-center text-sm font-bold">
+                    {userName.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold">{userName}</div>
+                    <div className="text-[11px] text-muted">Você · administrador</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Sua especialidade" placeholder="Ex: Dermatologia" value={myProfile.especialidade} onChange={v => setMyProfile({ ...myProfile, especialidade: v })} bg="bg-card" />
+                  <Field label="Seu registro (CRM/CRO)" placeholder="CRM 123456" value={myProfile.registro} onChange={v => setMyProfile({ ...myProfile, registro: v })} bg="bg-card" />
+                </div>
+              </div>
+
+              {extras.map((prof, i) => (
                 <div key={i} className="bg-bg rounded-[12px] p-4 relative">
-                  {professionals.length > 1 && (
-                    <button
-                      onClick={() => removeProfessional(i)}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red hover:bg-red-light transition-colors cursor-pointer text-sm"
-                    >
-                      ✕
-                    </button>
-                  )}
+                  <button
+                    onClick={() => removeExtra(i)}
+                    className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red hover:bg-red-light transition-colors cursor-pointer text-sm"
+                  >
+                    ✕
+                  </button>
                   <div className="flex flex-col gap-3">
-                    <Field label="Nome completo" placeholder="Ex: Dr. João Silva" value={prof.nome} onChange={v => updateProfessional(i, 'nome', v)} bg="bg-card" />
+                    <Field label="Nome completo" placeholder="Ex: Dr. João Silva" value={prof.nome} onChange={v => updateExtra(i, 'nome', v)} bg="bg-card" />
                     <div className="grid grid-cols-2 gap-3">
-                      <Field label="Especialidade" placeholder="Ex: Dermatologia" value={prof.especialidade} onChange={v => updateProfessional(i, 'especialidade', v)} bg="bg-card" />
-                      <Field label="Registro (CRM/CRO)" placeholder="CRM 123456" value={prof.registro} onChange={v => updateProfessional(i, 'registro', v)} bg="bg-card" />
+                      <Field label="Especialidade" placeholder="Ex: Ortopedia" value={prof.especialidade} onChange={v => updateExtra(i, 'especialidade', v)} bg="bg-card" />
+                      <Field label="Registro" placeholder="CRM 789012" value={prof.registro} onChange={v => updateExtra(i, 'registro', v)} bg="bg-card" />
                     </div>
                   </div>
                 </div>
               ))}
+
               <button
-                onClick={addProfessional}
+                onClick={addExtra}
                 className="w-full py-3 rounded-[10px] border-2 border-dashed border-border text-sm font-semibold text-muted hover:border-text hover:text-text transition-colors cursor-pointer"
               >
-                + Adicionar profissional
+                + Adicionar outro profissional
               </button>
             </div>
           )}
 
-          {/* Step 3: Schedule */}
           {step === 2 && (
             <div className="flex flex-col gap-2.5">
               {WEEKDAYS.map(day => {
@@ -225,19 +227,9 @@ export function OnboardingFlow() {
                     </label>
                     {s.aberto ? (
                       <div className="flex items-center gap-2">
-                        <input
-                          type="time"
-                          value={s.inicio}
-                          onChange={e => updateSchedule(day.key, 'inicio', e.target.value)}
-                          className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors"
-                        />
+                        <input type="time" value={s.inicio} onChange={e => updateSchedule(day.key, 'inicio', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors" />
                         <span className="text-xs text-muted">às</span>
-                        <input
-                          type="time"
-                          value={s.fim}
-                          onChange={e => updateSchedule(day.key, 'fim', e.target.value)}
-                          className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors"
-                        />
+                        <input type="time" value={s.fim} onChange={e => updateSchedule(day.key, 'fim', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors" />
                       </div>
                     ) : (
                       <span className="text-xs text-muted font-medium">Fechado</span>
@@ -248,7 +240,6 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {/* Step 4: WhatsApp */}
           {step === 3 && !qrStep && (
             <div className="flex flex-col gap-5">
               <div className="flex items-center justify-center">
@@ -260,19 +251,8 @@ export function OnboardingFlow() {
               </div>
               <Field label="Nome da instância" placeholder="ex: rosan-clinica" value={whatsapp.instancia} onChange={v => setWhatsApp({ ...whatsapp, instancia: v })} />
               <Field label="Número (com DDD e país)" placeholder="5564999999999" value={whatsapp.numero} onChange={v => setWhatsApp({ ...whatsapp, numero: v })} />
-              <button
-                onClick={handleWhatsAppConnect}
-                disabled={!whatsapp.instancia.trim() || !whatsapp.numero.trim()}
-                className="w-full py-3.5 rounded-[10px] bg-green text-white text-sm font-semibold hover:bg-green/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Conectar
-              </button>
-              <button
-                onClick={next}
-                className="text-xs text-muted hover:text-text font-medium text-center cursor-pointer transition-colors"
-              >
-                Pular esta etapa
-              </button>
+              <button onClick={handleWhatsAppConnect} disabled={!whatsapp.instancia.trim() || !whatsapp.numero.trim()} className="w-full py-3.5 rounded-[10px] bg-green text-white text-sm font-semibold hover:bg-green/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">Conectar</button>
+              <button onClick={next} className="text-xs text-muted hover:text-text font-medium text-center cursor-pointer transition-colors">Pular esta etapa</button>
             </div>
           )}
 
@@ -282,7 +262,6 @@ export function OnboardingFlow() {
                 <div className="w-2 h-2 rounded-full bg-orange animate-pulse" />
                 <span className="text-xs font-semibold text-orange">Aguardando scan...</span>
               </div>
-
               <div className="bg-white rounded-[14px] p-5 w-[220px] h-[220px] flex items-center justify-center border border-border">
                 <svg viewBox="0 0 200 200" className="w-full h-full">
                   <rect x="0" y="0" width="200" height="200" fill="white" />
@@ -303,38 +282,26 @@ export function OnboardingFlow() {
                   )}
                 </svg>
               </div>
-
-              <p className="text-sm text-muted text-center">
-                Escaneie o QR Code com o WhatsApp
-              </p>
-              <p className="text-[11px] text-muted/60 text-center">
-                Instância: <span className="font-semibold text-muted">{whatsapp.instancia}</span>
-              </p>
-
-              <button
-                onClick={next}
-                className="text-sm text-green font-semibold hover:text-green/80 transition-colors cursor-pointer"
-              >
-                Simular conexão e continuar →
-              </button>
+              <p className="text-sm text-muted text-center">Escaneie o QR Code com o WhatsApp</p>
+              <p className="text-[11px] text-muted/60 text-center">Instância: <span className="font-semibold text-muted">{whatsapp.instancia}</span></p>
+              <button onClick={next} className="text-sm text-green font-semibold hover:text-green/80 transition-colors cursor-pointer">Simular conexão e continuar →</button>
             </div>
           )}
 
-          {/* Step 5: Confirmation */}
           {step === 4 && (
             <div className="flex flex-col gap-4">
               <SummarySection title="Clínica">
-                <SummaryItem label="Nome" value={clinic.nome || '—'} />
+                <SummaryItem label="Nome" value={clinicName} />
                 <SummaryItem label="Telefone" value={clinic.telefone || '—'} />
                 {clinic.cnpj && <SummaryItem label="CNPJ" value={clinic.cnpj} />}
                 <SummaryItem label="Endereço" value={clinic.endereco || '—'} />
               </SummarySection>
 
               <SummarySection title="Profissionais">
-                {professionals.filter(p => p.nome).map((p, i) => (
-                  <SummaryItem key={i} label={p.nome} value={`${p.especialidade}${p.registro ? ' · ' + p.registro : ''}`} />
+                <SummaryItem label={userName} value={`${myProfile.especialidade || '—'}${myProfile.registro ? ' · ' + myProfile.registro : ''}`} />
+                {extras.filter(p => p.nome).map((p, i) => (
+                  <SummaryItem key={i} label={p.nome} value={`${p.especialidade || '—'}${p.registro ? ' · ' + p.registro : ''}`} />
                 ))}
-                {professionals.every(p => !p.nome) && <p className="text-xs text-muted">Nenhum cadastrado</p>}
               </SummarySection>
 
               <SummarySection title="Horários">
@@ -365,36 +332,21 @@ export function OnboardingFlow() {
           )}
         </div>
 
-        {/* Navigation */}
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
           {step > 0 ? (
-            <button
-              onClick={back}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] border border-border bg-card text-sm font-semibold hover:bg-bg transition-colors cursor-pointer"
-            >
-              ← Voltar
-            </button>
+            <button onClick={back} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] border border-border bg-card text-sm font-semibold hover:bg-bg transition-colors cursor-pointer">← Voltar</button>
           ) : (
             <div />
           )}
 
           {step < STEPS.length - 1 ? (
-            <button
-              onClick={step === 3 ? (qrStep ? next : handleWhatsAppConnect) : next}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer"
-            >
+            <button onClick={step === 3 ? (qrStep ? next : handleWhatsAppConnect) : next} className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer">
               {step === 3 ? (qrStep ? 'Continuar' : 'Conectar') : 'Próximo'} →
             </button>
           ) : (
             <div className="flex flex-col items-end gap-2">
-              {saveError && (
-                <span className="text-xs text-red font-medium">Erro: {saveError}</span>
-              )}
-              <button
-                onClick={handleFinish}
-                disabled={saving || !clinic.nome.trim()}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-green text-white rounded-[10px] text-sm font-semibold hover:bg-green/90 transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              {saveError && <span className="text-xs text-red font-medium">Erro: {saveError}</span>}
+              <button onClick={handleFinish} disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-green text-white rounded-[10px] text-sm font-semibold hover:bg-green/90 transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                 {saving ? 'Salvando...' : 'Começar a usar ✓'}
               </button>
             </div>
@@ -405,23 +357,11 @@ export function OnboardingFlow() {
   )
 }
 
-function Field({ label, placeholder, value, onChange, bg }: {
-  label: string
-  placeholder: string
-  value: string
-  onChange: (v: string) => void
-  bg?: string
-}) {
+function Field({ label, placeholder, value, onChange, bg }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; bg?: string }) {
   return (
     <div>
       <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">{label}</label>
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className={`w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors ${bg || 'bg-bg'}`}
-      />
+      <input type="text" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={`w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors ${bg || 'bg-bg'}`} />
     </div>
   )
 }

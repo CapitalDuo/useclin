@@ -1,6 +1,7 @@
 'use server'
 
-import { supabase } from '@/lib/supabase'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 
 const WEEKDAY_MAP: Record<string, number> = {
   dom: 0, seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6,
@@ -16,52 +17,73 @@ function iniciais(nome: string) {
 }
 
 export type OnboardingPayload = {
-  clinic: { nome: string; telefone: string; cnpj: string; endereco: string }
-  professionals: { nome: string; especialidade: string; registro: string }[]
+  clinic: { telefone: string; cnpj: string; endereco: string }
+  myProfile: { especialidade: string; registro: string }
+  additionalProfessionals: { nome: string; especialidade: string; registro: string }[]
   schedule: Record<string, { aberto: boolean; inicio: string; fim: string }>
   whatsapp: { instancia: string; numero: string }
 }
 
 export async function completeOnboarding(payload: OnboardingPayload) {
-  const { clinic, professionals, schedule, whatsapp } = payload
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, error: 'Não autenticado' }
 
-  const { data: clinica, error: clinicError } = await supabase
+  const { data: meuProf } = await supabase
+    .from('profissionais')
+    .select('id, clinica_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (!meuProf?.clinica_id) {
+    return { ok: false as const, error: 'Sua conta não está vinculada a uma clínica' }
+  }
+
+  const clinicaId = meuProf.clinica_id
+
+  const { error: clinicError } = await supabase
     .from('clinica')
-    .insert({
-      nome: clinic.nome,
-      telefone: clinic.telefone || null,
-      cnpj: clinic.cnpj || null,
-      endereco: clinic.endereco || null,
+    .update({
+      telefone: payload.clinic.telefone || null,
+      cnpj: payload.clinic.cnpj || null,
+      endereco: payload.clinic.endereco || null,
       onboarding_completo: true,
       onboarding_step: 4,
     })
-    .select('id')
-    .single()
+    .eq('id', clinicaId)
 
-  if (clinicError || !clinica) {
-    return { ok: false as const, error: clinicError?.message ?? 'Falha ao criar clínica' }
-  }
+  if (clinicError) return { ok: false as const, error: clinicError.message }
 
-  const clinicaId = clinica.id
+  const { error: meProfError } = await supabase
+    .from('profissionais')
+    .update({
+      especialidade: payload.myProfile.especialidade || null,
+      registro: payload.myProfile.registro || null,
+    })
+    .eq('id', meuProf.id)
 
-  const profsToInsert = professionals
+  if (meProfError) return { ok: false as const, error: meProfError.message }
+
+  const extras = payload.additionalProfessionals
     .filter(p => p.nome.trim())
     .map((p, i) => ({
       clinica_id: clinicaId,
       nome: p.nome,
       especialidade: p.especialidade || null,
       registro: p.registro || null,
-      role: i === 0 ? 'admin' : 'profissional',
+      role: 'profissional',
       iniciais: iniciais(p.nome),
-      cor: PALETTE[i % PALETTE.length],
+      cor: PALETTE[(i + 1) % PALETTE.length],
     }))
 
-  if (profsToInsert.length > 0) {
-    const { error: profError } = await supabase.from('profissionais').insert(profsToInsert)
+  if (extras.length > 0) {
+    const { error: profError } = await supabase.from('profissionais').insert(extras)
     if (profError) return { ok: false as const, error: profError.message }
   }
 
-  const horarios = Object.entries(schedule).map(([key, day]) => ({
+  const horarios = Object.entries(payload.schedule).map(([key, day]) => ({
     clinica_id: clinicaId,
     dia_semana: WEEKDAY_MAP[key],
     aberto: day.aberto,
@@ -72,15 +94,19 @@ export async function completeOnboarding(payload: OnboardingPayload) {
   const { error: schedError } = await supabase.from('horarios_funcionamento').insert(horarios)
   if (schedError) return { ok: false as const, error: schedError.message }
 
-  if (whatsapp.instancia.trim() && whatsapp.numero.trim()) {
+  if (payload.whatsapp.instancia.trim() && payload.whatsapp.numero.trim()) {
     const { error: waError } = await supabase.from('whatsapp_instancias').insert({
       clinica_id: clinicaId,
-      nome_instancia: whatsapp.instancia,
-      numero: whatsapp.numero,
+      nome_instancia: payload.whatsapp.instancia,
+      numero: payload.whatsapp.numero,
       status: 'desconectado',
     })
     if (waError) return { ok: false as const, error: waError.message }
   }
 
   return { ok: true as const, clinicaId }
+}
+
+export async function skipToDashboardAction() {
+  redirect('/')
 }
