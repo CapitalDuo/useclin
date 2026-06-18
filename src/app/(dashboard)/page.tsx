@@ -1,36 +1,83 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { KpiCard } from '@/components/kpi-card'
 import { CalendarIcon, UsersIcon, DollarIcon, ClockIcon } from '@/components/icons'
 import { DonutChart, WeekChart, PatientsChart } from '@/components/dashboard-charts'
 
-const todayAppointments = [
-  { time: '09:00', dur: '50 min', name: 'Maria Silva', type: 'Consulta de retorno', status: 'confirmada' as const, dot: 'bg-blue' },
-  { time: '10:00', dur: '60 min', name: 'João Santos', type: 'Avaliação inicial', status: 'confirmada' as const, dot: 'bg-green' },
-  { time: '11:00', dur: '50 min', name: 'Carla Oliveira', type: 'Consulta nutricional', status: 'confirmada' as const, dot: 'bg-orange' },
-  { time: '14:00', dur: '50 min', name: 'Lucas Ferreira', type: 'Acompanhamento', status: 'pendente' as const, dot: 'bg-orange' },
-  { time: '15:00', dur: '50 min', name: 'Ana Paula Costa', type: 'Consulta de retorno', status: 'confirmada' as const, dot: 'bg-blue' },
-]
-
-const upcomingAppointments = [
-  { title: 'Consulta de retorno', patient: 'Mariana Lima', date: '27 Mai, 10:00', dot: 'bg-blue' },
-  { title: 'Avaliação inicial', patient: 'Fernando Mendes', date: '27 Mai, 11:00', dot: 'bg-green' },
-  { title: 'Consulta nutricional', patient: 'Juliana Martins', date: '27 Mai, 14:00', dot: 'bg-orange' },
-  { title: 'Acompanhamento', patient: 'Rafael Souza', date: '28 Mai, 09:00', dot: 'bg-orange' },
-  { title: 'Consulta de retorno', patient: 'Beatriz Almeida', date: '28 Mai, 10:00', dot: 'bg-blue' },
-]
-
 const statusStyles = {
-  confirmada: 'bg-green-light text-green',
-  pendente: 'bg-orange-light text-orange',
-  cancelada: 'bg-red-light text-red',
+  agendado: 'bg-blue/10 text-blue',
+  confirmado: 'bg-green-light text-green',
+  em_atendimento: 'bg-orange-light text-orange',
+  concluido: 'bg-green-light text-green',
+  cancelado: 'bg-red-light text-red',
+  faltou: 'bg-red-light text-red',
+} as const
+
+function greeting() {
+  const h = new Date().getHours()
+  return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
 }
 
-export default function DashboardPage() {
+function todayISO() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function formatHora(t: string | null) {
+  return (t ?? '').slice(0, 5)
+}
+
+function formatDataCurta(d: string | null) {
+  if (!d) return ''
+  const dt = new Date(d + 'T00:00:00')
+  return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+}
+
+function formatBRL(n: number | null) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n ?? 0)
+}
+
+export default async function DashboardPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const today = todayISO()
+
+  const [{ data: prof }, { data: kpis }, { data: hoje }, { data: proximos }, { data: proxima }] = await Promise.all([
+    supabase.from('profissionais').select('nome').eq('user_id', user.id).maybeSingle(),
+    supabase.from('v_dashboard_kpis').select('*').maybeSingle(),
+    supabase
+      .from('v_agenda')
+      .select('id, hora_inicio, hora_fim, status, paciente_nome, tipo_nome')
+      .eq('data', today)
+      .order('hora_inicio', { ascending: true }),
+    supabase
+      .from('v_agenda')
+      .select('id, data, hora_inicio, status, paciente_nome, tipo_nome')
+      .gt('data', today)
+      .order('data', { ascending: true })
+      .order('hora_inicio', { ascending: true })
+      .limit(5),
+    supabase
+      .from('v_agenda')
+      .select('hora_inicio, paciente_nome')
+      .gte('data', today)
+      .in('status', ['agendado', 'confirmado'])
+      .order('data', { ascending: true })
+      .order('hora_inicio', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  const firstName = prof?.nome?.split(' ').slice(0, 2).join(' ') ?? 'Doutor(a)'
+
   return (
     <>
-      {/* Header */}
       <div className="flex items-center justify-between px-10 pt-7">
         <div>
-          <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">Bom dia, Dr. Rodrigo</h1>
+          <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">{greeting()}, {firstName}</h1>
           <p className="text-sm text-muted mt-0.5">Aqui está o resumo da sua agenda e atendimentos de hoje.</p>
         </div>
         <button className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer">
@@ -38,111 +85,112 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Content */}
       <div className="px-10 pt-7 pb-10">
-        {/* KPI Row */}
         <div className="grid grid-cols-4 gap-4 mb-7">
           <KpiCard
             icon={<CalendarIcon className="w-[22px] h-[22px]" />}
             label="Consultas hoje"
-            value="12"
-            change="+2 em relação a ontem"
+            value={String(kpis?.consultas_hoje ?? 0)}
+            change={`${kpis?.consultas_mes ?? 0} no mês`}
             color="blue"
           />
           <KpiCard
             icon={<UsersIcon className="w-[22px] h-[22px]" />}
-            label="Pacientes atendidos"
-            value="38"
-            change="+8 essa semana"
+            label="Pacientes ativos"
+            value={String(kpis?.pacientes_ativos ?? 0)}
+            change={`+${kpis?.pacientes_novos_mes ?? 0} esse mês`}
             color="green"
           />
           <KpiCard
             icon={<DollarIcon className="w-[22px] h-[22px]" />}
             label="Faturamento do mês"
-            value="R$ 28.450,00"
-            change="+18% em relação ao mês anterior"
+            value={formatBRL(kpis?.receita_mensal ?? 0)}
+            change="Receita paga em transações"
             color="orange"
             valueSmall
           />
           <KpiCard
             icon={<ClockIcon className="w-[22px] h-[22px]" />}
             label="Próxima consulta"
-            value="09:00"
-            change="Maria Silva"
+            value={proxima ? formatHora(proxima.hora_inicio) : '—'}
+            change={proxima?.paciente_nome ?? 'Nada agendado'}
             color="purple"
           />
         </div>
 
-        {/* Agenda + Upcoming */}
         <div className="grid grid-cols-2 gap-5 mb-5">
-          {/* Agenda de hoje */}
           <div className="bg-card border border-border rounded-[14px] p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-playfair text-base font-bold">Agenda de hoje</h2>
               <span className="text-[13px] text-muted font-medium cursor-pointer hover:text-text transition-colors">Ver agenda completa</span>
             </div>
-            <div className="flex flex-col">
-              {todayAppointments.map((apt, i) => (
-                <div key={i} className={`flex items-center gap-4 py-3.5 ${i < todayAppointments.length - 1 ? 'border-b border-border' : ''}`}>
-                  <div className="min-w-[52px]">
-                    <div className="text-sm font-bold">{apt.time}</div>
-                    <div className="text-[11px] text-muted">{apt.dur}</div>
+            {!hoje || hoje.length === 0 ? (
+              <div className="py-12 text-center text-sm text-muted">Sem consultas hoje. Bom dia tranquilo ☕</div>
+            ) : (
+              <div className="flex flex-col">
+                {hoje.map((apt, i) => (
+                  <div key={apt.id} className={`flex items-center gap-4 py-3.5 ${i < hoje.length - 1 ? 'border-b border-border' : ''}`}>
+                    <div className="min-w-[52px]">
+                      <div className="text-sm font-bold">{formatHora(apt.hora_inicio)}</div>
+                      <div className="text-[11px] text-muted">{formatHora(apt.hora_fim)}</div>
+                    </div>
+                    <div className="w-2 h-2 rounded-full flex-shrink-0 bg-blue" />
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold">{apt.paciente_nome}</div>
+                      <div className="text-xs text-muted">{apt.tipo_nome ?? '—'}</div>
+                    </div>
+                    <span className={`text-[11px] font-semibold px-3 py-1 rounded-md ${statusStyles[apt.status as keyof typeof statusStyles] ?? 'bg-bg text-muted'}`}>
+                      {apt.status}
+                    </span>
                   </div>
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${apt.dot}`} />
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold">{apt.name}</div>
-                    <div className="text-xs text-muted">{apt.type}</div>
-                  </div>
-                  <span className={`text-[11px] font-semibold px-3 py-1 rounded-md ${statusStyles[apt.status]}`}>
-                    {apt.status.charAt(0).toUpperCase() + apt.status.slice(1)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="text-center pt-4 border-t border-border mt-1">
-              <span className="text-[13px] text-muted font-medium cursor-pointer hover:text-text">Ver todas as consultas de hoje &#8964;</span>
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Próximos compromissos */}
           <div className="bg-card border border-border rounded-[14px] p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-playfair text-base font-bold">Próximos compromissos</h2>
             </div>
-            <div className="flex flex-col">
-              {upcomingAppointments.map((apt, i) => (
-                <div key={i} className={`flex items-center gap-3.5 py-[13px] ${i < upcomingAppointments.length - 1 ? 'border-b border-border' : ''}`}>
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${apt.dot}`} />
-                  <div className="flex-1">
-                    <div className="text-[13px] font-semibold">{apt.title}</div>
-                    <div className="text-xs text-muted">{apt.patient}</div>
+            {!proximos || proximos.length === 0 ? (
+              <div className="py-12 text-center text-sm text-muted">Nenhum próximo compromisso agendado.</div>
+            ) : (
+              <div className="flex flex-col">
+                {proximos.map((apt, i) => (
+                  <div key={apt.id} className={`flex items-center gap-3.5 py-[13px] ${i < proximos.length - 1 ? 'border-b border-border' : ''}`}>
+                    <div className="w-2 h-2 rounded-full flex-shrink-0 bg-blue" />
+                    <div className="flex-1">
+                      <div className="text-[13px] font-semibold">{apt.tipo_nome ?? 'Consulta'}</div>
+                      <div className="text-xs text-muted">{apt.paciente_nome}</div>
+                    </div>
+                    <div className="text-xs text-muted font-medium whitespace-nowrap">
+                      {formatDataCurta(apt.data)}, {formatHora(apt.hora_inicio)}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted font-medium whitespace-nowrap">{apt.date}</div>
-                </div>
-              ))}
-            </div>
-            <div className="text-center pt-4 border-t border-border mt-1">
-              <span className="text-[13px] text-muted font-medium cursor-pointer hover:text-text">Ver todos os próximos</span>
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Charts */}
         <div className="grid grid-cols-3 gap-5">
-          <div className="bg-card border border-border rounded-[14px] p-6">
+          <div className="bg-card border border-border rounded-[14px] p-6 relative">
+            <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider text-muted bg-bg px-2 py-1 rounded">Demo</div>
             <h3 className="font-playfair text-sm font-bold mb-5">Consultas por status</h3>
             <DonutChart />
           </div>
-          <div className="bg-card border border-border rounded-[14px] p-6">
+          <div className="bg-card border border-border rounded-[14px] p-6 relative">
+            <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider text-muted bg-bg px-2 py-1 rounded">Demo</div>
             <h3 className="font-playfair text-sm font-bold mb-5">Atendimentos da semana</h3>
             <div className="h-[150px]">
               <WeekChart />
             </div>
           </div>
-          <div className="bg-card border border-border rounded-[14px] p-6">
+          <div className="bg-card border border-border rounded-[14px] p-6 relative">
+            <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider text-muted bg-bg px-2 py-1 rounded">Demo</div>
             <h3 className="font-playfair text-sm font-bold mb-5">Pacientes novos (mês)</h3>
-            <div className="font-playfair text-[40px] font-extrabold tracking-tighter leading-none mb-1">18</div>
-            <div className="text-xs text-green font-medium mb-4">+5 em relação ao mês anterior</div>
+            <div className="font-playfair text-[40px] font-extrabold tracking-tighter leading-none mb-1">{kpis?.pacientes_novos_mes ?? 0}</div>
+            <div className="text-xs text-muted font-medium mb-4">este mês</div>
             <div className="h-[90px]">
               <PatientsChart />
             </div>
