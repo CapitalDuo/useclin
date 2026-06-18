@@ -13,6 +13,14 @@ export default async function DashboardLayout({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: admin } = await supabase
+    .from('plataforma_admins')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (admin) redirect('/admin')
+
   const { data: prof } = await supabase
     .from('profissionais')
     .select('nome, role, iniciais, clinica_id')
