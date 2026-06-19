@@ -8,6 +8,8 @@ import {
   UsersIcon,
   HeadsetIcon,
   SettingsIcon,
+  ChatIcon,
+  LeafIcon,
 } from '@/components/icons'
 import { logoutAction } from '@/app/login/actions'
 
@@ -29,75 +31,72 @@ export function Sidebar({
   userInitials: string
 }) {
   const pathname = usePathname()
+  const suporteActive = pathname.startsWith('/configuracoes/suporte')
 
   return (
-    <aside className="w-[230px] bg-card border-r border-border flex flex-col fixed top-0 left-0 bottom-0 z-50">
-      <div className="px-6 pt-7 pb-6 flex items-center gap-3">
-        <div className="w-10 h-10 flex items-center justify-center">
-          <svg viewBox="0 0 40 40" fill="none" className="w-10 h-10">
-            <circle cx="20" cy="20" r="18" stroke="#d4c5a9" strokeWidth="1.5" />
-            <path d="M20 8 C16 12, 12 14, 12 20 C12 24, 14 28, 20 32 C26 28, 28 24, 28 20 C28 14, 24 12, 20 8Z" stroke="#d4c5a9" strokeWidth="1.2" fill="none" />
-            <path d="M14 16 Q17 20, 20 16 Q23 20, 26 16" stroke="#d4c5a9" strokeWidth="1" fill="none" />
-            <path d="M15 22 Q17.5 26, 20 22 Q22.5 26, 25 22" stroke="#d4c5a9" strokeWidth="1" fill="none" />
-          </svg>
+    <aside className="w-[232px] flex-none bg-white border-r border-border px-4 py-[26px] flex flex-col min-h-screen sticky top-0 self-start">
+      <div className="flex items-center gap-3 px-2 pb-[30px]">
+        <div className="w-11 h-11 rounded-full border-[1.5px] border-[#c2a766] flex items-center justify-center">
+          <LeafIcon className="w-5 h-5 text-[#a9925a]" />
         </div>
-        <div className="flex flex-col">
-          <span className="font-playfair text-lg font-extrabold text-text tracking-tight">Rosan</span>
-          <span className="text-[9px] font-semibold text-muted tracking-[2px] uppercase">Clínica Integrativa</span>
+        <div>
+          <div className="font-newsreader text-[23px] font-semibold text-text leading-none">Rosan</div>
+          <div className="text-[9px] font-bold tracking-[0.18em] text-[#a8a59d] mt-1">CLÍNICA INTEGRATIVA</div>
         </div>
       </div>
 
-      <nav className="flex-1 px-3 flex flex-col gap-0.5">
+      <nav className="flex flex-col gap-[3px]">
         {navItems.map((item) => {
-          const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
+          const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href) && !suporteActive
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-[10px] text-sm transition-all ${
+              className={`flex items-center gap-3 px-3.5 py-3 rounded-[12px] text-[14.5px] font-semibold transition-colors ${
                 isActive
-                  ? 'bg-bg text-text font-semibold'
-                  : 'text-muted font-medium hover:bg-bg hover:text-text'
+                  ? 'bg-[#f1eefb] text-[#5b4bd4]'
+                  : 'text-[#6f6c67] font-medium hover:bg-soft'
               }`}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <item.icon className={`w-[19px] h-[19px] ${isActive ? 'text-[#5b4bd4]' : 'text-[#9a978f]'}`} />
               {item.label}
             </Link>
           )
         })}
       </nav>
 
-      <div className="px-3 pb-2">
+      <div className="mt-auto">
         <Link
           href="/configuracoes/suporte"
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-xs font-semibold transition-all ${
-            pathname.startsWith('/configuracoes/suporte')
-              ? 'bg-bg text-text'
-              : 'text-muted hover:bg-bg hover:text-text'
+          className={`flex items-center gap-3 px-3.5 py-3 rounded-[12px] text-sm font-medium transition-colors ${
+            suporteActive ? 'bg-[#f1eefb] text-[#5b4bd4]' : 'text-[#9a978f] hover:text-text hover:bg-soft'
           }`}
         >
-          <span>💬</span>
-          <span>Suporte</span>
+          <ChatIcon className={`w-[19px] h-[19px] ${suporteActive ? 'text-[#5b4bd4]' : 'text-[#b4b1a9]'}`} />
+          Suporte
         </Link>
-      </div>
-
-      <div className="px-5 py-4 border-t border-border flex items-center gap-3">
-        <div className="w-9 h-9 rounded-[10px] bg-bg flex items-center justify-center text-[13px] font-bold text-text">
-          {userInitials}
+        <div className="flex items-center gap-3 mt-3.5 px-2.5 pt-3.5 pb-0.5 border-t border-[#f0efec]">
+          <div className="w-10 h-10 rounded-[12px] bg-text text-white flex items-center justify-center font-bold text-sm">
+            {userInitials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-text leading-tight truncate">{userName}</div>
+            <div className="text-[11.5px] text-[#a3a09a]">{userRole}</div>
+          </div>
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              title="Sair"
+              className="text-[#c0bdb5] hover:text-[#f06a6a] transition-colors"
+              aria-label="Sair"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[17px] h-[17px]">
+                <path d="M18.36 6.64a9 9 0 1 1-12.72 0" />
+                <line x1="12" y1="2" x2="12" y2="12" />
+              </svg>
+            </button>
+          </form>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-semibold text-text truncate">{userName}</div>
-          <div className="text-[11px] text-muted">{userRole}</div>
-        </div>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            title="Sair"
-            className="text-muted hover:text-red transition-colors cursor-pointer text-lg"
-          >
-            ⏻
-          </button>
-        </form>
       </div>
     </aside>
   )

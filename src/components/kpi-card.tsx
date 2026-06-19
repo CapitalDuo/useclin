@@ -1,34 +1,99 @@
 import { type ReactNode } from 'react'
 
-const colorMap = {
-  blue: 'bg-blue-light text-blue',
-  green: 'bg-green-light text-green',
-  orange: 'bg-orange-light text-orange',
-  purple: 'bg-purple-light text-purple',
+const palette = {
+  purple: {
+    bg: '#f1eefb',
+    border: '#e7e1fa',
+    label: '#7c6fae',
+    value: '#2c2456',
+    icon: '#6d5ae6',
+    iconShadow: 'rgba(109,90,230,.14)',
+  },
+  green: {
+    bg: '#e9f7f1',
+    border: '#d7efe5',
+    label: '#5b9a83',
+    value: '#194d3c',
+    icon: '#2fb98a',
+    iconShadow: 'rgba(47,185,138,.14)',
+  },
+  blue: {
+    bg: '#eaf1fe',
+    border: '#d8e5fb',
+    label: '#5c7cb0',
+    value: '#1d3a6b',
+    icon: '#3b82f6',
+    iconShadow: 'rgba(59,130,246,.14)',
+  },
+  orange: {
+    bg: '#fdf2e0',
+    border: '#f6e6c8',
+    label: '#b08742',
+    value: '#7a541a',
+    icon: '#e7942a',
+    iconShadow: 'rgba(231,148,42,.16)',
+  },
 } as const
+
+export type KpiColor = keyof typeof palette
 
 interface KpiCardProps {
   icon: ReactNode
   label: string
   value: string
-  change: string
-  color: keyof typeof colorMap
+  color: KpiColor
+  sparkline?: 'up' | 'flat' | 'wave' | 'climb'
   valueSmall?: boolean
 }
 
-export function KpiCard({ icon, label, value, change, color, valueSmall }: KpiCardProps) {
+const sparklinePaths: Record<NonNullable<KpiCardProps['sparkline']>, { area: string; line: string }> = {
+  up: {
+    area: 'M0,30 L33,24 L66,27 L100,15 L133,19 L166,9 L200,12 L200,40 L0,40 Z',
+    line: 'M0,30 L33,24 L66,27 L100,15 L133,19 L166,9 L200,12',
+  },
+  climb: {
+    area: 'M0,28 L33,30 L66,21 L100,24 L133,13 L166,11 L200,9 L200,40 L0,40 Z',
+    line: 'M0,28 L33,30 L66,21 L100,24 L133,13 L166,11 L200,9',
+  },
+  wave: {
+    area: 'M0,24 L33,19 L66,26 L100,14 L133,22 L166,13 L200,16 L200,40 L0,40 Z',
+    line: 'M0,24 L33,19 L66,26 L100,14 L133,22 L166,13 L200,16',
+  },
+  flat: {
+    area: 'M0,31 L33,25 L66,27 L100,18 L133,12 L166,7 L200,6 L200,40 L0,40 Z',
+    line: 'M0,31 L33,25 L66,27 L100,18 L133,12 L166,7 L200,6',
+  },
+}
+
+export function KpiCard({ icon, label, value, color, sparkline = 'up', valueSmall }: KpiCardProps) {
+  const c = palette[color]
+  const sp = sparklinePaths[sparkline]
   return (
-    <div className="bg-card border border-border rounded-[14px] p-[22px_24px] flex items-start gap-4">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${colorMap[color]}`}>
+    <div
+      className="relative overflow-hidden rounded-[18px] p-[17px_17px_0] h-[148px] border"
+      style={{ background: c.bg, borderColor: c.border }}
+    >
+      <div
+        className="w-[38px] h-[38px] rounded-[11px] bg-white flex items-center justify-center"
+        style={{ boxShadow: `0 2px 6px ${c.iconShadow}`, color: c.icon }}
+      >
         {icon}
       </div>
-      <div className="flex-1">
-        <div className="text-xs text-muted font-medium mb-1.5">{label}</div>
-        <div className={`font-playfair font-extrabold tracking-tight leading-none mb-1.5 ${valueSmall ? 'text-2xl' : 'text-[28px]'}`}>
-          {value}
-        </div>
-        <div className="text-xs font-medium text-green">{change}</div>
+      <div className="text-[12.5px] font-semibold mt-3" style={{ color: c.label }}>{label}</div>
+      <div
+        className={`font-newsreader font-semibold leading-none mt-0.5 ${valueSmall ? 'text-[26px] mt-1.5' : 'text-[34px]'}`}
+        style={{ color: c.value }}
+      >
+        {value}
       </div>
+      <svg
+        viewBox="0 0 200 40"
+        preserveAspectRatio="none"
+        className="absolute left-0 right-0 bottom-0 w-full h-[40px]"
+      >
+        <path d={sp.area} fill={c.icon} fillOpacity="0.16" />
+        <path d={sp.line} fill="none" stroke={c.icon} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </div>
   )
 }

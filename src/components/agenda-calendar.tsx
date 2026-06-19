@@ -26,12 +26,12 @@ const HOURS = Array.from({ length: 12 }, (_, i) => 7 + i) // 07h–18h
 
 // Status colors — user-defined, 4 buckets covering 6 db statuses
 const STATUS_COLORS: Record<string, string> = {
-  agendado: '#6366F1',
-  confirmado: '#6366F1', // same bucket as agendado
-  em_atendimento: '#FBBF24',
-  concluido: '#34D399',
-  faltou: '#F87171',
-  cancelado: '#F87171', // same bucket as faltou
+  agendado: '#6d5ae6',
+  confirmado: '#6d5ae6',
+  em_atendimento: '#f5a623',
+  concluido: '#2fb98a',
+  faltou: '#f06a6a',
+  cancelado: '#f06a6a',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -44,10 +44,10 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_LEGEND = [
-  { color: '#6366F1', label: 'Agendado' },
-  { color: '#FBBF24', label: 'Em andamento' },
-  { color: '#34D399', label: 'Finalizado' },
-  { color: '#F87171', label: 'Cancelado / Faltou' },
+  { color: '#6d5ae6', label: 'Agendado' },
+  { color: '#f5a623', label: 'Em andamento' },
+  { color: '#2fb98a', label: 'Finalizado' },
+  { color: '#f06a6a', label: 'Cancelado / Faltou' },
 ]
 
 function isoToDate(iso: string) {

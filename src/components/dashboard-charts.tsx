@@ -39,7 +39,7 @@ export function DonutChart({ data }: { data: DonutSlice[] }) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '72%',
+        cutout: '70%',
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -58,75 +58,99 @@ export function DonutChart({ data }: { data: DonutSlice[] }) {
   }, [data])
 
   return (
-    <div className="flex items-center gap-6">
-      <div className="relative w-[140px] h-[140px] flex-shrink-0">
+    <div className="flex items-center gap-4">
+      <div className="relative w-[104px] h-[104px] flex-shrink-0">
         {total > 0 ? (
           <canvas ref={canvasRef} />
         ) : (
-          <div className="w-full h-full rounded-full border-[18px] border-border" />
+          <div className="w-full h-full rounded-full border-[16px] border-[#f1f0ed]" />
         )}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <span className="font-playfair text-[32px] font-extrabold tracking-tight leading-none block">{total}</span>
-          <span className="text-xs text-muted">Total</span>
+        <div className="absolute inset-4 rounded-full bg-card flex flex-col items-center justify-center">
+          <div className="font-newsreader font-semibold text-2xl text-text leading-none">{total}</div>
+          <div className="text-[10px] text-muted">Total</div>
         </div>
       </div>
-      <div className="flex flex-col gap-2.5">
-        {data.map((s) => {
-          const pct = total > 0 ? ((s.value / total) * 100).toFixed(1).replace('.', ',') : '0,0'
-          return (
-            <div key={s.label} className="flex items-center gap-2 text-[13px]">
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
-              <span className="text-muted flex-1">{s.label}</span>
-              <span className="font-semibold whitespace-nowrap">{s.value} ({pct}%)</span>
-            </div>
-          )
-        })}
+      <div className="flex flex-col gap-[9px] flex-1">
+        {data.map((s) => (
+          <div key={s.label} className="flex items-center gap-2 text-[12.5px]">
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
+            <span className="text-muted flex-1">{s.label}</span>
+            <span className="font-bold text-text">{s.value}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-export function WeekChart() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const chartRef = useRef<ChartJS | null>(null)
+export type WeekPoint = { label: string; value: number }
 
-  useEffect(() => {
-    if (!canvasRef.current) return
-    chartRef.current?.destroy()
-    chartRef.current = new ChartJS(canvasRef.current, {
-      type: 'line',
-      data: {
-        labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-        datasets: [{
-          data: [18, 22, 20, 24, 16, 8, 0],
-          borderColor: '#1a1a1a',
-          backgroundColor: 'rgba(26,26,26,0.05)',
-          borderWidth: 2.5,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 5,
-          pointBackgroundColor: '#1a1a1a',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: true },
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 11, weight: 'normal' as const }, color: '#7a7a7a' } },
-          y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#7a7a7a', stepSize: 10 }, beginAtZero: true },
-        },
-      },
-    })
-    return () => { chartRef.current?.destroy() }
-  }, [])
+export function WeekChart({ points }: { points: WeekPoint[] }) {
+  const max = Math.max(30, ...points.map((p) => p.value))
+  const W = 980
+  const H = 200
+  const PADDING_LEFT = 70
+  const PADDING_RIGHT = 25
+  const TOP = 20
+  const BOTTOM = 160
+  const usableWidth = W - PADDING_LEFT - PADDING_RIGHT
+  const step = points.length > 1 ? usableWidth / (points.length - 1) : 0
+  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
 
-  return <canvas ref={canvasRef} />
+  const coords = points.map((p, i) => ({
+    x: PADDING_LEFT + step * i,
+    y: TOP + (BOTTOM - TOP) * (1 - p.value / max),
+    label: p.label,
+    value: p.value,
+  }))
+
+  const linePath = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${c.y}`).join(' ')
+  const areaPath = `${linePath} L${coords[coords.length - 1]?.x ?? 0},${BOTTOM} L${coords[0]?.x ?? 0},${BOTTOM} Z`
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-[180px] overflow-visible">
+      {[0, 1, 2, 3].map((i) => {
+        const y = TOP + ((BOTTOM - TOP) * i) / 3
+        return (
+          <g key={i}>
+            <line x1={PADDING_LEFT - 26} y1={y} x2={W - PADDING_RIGHT} y2={y} stroke="#f0efec" strokeWidth="1" />
+            <text x={PADDING_LEFT - 40} y={y + 4} textAnchor="end" fontSize="11" fill="#b4b1a9">
+              {Math.round((max * (3 - i)) / 3)}
+            </text>
+          </g>
+        )
+      })}
+
+      <path d={areaPath} fill="#6d5ae6" fillOpacity="0.08" />
+      <path d={linePath} fill="none" stroke="#6d5ae6" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+
+      {coords.map((c, i) => (
+        <circle
+          key={i}
+          cx={c.x}
+          cy={c.y}
+          r={i === todayIdx ? 5.5 : 4}
+          fill={i === todayIdx ? '#6d5ae6' : '#fff'}
+          stroke={i === todayIdx ? '#fff' : '#6d5ae6'}
+          strokeWidth="2.4"
+        />
+      ))}
+
+      {coords.map((c, i) => (
+        <text
+          key={i}
+          x={c.x}
+          y={H - 18}
+          textAnchor="middle"
+          fontSize="11.5"
+          fontWeight={i === todayIdx ? 700 : 400}
+          fill={i === todayIdx ? '#6d5ae6' : '#a3a09a'}
+        >
+          {c.label}
+        </text>
+      ))}
+    </svg>
+  )
 }
 
 export function PatientsChart() {
@@ -139,16 +163,16 @@ export function PatientsChart() {
     chartRef.current = new ChartJS(canvasRef.current, {
       type: 'line',
       data: {
-        labels: ['1 Mai', '', '10 Mai', '', '20 Mai', '', '30 Mai'],
+        labels: ['1', '5', '10', '15', '20', '25', '30'],
         datasets: [{
           data: [10, 11, 12, 14, 13, 16, 18],
-          borderColor: '#1a1a1a',
-          backgroundColor: 'rgba(26,26,26,0.04)',
+          borderColor: '#6d5ae6',
+          backgroundColor: 'rgba(109,90,230,0.06)',
           borderWidth: 2,
           fill: true,
           tension: 0.4,
           pointRadius: 4,
-          pointBackgroundColor: '#1a1a1a',
+          pointBackgroundColor: '#6d5ae6',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
         }],
@@ -158,7 +182,7 @@ export function PatientsChart() {
         maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { enabled: true } },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#7a7a7a' } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#a3a09a' } },
           y: { display: false },
         },
       },

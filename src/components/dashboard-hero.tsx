@@ -1,103 +1,145 @@
 import Link from 'next/link'
+import { CalendarIcon, VideoIcon, WalletIcon, CheckCircleIcon } from '@/components/icons'
 
 function greeting(hour: number) {
   return hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
 }
 
-function emoji(hour: number) {
-  return hour < 12 ? '☀️' : hour < 18 ? '🌿' : '🌙'
+function leafIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="#d8e9c4" strokeWidth="2" className="w-6 h-6 inline-block ml-2 align-middle">
+      <path d="M11 20A7 7 0 0 1 4 13C4 8 7 4 12 3a7 7 0 0 0 8 8" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6" />
+    </svg>
+  )
 }
 
-export function DashboardHero({ userName }: { userName: string }) {
+export function DashboardHero({
+  userName,
+  consultasHoje,
+  proximaHora,
+  consultasOnline,
+  receitaMes,
+}: {
+  userName: string
+  consultasHoje: number
+  proximaHora: string | null
+  consultasOnline: number
+  receitaMes: number
+}) {
   const now = new Date()
   const hour = now.getHours()
   const firstName = userName.split(' ').slice(0, 2).join(' ')
-  const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
   const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const receitaFormatted = receitaMes >= 1000
+    ? `R$ ${(receitaMes / 1000).toFixed(1).replace('.', ',')}k`
+    : `R$ ${receitaMes.toFixed(0)}`
+
+  const subtitle = consultasHoje > 0
+    ? `Você tem ${consultasHoje} consulta${consultasHoje === 1 ? '' : 's'} hoje${proximaHora ? `. A próxima é às ${proximaHora}.` : '.'}`
+    : 'Sem consultas hoje. Bom momento pra revisar pacientes.'
 
   return (
-    <div className="relative overflow-hidden rounded-[14px] text-white p-7" style={{ background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)' }}>
-      <div className="relative z-10 max-w-[60%]">
-        <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-lg px-3 py-1.5 text-xs font-semibold mb-4">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          <span className="capitalize">{dateStr}</span>
-          <span className="opacity-60">·</span>
-          <span>{timeStr}</span>
+    <div
+      className="relative overflow-hidden rounded-[22px] p-[30px_32px] text-white"
+      style={{ background: 'linear-gradient(125deg,#5546c9 0%,#6d5ae6 52%,#8472f2 100%)' }}
+    >
+      <div className="flex justify-between gap-6">
+        <div className="relative z-10 max-w-[440px]">
+          <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 px-3 py-1.5 rounded-[11px] text-xs font-semibold capitalize">
+            <CalendarIcon className="w-3.5 h-3.5" />
+            {dateStr} · {timeStr}
+          </div>
+          <h1 className="font-newsreader font-semibold text-[35px] leading-tight mt-4 mb-2 flex items-center">
+            {greeting(hour)}, {firstName}!{leafIcon()}
+          </h1>
+          <p className="text-[14.5px] text-white/80 leading-relaxed mb-5">
+            {consultasHoje > 0 ? (
+              <>
+                Você tem <strong className="font-bold">{consultasHoje} consulta{consultasHoje === 1 ? '' : 's'}</strong>{' '}
+                hoje{proximaHora && <>. A próxima é às {proximaHora}.</>}
+              </>
+            ) : (
+              subtitle
+            )}
+          </p>
+          <div className="flex gap-3">
+            <Link
+              href="/agenda/novo"
+              className="inline-flex items-center gap-2 bg-white text-[#3a2fae] px-[22px] py-[13px] rounded-[13px] text-[14.5px] font-bold shadow-lg hover:-translate-y-px transition-transform"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nova consulta
+            </Link>
+            <Link
+              href="/agenda"
+              className="inline-flex items-center gap-2 bg-white/15 border border-white/25 text-white px-5 py-[13px] rounded-[13px] text-[14.5px] font-semibold hover:bg-white/20 transition-colors"
+            >
+              Ver agenda
+            </Link>
+          </div>
         </div>
-        <h1 className="font-playfair text-[32px] font-extrabold tracking-tight leading-tight">
-          {greeting(hour)}, {firstName}! {emoji(hour)}
-        </h1>
-        <p className="text-sm text-white/80 mt-2 max-w-md">
-          Tenha uma jornada produtiva. Confira a sua agenda e os atendimentos do dia.
-        </p>
 
-        <Link
-          href="/agenda/novo"
-          className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-white text-text rounded-[10px] text-sm font-semibold hover:bg-white/90 transition-all hover:-translate-y-px shadow-lg"
-        >
-          + Nova consulta
-        </Link>
+        <div className="relative w-[250px] flex-none hidden md:block">
+          <div className="absolute -right-[10px] -top-[30px] w-[280px] h-[280px] rounded-full border border-white/15" />
+          <div className="absolute right-[30px] top-[10px] w-[200px] h-[200px] rounded-full bg-white/[0.07]" />
+          <div
+            className="absolute left-2 top-[18px] w-[30px] h-[30px] bg-white/55"
+            style={{ clipPath: 'polygon(40% 0,60% 0,60% 40%,100% 40%,100% 60%,60% 60%,60% 100%,40% 100%,40% 60%,0 60%,0 40%,40% 40%)' }}
+          />
+          <div
+            className="absolute left-[62px] bottom-[30px] w-[18px] h-[18px] bg-white/40"
+            style={{ clipPath: 'polygon(40% 0,60% 0,60% 40%,100% 40%,100% 60%,60% 60%,60% 100%,40% 100%,40% 60%,0 60%,0 40%,40% 40%)' }}
+          />
+          <DoctorIllustration />
+        </div>
       </div>
 
-      <div className="absolute right-0 top-0 bottom-0 w-[42%] opacity-95 pointer-events-none hidden md:block">
-        <DoctorIllustration />
+      <div className="flex gap-[10px] mt-[22px] flex-wrap relative z-10">
+        <Chip icon={<CheckCircleIcon className="w-[17px] h-[17px]" />} label="Consultas hoje" value={String(consultasHoje)} />
+        <Chip icon={<VideoIcon className="w-[17px] h-[17px]" />} label="Online" value={String(consultasOnline)} />
+        <Chip icon={<WalletIcon className="w-[17px] h-[17px]" />} label="Receita" value={receitaFormatted} />
       </div>
+    </div>
+  )
+}
 
-      <svg className="absolute -bottom-8 -right-8 w-40 h-40 opacity-10 pointer-events-none" viewBox="0 0 100 100" fill="none">
-        <circle cx="50" cy="50" r="48" stroke="white" strokeWidth="2" />
-        <circle cx="50" cy="50" r="32" stroke="white" strokeWidth="2" />
-      </svg>
+function Chip({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-[9px] bg-white/[0.13] border border-white/[0.16] px-[14px] py-[10px] rounded-[13px]">
+      {icon}
+      <span className="text-[13px] text-white/85">{label}</span>
+      <span className="font-newsreader font-semibold text-[18px]">{value}</span>
     </div>
   )
 }
 
 function DoctorIllustration() {
   return (
-    <svg viewBox="0 0 300 220" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-      <circle cx="195" cy="110" r="95" fill="white" fillOpacity="0.08" />
-      <circle cx="195" cy="110" r="70" fill="white" fillOpacity="0.06" />
-
-      <g transform="translate(155, 30)">
-        <path d="M30 80 L18 200 L82 200 L70 80 Z" fill="white" />
-        <path d="M30 80 Q40 70 50 70 Q60 70 70 80 L70 95 L62 95 L50 110 L38 95 L30 95 Z" fill="white" />
-        <path d="M38 88 L50 105 L62 88" stroke="#6366F1" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-
-        <circle cx="58" cy="170" r="5.5" fill="none" stroke="#1f2937" strokeWidth="1.8" />
-        <path d="M58 164.5 Q70 145 50 130 Q34 120 36 105" stroke="#1f2937" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-
-        <circle cx="50" cy="50" r="22" fill="#FCD9B6" />
-        <path d="M28 50 Q28 27 50 24 Q72 27 72 50 L67 47 Q67 30 50 30 Q33 30 33 47 Z" fill="#3b2a20" />
-        <circle cx="43" cy="50" r="1.8" fill="#1f2937" />
-        <circle cx="57" cy="50" r="1.8" fill="#1f2937" />
-        <path d="M44 60 Q50 64 56 60" stroke="#1f2937" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-
-        <rect x="38" y="100" width="8" height="14" rx="2" fill="#e5e7eb" />
-        <line x1="42" y1="100" x2="42" y2="114" stroke="#9ca3af" strokeWidth="0.5" />
-      </g>
-
-      <g opacity="0.85">
-        <g transform="translate(65, 50)">
-          <rect x="-4" y="-12" width="8" height="24" rx="2" fill="white" />
-          <rect x="-12" y="-4" width="24" height="8" rx="2" fill="white" />
-        </g>
-        <g transform="translate(35, 130)">
-          <rect x="-3" y="-9" width="6" height="18" rx="1.5" fill="white" fillOpacity="0.7" />
-          <rect x="-9" y="-3" width="18" height="6" rx="1.5" fill="white" fillOpacity="0.7" />
-        </g>
-        <g transform="translate(110, 35)">
-          <rect x="-14" y="-6" width="28" height="12" rx="6" fill="white" />
-          <rect x="-14" y="-6" width="14" height="12" rx="6" fill="white" stroke="#6366F1" strokeWidth="0.5" />
-          <line x1="0" y1="-6" x2="0" y2="6" stroke="#6366F1" strokeWidth="1" />
-        </g>
-        <circle cx="80" cy="180" r="3.5" fill="white" fillOpacity="0.65" />
-        <circle cx="125" cy="95" r="2.5" fill="white" fillOpacity="0.6" />
-        <circle cx="50" cy="95" r="2" fill="white" fillOpacity="0.5" />
-      </g>
+    <svg
+      viewBox="0 0 200 240"
+      className="absolute right-[18px] -bottom-[30px] w-[176px] h-[206px]"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <ellipse cx="100" cy="220" rx="60" ry="6" fill="white" fillOpacity="0.1" />
+      <path d="M55 100 L40 235 L160 235 L145 100 Q145 80 100 80 Q55 80 55 100 Z" fill="#ffffff" />
+      <path d="M75 80 L100 110 L125 80 L125 76 Q113 70 100 70 Q87 70 75 76 Z" fill="#f5f4f1" />
+      <path d="M90 80 L100 100 L110 80" stroke="#6d5ae6" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <circle cx="100" cy="55" r="26" fill="#fcd9b6" />
+      <path d="M73 55 Q73 28 100 25 Q127 28 127 55 L120 50 Q120 32 100 32 Q80 32 80 50 Z" fill="#3b2a20" />
+      <circle cx="92" cy="56" r="2" fill="#1c1b1a" />
+      <circle cx="108" cy="56" r="2" fill="#1c1b1a" />
+      <path d="M93 66 Q100 71 107 66" stroke="#1c1b1a" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      <circle cx="125" cy="155" r="7" fill="none" stroke="#1c1b1a" strokeWidth="2" />
+      <path d="M125 148 Q138 130 113 116 Q92 105 92 90" stroke="#1c1b1a" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <rect x="78" y="110" width="14" height="18" rx="2" fill="#e9e7e0" />
+      <circle cx="85" cy="113" r="1.5" fill="#a3a09a" />
     </svg>
   )
 }

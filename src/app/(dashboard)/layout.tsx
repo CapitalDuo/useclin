@@ -46,7 +46,7 @@ export default async function DashboardLayout({
         userRole={prof?.role === 'admin' ? 'Administrador' : 'Profissional'}
         userInitials={prof?.iniciais ?? user.email?.slice(0, 2).toUpperCase() ?? '??'}
       />
-      <main className="flex-1 ml-[230px] min-h-screen">{children}</main>
+      <main className="flex-1 min-h-screen min-w-0">{children}</main>
     </div>
   )
 }

@@ -1,24 +1,33 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-inter: 'Inter', system-ui, sans-serif;
-  --font-playfair: 'Playfair Display', serif;
+  --font-hanken: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-newsreader: 'Newsreader', serif;
+  /* aliases para compatibilidade com classes existentes */
+  --font-inter: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-playfair: 'Newsreader', serif;
 
-  --color-bg: #f7f7f5;
+  --color-bg: #f4f3f1;
   --color-card: #ffffff;
-  --color-text: #1a1a1a;
-  --color-muted: #7a7a7a;
-  --color-border: #e8e8e8;
-  --color-green: #4caf50;
-  --color-green-light: #e8f5e9;
+  --color-text: #1c1b1a;
+  --color-muted: #6f6c67;
+  --color-border: #ecebe8;
+  --color-soft: #f8f7f5;
+
+  --color-primary: #6d5ae6;
+  --color-primary-strong: #5b4bd4;
+  --color-primary-bg: #f1eefb;
+
+  --color-green: #2fb98a;
+  --color-green-light: #e9f7f1;
   --color-orange: #f5a623;
-  --color-orange-light: #fff3e0;
-  --color-red: #e74c3c;
+  --color-orange-light: #fdf2e0;
+  --color-red: #f06a6a;
   --color-red-light: #fdeaea;
-  --color-blue: #5b8af5;
-  --color-blue-light: #e8f0ff;
-  --color-purple: #9b59b6;
-  --color-purple-light: #f3e8ff;
+  --color-blue: #3b82f6;
+  --color-blue-light: #eaf1fe;
+  --color-purple: #6d5ae6;
+  --color-purple-light: #f1eefb;
   --color-yellow: #f5c842;
   --color-yellow-light: #fff8e1;
 }
@@ -26,10 +35,25 @@
 body {
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--font-inter);
+  font-family: var(--font-hanken);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #b6b3ad;
 }
 
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
+}
+
+.font-playfair,
+.font-newsreader {
+  font-family: var(--font-newsreader);
+}
+
+.font-inter,
+.font-hanken {
+  font-family: var(--font-hanken);
 }

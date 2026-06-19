@@ -1,14 +1,16 @@
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Hanken_Grotesk, Newsreader } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({
+const hanken = Hanken_Grotesk({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-hanken',
+  display: 'swap',
 })
 
-const playfair = Playfair_Display({
+const newsreader = Newsreader({
   subsets: ['latin'],
-  variable: '--font-playfair',
+  variable: '--font-newsreader',
+  display: 'swap',
 })
 
 export const metadata = {
@@ -22,10 +24,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
-      <body className="font-inter min-h-full">
-        {children}
-      </body>
+    <html lang="pt-BR" className={`${hanken.variable} ${newsreader.variable} h-full antialiased`}>
+      <body className="font-hanken min-h-full">{children}</body>
     </html>
   )
 }
