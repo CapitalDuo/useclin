@@ -40,7 +40,7 @@ export function NovoTicketForm() {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-[13px] bg-bg flex items-center justify-center text-lg">+</div>
           <div>
-            <div className="text-sm font-semibold">Abrir novo ticket</div>
+            <div className="text-sm font-semibold">Abrir nova solicitação</div>
             <div className="text-xs text-muted">Manda uma dúvida, bug ou sugestão pra gente</div>
           </div>
         </div>
@@ -50,7 +50,7 @@ export function NovoTicketForm() {
 
   return (
     <form action={handleSubmit} className="bg-card border border-border rounded-[14px] p-6 flex flex-col gap-4">
-      <h2 className="font-playfair text-base font-bold">Novo ticket</h2>
+      <h2 className="font-playfair text-base font-bold">Nova solicitação</h2>
 
       <div>
         <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Assunto</label>
@@ -101,7 +101,7 @@ export function NovoTicketForm() {
           disabled={pending}
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {pending ? 'Enviando…' : 'Abrir ticket'}
+          {pending ? 'Enviando…' : 'Abrir solicitação'}
         </button>
       </div>
     </form>

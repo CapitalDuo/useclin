@@ -29,7 +29,7 @@ export default async function ClienteTicketPage({
     <div className="px-10 pt-7 pb-10 max-w-[820px]">
       <div className="mb-5">
         <Link href="/configuracoes/suporte" className="text-xs text-muted hover:text-text font-medium">
-          ← Voltar para meus tickets
+          ← Voltar para minhas solicitações
         </Link>
       </div>
       <TicketThread ticket={ticket} mensagens={mensagens ?? []} asRole="cliente" />

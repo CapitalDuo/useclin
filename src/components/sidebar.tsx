@@ -88,7 +88,7 @@ export function Sidebar({
         <form action={logoutAction} className="mt-2">
           <button
             type="submit"
-            className="w-full flex items-center gap-3 px-3.5 py-3 rounded-[12px] text-[14.5px] font-semibold text-[#5b4bd4] bg-[#f1eefb] hover:bg-[#e7e1fa] transition-colors cursor-pointer"
+            className="w-full flex items-center gap-3 px-3.5 py-3 rounded-[12px] text-[14.5px] font-semibold text-[#d24343] bg-[#fdeaea] hover:bg-[#fad2d2] transition-colors cursor-pointer"
           >
             <LogOutIcon className="w-[19px] h-[19px]" />
             Sair

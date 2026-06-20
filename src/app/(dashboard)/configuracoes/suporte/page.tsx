@@ -33,10 +33,10 @@ export default async function SuporteClientePage() {
 
         <div className="bg-card border border-border rounded-[14px] overflow-hidden">
           <div className="px-6 py-4 border-b border-border">
-            <h2 className="font-playfair text-base font-bold">Meus tickets</h2>
+            <h2 className="font-playfair text-base font-bold">Minhas solicitações</h2>
           </div>
           {!tickets || tickets.length === 0 ? (
-            <div className="text-center py-12 text-sm text-muted">Nenhum ticket aberto.</div>
+            <div className="text-center py-12 text-sm text-muted">Nenhuma solicitação aberta.</div>
           ) : (
             <div className="flex flex-col">
               {tickets.map((t, i) => (

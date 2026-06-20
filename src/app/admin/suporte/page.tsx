@@ -29,14 +29,14 @@ export default async function AdminSuportePage() {
       <div className="mb-7">
         <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">Suporte</h1>
         <p className="text-sm text-muted mt-0.5">
-          {tickets?.length ?? 0} ticket{tickets?.length === 1 ? '' : 's'} de clientes
+          {tickets?.length ?? 0} solicita{tickets?.length === 1 ? 'ção' : 'ções'} de clientes
         </p>
       </div>
 
       <div className="bg-card border border-border rounded-[14px] overflow-hidden">
         {tickets?.length === 0 ? (
           <div className="text-center py-20 text-sm text-muted">
-            Nenhum ticket aberto. Tudo tranquilo por aqui ✨
+            Nenhuma solicitação aberta. Tudo tranquilo por aqui ✨
           </div>
         ) : (
           <div className="flex flex-col">
