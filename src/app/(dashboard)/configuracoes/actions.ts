@@ -46,7 +46,7 @@ export async function updateClinicaAction(formData: FormData) {
 
   if (error) return { ok: false as const, error: error.message }
 
-  revalidatePath('/configuracoes/perfil')
+  revalidatePath('/configuracoes')
   revalidatePath('/admin/clinicas')
   return { ok: true as const }
 }
@@ -81,7 +81,7 @@ export async function updateHorariosAction(formData: FormData) {
 
   if (error) return { ok: false as const, error: error.message }
 
-  revalidatePath('/configuracoes/horarios')
+  revalidatePath('/configuracoes')
   return { ok: true as const }
 }
 
@@ -119,7 +119,7 @@ export async function upsertWhatsappAction(formData: FormData) {
     if (error) return { ok: false as const, error: error.message }
   }
 
-  revalidatePath('/configuracoes/whatsapp')
+  revalidatePath('/configuracoes')
   return { ok: true as const }
 }
 
@@ -152,6 +152,34 @@ export async function updateMeuPerfilAction(formData: FormData) {
 
   if (error) return { ok: false as const, error: error.message }
 
-  revalidatePath('/configuracoes/meu-perfil')
+  revalidatePath('/configuracoes')
+  return { ok: true as const }
+}
+
+const NOTIF_TIPOS = ['lembrete_consulta', 'confirmacao_whatsapp', 'email_pos_consulta'] as const
+export type NotificacaoTipo = (typeof NOTIF_TIPOS)[number]
+
+export async function toggleNotificacaoAction(tipo: NotificacaoTipo, ativo: boolean) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, error: 'Não autenticado' }
+
+  const { prof } = await clinicaIdOf(user.id)
+  if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
+
+  if (!NOTIF_TIPOS.includes(tipo)) return { ok: false as const, error: 'Tipo inválido' }
+
+  const { error } = await supabase
+    .from('notificacao_config')
+    .upsert(
+      { clinica_id: prof.clinica_id, tipo, ativo },
+      { onConflict: 'clinica_id,tipo' },
+    )
+
+  if (error) return { ok: false as const, error: error.message }
+
+  revalidatePath('/configuracoes')
   return { ok: true as const }
 }
