@@ -45,14 +45,14 @@ export function NovaClinicaForm() {
         <div className="flex gap-3">
           <Link
             href="/admin/clinicas"
-            className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-border rounded-[10px] text-sm font-semibold hover:bg-bg transition-colors"
+            className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-border rounded-[13px] text-sm font-semibold hover:bg-bg transition-colors"
           >
             Ver clínicas
           </Link>
           <button
             type="button"
             onClick={() => setSuccess(null)}
-            className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer"
           >
             Criar outra
           </button>
@@ -69,7 +69,7 @@ export function NovaClinicaForm() {
           name="clinica_nome"
           required
           placeholder="Ex: Clínica Bella Vita"
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
         />
       </div>
 
@@ -86,7 +86,7 @@ export function NovaClinicaForm() {
               name="admin_nome"
               required
               placeholder="Dr. João Silva"
-              className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+              className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
             />
           </div>
 
@@ -97,7 +97,7 @@ export function NovaClinicaForm() {
               type="email"
               required
               placeholder="joao@clinica.com.br"
-              className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+              className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
             />
           </div>
         </div>
@@ -110,14 +110,14 @@ export function NovaClinicaForm() {
       <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
         <Link
           href="/admin/clinicas"
-          className="px-5 py-2.5 rounded-[10px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
+          className="px-5 py-2.5 rounded-[13px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
         >
           Cancelar
         </Link>
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Criando…' : 'Criar clínica →'}
         </button>

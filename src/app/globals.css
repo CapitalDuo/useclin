@@ -57,3 +57,22 @@ textarea::placeholder {
 .font-hanken {
   font-family: var(--font-hanken);
 }
+
+/* Sombra suave aplicada automaticamente em qualquer "card"
+   (elemento com bg-card + border + border-border). Mantém o
+   visual unificado entre dashboard, formulários, tabelas e
+   listas sem precisar marcar cada container manualmente. */
+.bg-card.border.border-border {
+  box-shadow: 0 1px 2px rgba(28, 27, 26, 0.04), 0 10px 26px rgba(28, 27, 26, 0.035);
+}
+
+/* Botões pretos do app passam a usar o roxo da marca quando
+   tiverem a classe utilitária bg-text (estilo existente). Mantém
+   o histórico das classes legados mas alinha à paleta nova. */
+.bg-text {
+  background-color: var(--color-primary-strong);
+}
+
+.bg-text:hover {
+  background-color: var(--color-primary);
+}

@@ -9,7 +9,7 @@ export default function AtendimentoPage() {
           <p className="text-sm text-muted mt-0.5">Converse com seus pacientes e gerencie atendimentos.</p>
         </div>
         <div className="flex gap-2.5">
-          <button className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer">
+          <button className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer">
             + Novo agendamento
           </button>
         </div>

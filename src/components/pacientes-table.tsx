@@ -64,7 +64,7 @@ export function PacientesTable({ pacientes }: { pacientes: PacienteRow[] }) {
             placeholder="Buscar por nome ou CPF..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-[10px] border border-border text-[13px] bg-card outline-none focus:border-text transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-[13px] border border-border text-[13px] bg-card outline-none focus:border-[#5b4bd4] transition-colors"
           />
         </div>
 

@@ -63,7 +63,7 @@ export function EditarAgendamentoForm({
           name="paciente_id"
           required
           defaultValue={agendamento.paciente_id}
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
         >
           {pacientes.map((p) => (
             <option key={p.id} value={p.id}>{p.nome}</option>
@@ -78,7 +78,7 @@ export function EditarAgendamentoForm({
             name="profissional_id"
             required
             defaultValue={agendamento.profissional_id}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
           >
             {profissionais.map((p) => (
               <option key={p.id} value={p.id}>
@@ -93,7 +93,7 @@ export function EditarAgendamentoForm({
           <select
             name="tipo_consulta_id"
             defaultValue={agendamento.tipo_consulta_id ?? 'none'}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
           >
             <option value="none">— sem tipo —</option>
             {tipos.map((t) => (
@@ -111,7 +111,7 @@ export function EditarAgendamentoForm({
             name="data"
             required
             defaultValue={agendamento.data}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -121,7 +121,7 @@ export function EditarAgendamentoForm({
             name="hora_inicio"
             required
             defaultValue={agendamento.hora_inicio.slice(0, 5)}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -131,7 +131,7 @@ export function EditarAgendamentoForm({
             name="hora_fim"
             required
             defaultValue={agendamento.hora_fim.slice(0, 5)}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
       </div>
@@ -142,7 +142,7 @@ export function EditarAgendamentoForm({
           <select
             name="status"
             defaultValue={agendamento.status}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
           >
             <option value="agendado">Agendado</option>
             <option value="em_atendimento">Em andamento</option>
@@ -158,7 +158,7 @@ export function EditarAgendamentoForm({
             name="valor"
             defaultValue={agendamento.valor?.toString() ?? ''}
             placeholder="150,00"
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
       </div>
@@ -170,7 +170,7 @@ export function EditarAgendamentoForm({
           rows={3}
           defaultValue={agendamento.notas ?? ''}
           placeholder="Observações sobre a consulta…"
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg resize-none"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg resize-none"
         />
       </div>
 
@@ -184,14 +184,14 @@ export function EditarAgendamentoForm({
               type="button"
               onClick={handleDelete}
               disabled={pending}
-              className="px-4 py-2 rounded-[10px] bg-red text-white text-xs font-semibold hover:bg-red/90 transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2 rounded-[13px] bg-red text-white text-xs font-semibold hover:bg-red/90 transition-colors cursor-pointer disabled:opacity-50"
             >
               Sim, excluir
             </button>
             <button
               type="button"
               onClick={() => setConfirmDelete(false)}
-              className="px-4 py-2 rounded-[10px] border border-border text-xs font-semibold hover:bg-bg transition-colors"
+              className="px-4 py-2 rounded-[13px] border border-border text-xs font-semibold hover:bg-bg transition-colors"
             >
               Cancelar
             </button>
@@ -200,7 +200,7 @@ export function EditarAgendamentoForm({
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
-            className="px-4 py-2 rounded-[10px] border border-red/30 text-xs font-semibold text-red hover:bg-red-light transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-[13px] border border-red/30 text-xs font-semibold text-red hover:bg-red-light transition-colors cursor-pointer"
           >
             Excluir consulta
           </button>
@@ -209,14 +209,14 @@ export function EditarAgendamentoForm({
         <div className="flex gap-3">
           <Link
             href="/agenda"
-            className="px-5 py-2.5 rounded-[10px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
+            className="px-5 py-2.5 rounded-[13px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {pending ? 'Salvando…' : 'Salvar alterações'}
           </button>

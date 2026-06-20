@@ -258,13 +258,13 @@ export function AgendaCalendar({
     <>
       <div className="flex items-center justify-between py-6">
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-[10px] border border-border bg-card flex items-center justify-center cursor-pointer hover:bg-bg transition-colors">
+          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-[13px] border border-border bg-card flex items-center justify-center cursor-pointer hover:bg-bg transition-colors">
             <ChevronLeftIcon className="w-4 h-4" />
           </button>
-          <button onClick={() => navigate(1)} className="w-9 h-9 rounded-[10px] border border-border bg-card flex items-center justify-center cursor-pointer hover:bg-bg transition-colors">
+          <button onClick={() => navigate(1)} className="w-9 h-9 rounded-[13px] border border-border bg-card flex items-center justify-center cursor-pointer hover:bg-bg transition-colors">
             <ChevronRightIcon className="w-4 h-4" />
           </button>
-          <button onClick={goToday} className="px-[18px] py-2 rounded-[10px] border border-border bg-card text-[13px] font-semibold cursor-pointer hover:bg-bg transition-colors">
+          <button onClick={goToday} className="px-[18px] py-2 rounded-[13px] border border-border bg-card text-[13px] font-semibold cursor-pointer hover:bg-bg transition-colors">
             Hoje
           </button>
           <div className="flex items-center gap-2 ml-3 text-sm font-medium text-text">
@@ -283,11 +283,11 @@ export function AgendaCalendar({
             ))}
           </div>
 
-          <div className="flex rounded-[10px] border border-border bg-card p-0.5">
+          <div className="flex rounded-[13px] border border-border bg-card p-0.5">
             <button
               onClick={() => setView('day')}
               className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold cursor-pointer transition-all ${
-                view === 'day' ? 'bg-text text-white' : 'text-muted hover:text-text'
+                view === 'day' ? 'bg-[#f1eefb] text-[#5b4bd4]' : 'text-muted hover:text-text'
               }`}
             >
               Dia
@@ -295,7 +295,7 @@ export function AgendaCalendar({
             <button
               onClick={() => setView('week')}
               className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold cursor-pointer transition-all ${
-                view === 'week' ? 'bg-text text-white' : 'text-muted hover:text-text'
+                view === 'week' ? 'bg-[#f1eefb] text-[#5b4bd4]' : 'text-muted hover:text-text'
               }`}
             >
               Semana
@@ -430,7 +430,7 @@ export function AgendaCalendar({
       </div>
 
       {isMoving && (
-        <div className="fixed bottom-6 right-6 bg-text text-white text-xs font-semibold px-4 py-2 rounded-[10px] shadow-lg">
+        <div className="fixed bottom-6 right-6 bg-text text-white text-xs font-semibold px-4 py-2 rounded-[13px] shadow-lg">
           Movendo consulta…
         </div>
       )}

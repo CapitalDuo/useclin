@@ -83,7 +83,7 @@ export function NovoAgendamentoForm({
         <p className="text-sm text-muted mb-5">Você precisa ter pelo menos um paciente ativo pra agendar uma consulta.</p>
         <Link
           href="/pacientes/novo"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all cursor-pointer"
         >
           + Cadastrar paciente
         </Link>
@@ -100,7 +100,7 @@ export function NovoAgendamentoForm({
           required
           value={pacienteId}
           onChange={(e) => setPacienteId(e.target.value)}
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
         >
           {pacientes.map((p) => (
             <option key={p.id} value={p.id}>{p.nome}</option>
@@ -116,7 +116,7 @@ export function NovoAgendamentoForm({
             required
             value={profissionalId}
             onChange={(e) => setProfissionalId(e.target.value)}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
           >
             {profissionais.map((p) => (
               <option key={p.id} value={p.id}>
@@ -132,7 +132,7 @@ export function NovoAgendamentoForm({
             name="tipo_consulta_id"
             value={tipoId}
             onChange={(e) => handleTipoChange(e.target.value)}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
           >
             <option value="none">— sem tipo —</option>
             {tipos.map((t) => (
@@ -151,7 +151,7 @@ export function NovoAgendamentoForm({
             required
             value={data}
             onChange={(e) => setData(e.target.value)}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -162,7 +162,7 @@ export function NovoAgendamentoForm({
             required
             value={horaInicio}
             onChange={(e) => handleHoraInicioChange(e.target.value)}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -173,7 +173,7 @@ export function NovoAgendamentoForm({
             required
             value={horaFim}
             onChange={(e) => setHoraFim(e.target.value)}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
       </div>
@@ -184,7 +184,7 @@ export function NovoAgendamentoForm({
           <select
             name="status"
             defaultValue="agendado"
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg cursor-pointer"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
           >
             <option value="agendado">Agendado</option>
             <option value="em_atendimento">Em andamento</option>
@@ -199,7 +199,7 @@ export function NovoAgendamentoForm({
             type="text"
             name="valor"
             placeholder="150,00"
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
       </div>
@@ -210,7 +210,7 @@ export function NovoAgendamentoForm({
           name="notas"
           rows={3}
           placeholder="Observações sobre a consulta…"
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg resize-none"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg resize-none"
         />
       </div>
 
@@ -219,14 +219,14 @@ export function NovoAgendamentoForm({
       <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
         <Link
           href="/agenda"
-          className="px-5 py-2.5 rounded-[10px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
+          className="px-5 py-2.5 rounded-[13px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
         >
           Cancelar
         </Link>
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Agendando…' : 'Agendar consulta →'}
         </button>

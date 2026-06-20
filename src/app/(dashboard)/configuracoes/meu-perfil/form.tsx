@@ -46,7 +46,7 @@ export function MeuPerfilForm({ profissional }: { profissional: Profissional }) 
             name="nome"
             required
             defaultValue={profissional.nome}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -55,7 +55,7 @@ export function MeuPerfilForm({ profissional }: { profissional: Profissional }) 
             name="especialidade"
             placeholder="Ex: Dermatologia"
             defaultValue={profissional.especialidade ?? ''}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -64,7 +64,7 @@ export function MeuPerfilForm({ profissional }: { profissional: Profissional }) 
             name="registro"
             placeholder="CRM 123456"
             defaultValue={profissional.registro ?? ''}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -73,7 +73,7 @@ export function MeuPerfilForm({ profissional }: { profissional: Profissional }) 
             name="telefone"
             placeholder="(11) 99999-9999"
             defaultValue={profissional.telefone ?? ''}
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
           />
         </div>
         <div>
@@ -81,7 +81,7 @@ export function MeuPerfilForm({ profissional }: { profissional: Profissional }) 
           <input
             value={profissional.email ?? ''}
             disabled
-            className="w-full px-4 py-3 rounded-[10px] border border-border text-sm bg-bg text-muted cursor-not-allowed"
+            className="w-full px-4 py-3 rounded-[13px] border border-border text-sm bg-bg text-muted cursor-not-allowed"
           />
           <p className="text-[10px] text-muted mt-1">Usado para login — entre em contato com o administrador para alterar.</p>
         </div>
@@ -94,7 +94,7 @@ export function MeuPerfilForm({ profissional }: { profissional: Profissional }) 
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Salvando…' : 'Salvar alterações'}
         </button>

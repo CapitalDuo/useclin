@@ -19,7 +19,7 @@ export default async function AdminClinicasPage() {
         </div>
         <Link
           href="/admin/clinicas/novo"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer"
         >
           + Nova clínica
         </Link>

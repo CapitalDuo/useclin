@@ -53,7 +53,7 @@ export function HorariosForm({ initial }: { initial: HorarioRow[] }) {
           if (!row) return null
           const key = KEYS[dia]
           return (
-            <div key={dia} className="flex items-center gap-4 py-2.5 px-4 rounded-[10px] bg-bg">
+            <div key={dia} className="flex items-center gap-4 py-2.5 px-4 rounded-[13px] bg-bg">
               <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-[180px]">
                 <input
                   type="checkbox"
@@ -73,7 +73,7 @@ export function HorariosForm({ initial }: { initial: HorarioRow[] }) {
                     name={`${key}_inicio`}
                     value={row.hora_inicio}
                     onChange={(e) => updateRow(dia, { hora_inicio: e.target.value })}
-                    className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors"
+                    className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors"
                   />
                   <span className="text-xs text-muted">às</span>
                   <input
@@ -81,7 +81,7 @@ export function HorariosForm({ initial }: { initial: HorarioRow[] }) {
                     name={`${key}_fim`}
                     value={row.hora_fim}
                     onChange={(e) => updateRow(dia, { hora_fim: e.target.value })}
-                    className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors"
+                    className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors"
                   />
                 </div>
               ) : (
@@ -99,7 +99,7 @@ export function HorariosForm({ initial }: { initial: HorarioRow[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Salvando…' : 'Salvar horários'}
         </button>

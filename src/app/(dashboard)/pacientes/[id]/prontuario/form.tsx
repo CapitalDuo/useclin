@@ -31,7 +31,7 @@ export function NovoProntuarioForm({ pacienteId }: { pacienteId: string }) {
         className="w-full text-left bg-card border border-dashed border-border rounded-[14px] px-6 py-5 hover:border-text hover:bg-bg transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[10px] bg-bg flex items-center justify-center text-lg">+</div>
+          <div className="w-10 h-10 rounded-[13px] bg-bg flex items-center justify-center text-lg">+</div>
           <div>
             <div className="text-sm font-semibold">Novo registro de prontuário</div>
             <div className="text-xs text-muted">Anote descrição, diagnóstico e prescrição da consulta</div>
@@ -52,7 +52,7 @@ export function NovoProntuarioForm({ pacienteId }: { pacienteId: string }) {
           required
           rows={3}
           placeholder="O que aconteceu na consulta, queixa, evolução…"
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg resize-none"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg resize-none"
         />
       </div>
 
@@ -62,7 +62,7 @@ export function NovoProntuarioForm({ pacienteId }: { pacienteId: string }) {
           name="diagnostico"
           rows={2}
           placeholder="CID, hipótese diagnóstica, conclusão clínica…"
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg resize-none"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg resize-none"
         />
       </div>
 
@@ -72,7 +72,7 @@ export function NovoProntuarioForm({ pacienteId }: { pacienteId: string }) {
           name="prescricao"
           rows={3}
           placeholder="Medicamentos, posologia, conduta, orientações…"
-          className="w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors bg-bg resize-none"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg resize-none"
         />
       </div>
 
@@ -82,14 +82,14 @@ export function NovoProntuarioForm({ pacienteId }: { pacienteId: string }) {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="px-5 py-2.5 rounded-[10px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
+          className="px-5 py-2.5 rounded-[13px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Salvando…' : 'Salvar registro'}
         </button>

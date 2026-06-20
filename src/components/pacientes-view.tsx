@@ -88,7 +88,7 @@ function EvolutionConnectForm({ onConnect }: { onConnect: (name: string, number:
               placeholder="ex: rosan-clinica"
               value={instanceName}
               onChange={(e) => setInstanceName(e.target.value)}
-              className="w-full px-4 py-3 rounded-[10px] border border-border text-sm bg-bg outline-none focus:border-text focus:bg-card transition-colors"
+              className="w-full px-4 py-3 rounded-[13px] border border-border text-sm bg-bg outline-none focus:border-[#5b4bd4] focus:bg-card transition-colors"
             />
           </div>
 
@@ -99,14 +99,14 @@ function EvolutionConnectForm({ onConnect }: { onConnect: (name: string, number:
               placeholder="5564999999999"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full px-4 py-3 rounded-[10px] border border-border text-sm bg-bg outline-none focus:border-text focus:bg-card transition-colors"
+              className="w-full px-4 py-3 rounded-[13px] border border-border text-sm bg-bg outline-none focus:border-[#5b4bd4] focus:bg-card transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={!instanceName.trim() || !phoneNumber.trim()}
-            className="w-full py-3.5 rounded-[10px] bg-green text-white text-sm font-semibold hover:bg-green/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-1"
+            className="w-full py-3.5 rounded-[13px] bg-green text-white text-sm font-semibold hover:bg-green/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-1"
           >
             Conectar
           </button>
@@ -242,7 +242,7 @@ export function PacientesView() {
               placeholder="Buscar paciente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-[38px] pr-3.5 py-2.5 rounded-[10px] border border-border text-[13px] bg-bg outline-none focus:border-text focus:bg-card transition-colors"
+              className="w-full pl-[38px] pr-3.5 py-2.5 rounded-[13px] border border-border text-[13px] bg-bg outline-none focus:border-[#5b4bd4] focus:bg-card transition-colors"
             />
           </div>
         </div>
@@ -254,7 +254,7 @@ export function PacientesView() {
               if (connectionStatus === 'connected') handleDisconnect()
               else setConnectionStatus('disconnected')
             }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] bg-bg hover:bg-border/50 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[13px] bg-bg hover:bg-border/50 transition-colors cursor-pointer"
           >
             <WhatsAppIcon className={`w-4 h-4 ${connectionStatus === 'connected' ? 'text-green' : 'text-muted'}`} />
             <span className={`text-xs font-semibold flex-1 text-left ${connectionStatus === 'connected' ? 'text-green' : 'text-muted'}`}>
@@ -321,11 +321,11 @@ export function PacientesView() {
                 <div className="text-[13px] text-muted mt-0.5">{p.age} · {p.visits} · {p.since}</div>
               </div>
               <div className="flex gap-2.5">
-                <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] border border-border bg-card text-[13px] font-semibold hover:bg-bg hover:border-text transition-all cursor-pointer">
+                <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[13px] border border-border bg-card text-[13px] font-semibold hover:bg-bg hover:border-text transition-all cursor-pointer">
                   <CalendarIcon className="w-4 h-4" />
                   Agendar
                 </button>
-                <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] border border-border bg-card text-[13px] font-semibold hover:bg-bg hover:border-text transition-all cursor-pointer">
+                <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[13px] border border-border bg-card text-[13px] font-semibold hover:bg-bg hover:border-text transition-all cursor-pointer">
                   <ChatIcon className="w-4 h-4" />
                   Contato
                 </button>
@@ -333,7 +333,7 @@ export function PacientesView() {
             </div>
 
             {/* Info cards */}
-            <div className="grid grid-cols-4 mx-7 mt-5 border border-border rounded-[10px]">
+            <div className="grid grid-cols-4 mx-7 mt-5 border border-border rounded-[13px]">
               {[
                 { label: 'Telefone', value: p.tel },
                 { label: 'Nascimento', value: p.nasc },
@@ -348,7 +348,7 @@ export function PacientesView() {
             </div>
 
             {/* Observations */}
-            <div className="mx-7 mt-4 px-[18px] py-3.5 bg-bg rounded-[10px]">
+            <div className="mx-7 mt-4 px-[18px] py-3.5 bg-bg rounded-[13px]">
               <div className="text-[11px] text-muted font-medium mb-1">Observações / Alergias</div>
               <div className="text-[13px] leading-relaxed">{p.obs}</div>
             </div>
@@ -409,17 +409,17 @@ export function PacientesView() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                    className="flex-1 px-[18px] py-3 rounded-xl border border-border text-sm bg-bg outline-none focus:border-text focus:bg-card transition-colors"
+                    className="flex-1 px-[18px] py-3 rounded-xl border border-border text-sm bg-bg outline-none focus:border-[#5b4bd4] focus:bg-card transition-colors"
                   />
-                  <button className="w-10 h-10 rounded-[10px] flex items-center justify-center text-muted hover:bg-bg hover:text-text transition-all cursor-pointer">
+                  <button className="w-10 h-10 rounded-[13px] flex items-center justify-center text-muted hover:bg-bg hover:text-text transition-all cursor-pointer">
                     <PaperclipIcon className="w-5 h-5" />
                   </button>
-                  <button className="w-10 h-10 rounded-[10px] flex items-center justify-center text-muted hover:bg-bg hover:text-text transition-all cursor-pointer">
+                  <button className="w-10 h-10 rounded-[13px] flex items-center justify-center text-muted hover:bg-bg hover:text-text transition-all cursor-pointer">
                     <SmileIcon className="w-5 h-5" />
                   </button>
                   <button
                     onClick={sendMessage}
-                    className="w-10 h-10 rounded-[10px] bg-text flex items-center justify-center text-white hover:bg-[#333] transition-all cursor-pointer hover:scale-105"
+                    className="w-10 h-10 rounded-[13px] bg-text flex items-center justify-center text-white hover:bg-[#333] transition-all cursor-pointer hover:scale-105"
                   >
                     <SendIcon className="w-[18px] h-[18px]" />
                   </button>

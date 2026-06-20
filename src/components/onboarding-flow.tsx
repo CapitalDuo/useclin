@@ -151,7 +151,7 @@ export function OnboardingFlow({
         <div className="min-h-[280px]">
           {step === 0 && (
             <div className="flex flex-col gap-5">
-              <div className="bg-bg rounded-[10px] px-4 py-3">
+              <div className="bg-bg rounded-[13px] px-4 py-3">
                 <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Clínica</div>
                 <div className="text-sm font-semibold">{clinicName}</div>
               </div>
@@ -167,7 +167,7 @@ export function OnboardingFlow({
             <div className="flex flex-col gap-5">
               <div className="bg-bg rounded-[12px] p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-[10px] bg-card flex items-center justify-center text-sm font-bold">
+                  <div className="w-9 h-9 rounded-[13px] bg-card flex items-center justify-center text-sm font-bold">
                     {userName.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()}
                   </div>
                   <div>
@@ -201,7 +201,7 @@ export function OnboardingFlow({
 
               <button
                 onClick={addExtra}
-                className="w-full py-3 rounded-[10px] border-2 border-dashed border-border text-sm font-semibold text-muted hover:border-text hover:text-text transition-colors cursor-pointer"
+                className="w-full py-3 rounded-[13px] border-2 border-dashed border-border text-sm font-semibold text-muted hover:border-text hover:text-text transition-colors cursor-pointer"
               >
                 + Adicionar outro profissional
               </button>
@@ -213,7 +213,7 @@ export function OnboardingFlow({
               {WEEKDAYS.map(day => {
                 const s = schedule[day.key]
                 return (
-                  <div key={day.key} className="flex items-center gap-4 py-2.5 px-4 rounded-[10px] bg-bg">
+                  <div key={day.key} className="flex items-center gap-4 py-2.5 px-4 rounded-[13px] bg-bg">
                     <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-[160px]">
                       <input
                         type="checkbox"
@@ -227,9 +227,9 @@ export function OnboardingFlow({
                     </label>
                     {s.aberto ? (
                       <div className="flex items-center gap-2">
-                        <input type="time" value={s.inicio} onChange={e => updateSchedule(day.key, 'inicio', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors" />
+                        <input type="time" value={s.inicio} onChange={e => updateSchedule(day.key, 'inicio', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
                         <span className="text-xs text-muted">às</span>
-                        <input type="time" value={s.fim} onChange={e => updateSchedule(day.key, 'fim', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-text transition-colors" />
+                        <input type="time" value={s.fim} onChange={e => updateSchedule(day.key, 'fim', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
                       </div>
                     ) : (
                       <span className="text-xs text-muted font-medium">Fechado</span>
@@ -251,7 +251,7 @@ export function OnboardingFlow({
               </div>
               <Field label="Nome da instância" placeholder="ex: rosan-clinica" value={whatsapp.instancia} onChange={v => setWhatsApp({ ...whatsapp, instancia: v })} />
               <Field label="Número (com DDD e país)" placeholder="5564999999999" value={whatsapp.numero} onChange={v => setWhatsApp({ ...whatsapp, numero: v })} />
-              <button onClick={handleWhatsAppConnect} disabled={!whatsapp.instancia.trim() || !whatsapp.numero.trim()} className="w-full py-3.5 rounded-[10px] bg-green text-white text-sm font-semibold hover:bg-green/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">Conectar</button>
+              <button onClick={handleWhatsAppConnect} disabled={!whatsapp.instancia.trim() || !whatsapp.numero.trim()} className="w-full py-3.5 rounded-[13px] bg-green text-white text-sm font-semibold hover:bg-green/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">Conectar</button>
               <button onClick={next} className="text-xs text-muted hover:text-text font-medium text-center cursor-pointer transition-colors">Pular esta etapa</button>
             </div>
           )}
@@ -334,19 +334,19 @@ export function OnboardingFlow({
 
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
           {step > 0 ? (
-            <button onClick={back} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] border border-border bg-card text-sm font-semibold hover:bg-bg transition-colors cursor-pointer">← Voltar</button>
+            <button onClick={back} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[13px] border border-border bg-card text-sm font-semibold hover:bg-bg transition-colors cursor-pointer">← Voltar</button>
           ) : (
             <div />
           )}
 
           {step < STEPS.length - 1 ? (
-            <button onClick={step === 3 ? (qrStep ? next : handleWhatsAppConnect) : next} className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[10px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer">
+            <button onClick={step === 3 ? (qrStep ? next : handleWhatsAppConnect) : next} className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer">
               {step === 3 ? (qrStep ? 'Continuar' : 'Conectar') : 'Próximo'} →
             </button>
           ) : (
             <div className="flex flex-col items-end gap-2">
               {saveError && <span className="text-xs text-red font-medium">Erro: {saveError}</span>}
-              <button onClick={handleFinish} disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-green text-white rounded-[10px] text-sm font-semibold hover:bg-green/90 transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={handleFinish} disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-green text-white rounded-[13px] text-sm font-semibold hover:bg-green/90 transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                 {saving ? 'Salvando...' : 'Começar a usar ✓'}
               </button>
             </div>
@@ -361,7 +361,7 @@ function Field({ label, placeholder, value, onChange, bg }: { label: string; pla
   return (
     <div>
       <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">{label}</label>
-      <input type="text" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={`w-full px-4 py-3 rounded-[10px] border border-border text-sm outline-none focus:border-text transition-colors ${bg || 'bg-bg'}`} />
+      <input type="text" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={`w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors ${bg || 'bg-bg'}`} />
     </div>
   )
 }
