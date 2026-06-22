@@ -11,11 +11,13 @@ import {
   ChatIcon,
   LeafIcon,
   LogOutIcon,
+  WalletIcon,
 } from '@/components/icons'
 import { logoutAction } from '@/app/login/actions'
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: HomeIcon },
+  { href: '/financeiro', label: 'Financeiro', icon: WalletIcon },
   { href: '/agenda', label: 'Agenda', icon: CalendarIcon },
   { href: '/pacientes', label: 'Pacientes', icon: UsersIcon },
   { href: '/atendimento', label: 'Atendimento', icon: HeadsetIcon },

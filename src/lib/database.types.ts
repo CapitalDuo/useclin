@@ -43,7 +43,21 @@ export type Database = {
           updated_at?: string
           valor?: number | null
         }
-        Update: Partial<Database["public"]["Tables"]["agendamentos"]["Insert"]>
+        Update: {
+          created_at?: string
+          data?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          lembrete_enviado?: boolean
+          notas?: string | null
+          paciente_id?: string
+          profissional_id?: string
+          status?: string
+          tipo_consulta_id?: string | null
+          updated_at?: string
+          valor?: number | null
+        }
         Relationships: []
       }
       clinica: {
@@ -75,7 +89,20 @@ export type Database = {
           telefone?: string | null
           updated_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["clinica"]["Insert"]>
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          logo_url?: string | null
+          nome?: string
+          onboarding_completo?: boolean
+          onboarding_step?: number
+          subtitulo?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
         Relationships: []
       }
       conversas: {
@@ -101,7 +128,17 @@ export type Database = {
           ultima_mensagem_at?: string | null
           updated_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["conversas"]["Insert"]>
+        Update: {
+          canal?: string
+          created_at?: string
+          id?: string
+          instancia_id?: string | null
+          mensagens_nao_lidas?: number
+          paciente_id?: string
+          status?: string
+          ultima_mensagem_at?: string | null
+          updated_at?: string
+        }
         Relationships: []
       }
       horarios_funcionamento: {
@@ -121,7 +158,14 @@ export type Database = {
           hora_inicio?: string | null
           id?: string
         }
-        Update: Partial<Database["public"]["Tables"]["horarios_funcionamento"]["Insert"]>
+        Update: {
+          aberto?: boolean
+          clinica_id?: string
+          dia_semana?: number
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+        }
         Relationships: []
       }
       mensagens: {
@@ -155,7 +199,21 @@ export type Database = {
           tipo_midia?: string
           whatsapp_message_id?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["mensagens"]["Insert"]>
+        Update: {
+          conteudo?: string
+          conversa_id?: string
+          created_at?: string
+          entregue?: boolean
+          erro?: string | null
+          id?: string
+          lida?: boolean
+          midia_nome?: string | null
+          midia_url?: string | null
+          remetente_id?: string | null
+          remetente_tipo?: string
+          tipo_midia?: string
+          whatsapp_message_id?: string | null
+        }
         Relationships: []
       }
       notificacao_config: {
@@ -171,13 +229,27 @@ export type Database = {
           id?: string
           tipo: string
         }
-        Update: Partial<Database["public"]["Tables"]["notificacao_config"]["Insert"]>
+        Update: {
+          ativo?: boolean
+          clinica_id?: string
+          id?: string
+          tipo?: string
+        }
         Relationships: []
       }
       paciente_tags: {
-        Row: { paciente_id: string; tag_id: string }
-        Insert: { paciente_id: string; tag_id: string }
-        Update: Partial<{ paciente_id: string; tag_id: string }>
+        Row: {
+          paciente_id: string
+          tag_id: string
+        }
+        Insert: {
+          paciente_id: string
+          tag_id: string
+        }
+        Update: {
+          paciente_id?: string
+          tag_id?: string
+        }
         Relationships: []
       }
       pacientes: {
@@ -227,19 +299,65 @@ export type Database = {
           valor_plano?: number | null
           whatsapp?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["pacientes"]["Insert"]>
+        Update: {
+          avatar_url?: string | null
+          cliente_desde?: string | null
+          clinica_id?: string | null
+          codigo?: number
+          cor?: string | null
+          cpf?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          documento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          iniciais?: string | null
+          nome?: string
+          observacoes?: string | null
+          plano_id?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          valor_plano?: number | null
+          whatsapp?: string | null
+        }
         Relationships: []
       }
       planos: {
-        Row: { id: string; nome: string; tipo: string }
-        Insert: { id?: string; nome: string; tipo?: string }
-        Update: Partial<{ id: string; nome: string; tipo: string }>
+        Row: {
+          id: string
+          nome: string
+          tipo: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          tipo?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          tipo?: string
+        }
         Relationships: []
       }
       plataforma_admins: {
-        Row: { created_at: string; nome: string | null; user_id: string }
-        Insert: { created_at?: string; nome?: string | null; user_id: string }
-        Update: Partial<{ created_at: string; nome: string | null; user_id: string }>
+        Row: {
+          created_at: string
+          nome: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          nome?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          nome?: string | null
+          user_id?: string
+        }
         Relationships: []
       }
       profissionais: {
@@ -277,7 +395,23 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["profissionais"]["Insert"]>
+        Update: {
+          ativo?: boolean
+          avatar_url?: string | null
+          clinica_id?: string | null
+          cor?: string | null
+          created_at?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          iniciais?: string | null
+          nome?: string
+          registro?: string | null
+          role?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
         Relationships: []
       }
       prontuarios: {
@@ -303,7 +437,17 @@ export type Database = {
           prescricao?: string | null
           profissional_id: string
         }
-        Update: Partial<Database["public"]["Tables"]["prontuarios"]["Insert"]>
+        Update: {
+          agendamento_id?: string | null
+          anexos?: Json | null
+          created_at?: string
+          descricao?: string
+          diagnostico?: string | null
+          id?: string
+          paciente_id?: string
+          prescricao?: string | null
+          profissional_id?: string
+        }
         Relationships: []
       }
       suporte_mensagens: {
@@ -323,7 +467,14 @@ export type Database = {
           id?: string
           ticket_id: string
         }
-        Update: Partial<Database["public"]["Tables"]["suporte_mensagens"]["Insert"]>
+        Update: {
+          autor_id?: string
+          autor_tipo?: string
+          conteudo?: string
+          created_at?: string
+          id?: string
+          ticket_id?: string
+        }
         Relationships: []
       }
       suporte_tickets: {
@@ -349,19 +500,56 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["suporte_tickets"]["Insert"]>
+        Update: {
+          assunto?: string
+          categoria?: string
+          clinica_id?: string
+          created_at?: string
+          criado_por?: string
+          id?: string
+          prioridade?: string
+          status?: string
+          updated_at?: string
+        }
         Relationships: []
       }
       tags: {
-        Row: { cor: string | null; id: string; nome: string }
-        Insert: { cor?: string | null; id?: string; nome: string }
-        Update: Partial<{ cor: string; id: string; nome: string }>
+        Row: {
+          cor: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          cor?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          cor?: string | null
+          id?: string
+          nome?: string
+        }
         Relationships: []
       }
       tipos_consulta: {
-        Row: { cor: string; duracao_padrao: string | null; id: string; nome: string }
-        Insert: { cor: string; duracao_padrao?: string | null; id?: string; nome: string }
-        Update: Partial<{ cor: string; duracao_padrao: string; id: string; nome: string }>
+        Row: {
+          cor: string
+          duracao_padrao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          cor: string
+          duracao_padrao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          cor?: string
+          duracao_padrao?: string | null
+          id?: string
+          nome?: string
+        }
         Relationships: []
       }
       transacoes: {
@@ -389,7 +577,18 @@ export type Database = {
           tipo: string
           valor: number
         }
-        Update: Partial<Database["public"]["Tables"]["transacoes"]["Insert"]>
+        Update: {
+          agendamento_id?: string | null
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          paciente_id?: string
+          status?: string
+          tipo?: string
+          valor?: number
+        }
         Relationships: []
       }
       whatsapp_eventos: {
@@ -407,7 +606,13 @@ export type Database = {
           payload?: Json | null
           tipo: string
         }
-        Update: Partial<Database["public"]["Tables"]["whatsapp_eventos"]["Insert"]>
+        Update: {
+          created_at?: string
+          id?: string
+          instancia_id?: string
+          payload?: Json | null
+          tipo?: string
+        }
         Relationships: []
       }
       whatsapp_instancias: {
@@ -441,7 +646,21 @@ export type Database = {
           updated_at?: string
           webhook_url?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["whatsapp_instancias"]["Insert"]>
+        Update: {
+          api_key?: string | null
+          api_url?: string | null
+          clinica_id?: string
+          created_at?: string
+          id?: string
+          nome_instancia?: string
+          numero?: string
+          qrcode_base64?: string | null
+          qrcode_expires_at?: string | null
+          status?: string
+          ultimo_ping?: string | null
+          updated_at?: string
+          webhook_url?: string | null
+        }
         Relationships: []
       }
     }
@@ -500,6 +719,27 @@ export type Database = {
           pacientes_novos_mes: number | null
           pacientes_total: number | null
           receita_mensal: number | null
+        }
+        Relationships: []
+      }
+      v_financeiro_entradas: {
+        Row: {
+          agendamento_hora: string | null
+          agendamento_id: string | null
+          clinica_id: string | null
+          created_at: string | null
+          data: string | null
+          descricao: string | null
+          forma_pagamento: string | null
+          id: string | null
+          paciente_cor: string | null
+          paciente_id: string | null
+          paciente_iniciais: string | null
+          paciente_nome: string | null
+          status: string | null
+          tipo: string | null
+          tipo_consulta_nome: string | null
+          valor: number | null
         }
         Relationships: []
       }
@@ -569,24 +809,27 @@ export type Database = {
           status?: string | null
           ultimo_ping?: string | null
         }
-        Update: Partial<{
-          clinica_id: string
-          created_at: string
-          id: string
-          nome_instancia: string
-          numero: string
-          online: never
-          status: string
-          ultimo_ping: string
-        }>
+        Update: {
+          clinica_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          nome_instancia?: string | null
+          numero?: string | null
+          online?: never
+          status?: string | null
+          ultimo_ping?: string | null
+        }
         Relationships: []
       }
     }
     Functions: {
-      auth_clinica_id: { Args: Record<string, never>; Returns: string }
-      is_platform_admin: { Args: Record<string, never>; Returns: boolean }
+      [_ in never]: never
     }
-    Enums: Record<string, never>
-    CompositeTypes: Record<string, never>
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }

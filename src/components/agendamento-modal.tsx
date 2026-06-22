@@ -9,6 +9,7 @@ import {
   deleteAgendamentoAction,
   getAgendamentoAction,
 } from '@/app/(dashboard)/agenda/actions'
+import { formatBrlPlain, parseBrlInput } from '@/lib/currency'
 
 type Paciente = { id: string; nome: string }
 type Profissional = { id: string; nome: string; especialidade: string | null }
@@ -101,7 +102,7 @@ export function AgendamentoModal({
         setHoraInicio(a.hora_inicio.slice(0, 5))
         setHoraFim(a.hora_fim.slice(0, 5))
         setStatus(a.status)
-        setValor(a.valor?.toString() ?? '')
+        setValor(a.valor != null ? formatBrlPlain(a.valor) : '')
         setNotas(a.notas ?? '')
       } else {
         setError(res.error)
@@ -332,15 +333,24 @@ export function AgendamentoModal({
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Valor {isEdit ? '' : '(opcional)'}</label>
-                <input
-                  type="text"
-                  name="valor"
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  placeholder="150,00"
-                  className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
-                />
+                <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Valor (R$) {isEdit ? '' : '(opcional)'}</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted pointer-events-none">R$</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    name="valor"
+                    value={valor}
+                    onChange={(e) => setValor(e.target.value)}
+                    onBlur={() => {
+                      if (!valor.trim()) return
+                      const parsed = parseBrlInput(valor)
+                      if (parsed) setValor(formatBrlPlain(parsed.valor))
+                    }}
+                    placeholder="150,00"
+                    className="w-full pl-10 pr-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
+                  />
+                </div>
               </div>
             </div>
 

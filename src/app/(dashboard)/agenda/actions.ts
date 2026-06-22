@@ -3,6 +3,80 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { parseBrlInput } from '@/lib/currency'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
+
+type Sb = SupabaseClient<Database>
+
+function transacaoStatusFromAgendamento(
+  agendamentoStatus: string,
+): 'pago' | 'pendente' | 'cancelado' {
+  if (agendamentoStatus === 'concluido') return 'pago'
+  if (agendamentoStatus === 'cancelado' || agendamentoStatus === 'faltou') return 'cancelado'
+  return 'pendente'
+}
+
+/**
+ * Sincroniza a transação vinculada a um agendamento.
+ * - valor > 0: faz upsert da transação com status derivado do agendamento
+ * - valor null/zero: deleta a transação se existir
+ *
+ * Roda como side-effect dos actions de create/update do agendamento. Falhas
+ * são logadas mas não revertem o salvamento do agendamento (rede / RLS edge
+ * cases não devem bloquear a marcação).
+ */
+async function syncTransacao(
+  sb: Sb,
+  args: {
+    agendamento_id: string
+    paciente_id: string
+    valor: number | null
+    data: string
+    status: string
+    descricao?: string | null
+  },
+) {
+  const { agendamento_id, paciente_id, valor, data, status, descricao } = args
+
+  const { data: existing } = await sb
+    .from('transacoes')
+    .select('id')
+    .eq('agendamento_id', agendamento_id)
+    .maybeSingle()
+
+  if (!valor || valor <= 0) {
+    if (existing) {
+      await sb.from('transacoes').delete().eq('id', existing.id)
+    }
+    return
+  }
+
+  const transacaoStatus = transacaoStatusFromAgendamento(status)
+
+  if (existing) {
+    await sb
+      .from('transacoes')
+      .update({
+        paciente_id,
+        valor,
+        status: transacaoStatus,
+        data,
+        descricao: descricao ?? null,
+      })
+      .eq('id', existing.id)
+  } else {
+    await sb.from('transacoes').insert({
+      agendamento_id,
+      paciente_id,
+      tipo: 'receita',
+      valor,
+      status: transacaoStatus,
+      data,
+      descricao: descricao ?? null,
+    })
+  }
+}
 
 export async function createAgendamentoAction(formData: FormData) {
   const paciente_id = String(formData.get('paciente_id') ?? '')
@@ -28,24 +102,44 @@ export async function createAgendamentoAction(formData: FormData) {
   const rl = await checkRateLimit('write', user.id)
   if (!rl.ok) return { ok: false as const, error: rl.error }
 
-  const valor = valor_raw ? Number(valor_raw.replace(',', '.')) : null
+  const parsed = valor_raw ? parseBrlInput(valor_raw) : null
+  const valor = parsed?.valor ?? null
 
-  const { error } = await supabase.from('agendamentos').insert({
+  const tipo_consulta_id =
+    tipo_consulta_id_raw && tipo_consulta_id_raw !== 'none' ? tipo_consulta_id_raw : null
+
+  const { data: created, error } = await supabase
+    .from('agendamentos')
+    .insert({
+      paciente_id,
+      profissional_id,
+      tipo_consulta_id,
+      data,
+      hora_inicio,
+      hora_fim,
+      status,
+      notas: notas || null,
+      valor,
+    })
+    .select('id')
+    .single()
+
+  if (error || !created) {
+    return { ok: false as const, error: error?.message ?? 'Falha ao criar agendamento' }
+  }
+
+  await syncTransacao(supabase, {
+    agendamento_id: created.id,
     paciente_id,
-    profissional_id,
-    tipo_consulta_id: tipo_consulta_id_raw && tipo_consulta_id_raw !== 'none' ? tipo_consulta_id_raw : null,
+    valor,
     data,
-    hora_inicio,
-    hora_fim,
     status,
-    notas: notas || null,
-    valor: valor && !Number.isNaN(valor) ? valor : null,
+    descricao: notas || 'Consulta',
   })
-
-  if (error) return { ok: false as const, error: error.message }
 
   revalidatePath('/agenda')
   revalidatePath('/')
+  revalidatePath('/financeiro')
   return { ok: true as const }
 }
 
@@ -65,38 +159,55 @@ export async function updateAgendamentoAction(id: string, formData: FormData) {
   }
 
   const supabase = await createClient()
-  const valor = valor_raw ? Number(valor_raw.replace(',', '.')) : null
+  const parsed = valor_raw ? parseBrlInput(valor_raw) : null
+  const valor = parsed?.valor ?? null
+
+  const tipo_consulta_id =
+    tipo_consulta_id_raw && tipo_consulta_id_raw !== 'none' ? tipo_consulta_id_raw : null
 
   const { error } = await supabase
     .from('agendamentos')
     .update({
       paciente_id,
       profissional_id,
-      tipo_consulta_id: tipo_consulta_id_raw && tipo_consulta_id_raw !== 'none' ? tipo_consulta_id_raw : null,
+      tipo_consulta_id,
       data,
       hora_inicio,
       hora_fim,
       status,
       notas: notas || null,
-      valor: valor && !Number.isNaN(valor) ? valor : null,
+      valor,
     })
     .eq('id', id)
 
   if (error) return { ok: false as const, error: error.message }
 
+  await syncTransacao(supabase, {
+    agendamento_id: id,
+    paciente_id,
+    valor,
+    data,
+    status,
+    descricao: notas || 'Consulta',
+  })
+
   revalidatePath('/agenda')
   revalidatePath('/')
-  revalidatePath(`/agenda/${id}`)
+  revalidatePath('/financeiro')
   return { ok: true as const }
 }
 
 export async function deleteAgendamentoAction(id: string) {
   const supabase = await createClient()
+  // ON DELETE SET NULL no FK transacoes.agendamento_id mantém a transação
+  // como entrada avulsa. Se preferir apagar junto, descomente:
+  // await supabase.from('transacoes').delete().eq('agendamento_id', id)
   const { error } = await supabase.from('agendamentos').delete().eq('id', id)
   if (error) return { ok: false as const, error: error.message }
 
   revalidatePath('/agenda')
   revalidatePath('/')
+  revalidatePath('/financeiro')
   return { ok: true as const }
 }
 
@@ -135,7 +246,11 @@ export async function moveAgendamentoAction(
 
   if (error) return { ok: false as const, error: error.message }
 
+  // Sincroniza data da transação se existir
+  await supabase.from('transacoes').update({ data: newDate }).eq('agendamento_id', id)
+
   revalidatePath('/agenda')
   revalidatePath('/')
+  revalidatePath('/financeiro')
   return { ok: true as const }
 }
