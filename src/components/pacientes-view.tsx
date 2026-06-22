@@ -76,13 +76,13 @@ function EvolutionConnectForm({ onConnect }: { onConnect: (name: string, number:
           <div className="w-14 h-14 rounded-[14px] bg-green/10 flex items-center justify-center mb-4">
             <WhatsAppIcon className="w-7 h-7 text-green" />
           </div>
-          <h2 className="font-playfair text-xl font-extrabold tracking-tight">Evolution Connect</h2>
-          <p className="text-sm text-muted mt-1">Conecte uma instância WhatsApp à Evolution API</p>
+          <h2 className="font-playfair text-xl font-extrabold tracking-tight">WhatsApp</h2>
+          <p className="text-sm text-muted mt-1">Conecte seu WhatsApp ao sistema</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
-            <label className="text-sm font-semibold mb-2 block">Nome da instância</label>
+            <label className="text-sm font-semibold mb-2 block">Nome</label>
             <input
               type="text"
               placeholder="ex: rosan-clinica"
@@ -124,8 +124,8 @@ function QrCodeView({ instanceName, onBack, onSimulateConnect }: { instanceName:
           <div className="w-14 h-14 rounded-[14px] bg-green/10 flex items-center justify-center mb-4">
             <WhatsAppIcon className="w-7 h-7 text-green" />
           </div>
-          <h2 className="font-playfair text-xl font-extrabold tracking-tight">Evolution Connect</h2>
-          <p className="text-sm text-muted mt-1">Conecte uma instância WhatsApp à Evolution API</p>
+          <h2 className="font-playfair text-xl font-extrabold tracking-tight">WhatsApp</h2>
+          <p className="text-sm text-muted mt-1">Conecte seu WhatsApp ao sistema</p>
 
           <div className="flex items-center gap-2 mt-4 px-4 py-1.5 rounded-full bg-orange-light">
             <div className="w-2 h-2 rounded-full bg-orange animate-pulse" />

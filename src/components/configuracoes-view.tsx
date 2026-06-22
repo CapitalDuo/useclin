@@ -559,13 +559,13 @@ function WhatsappModal({ initial, onClose }: { initial: WhatsappInstancia; onClo
   }
 
   return (
-    <ModalShell title={initial ? 'Editar WhatsApp' : 'Configurar WhatsApp'} subtitle="Evolution API para envio de mensagens" onClose={onClose}>
+    <ModalShell title={initial ? 'Editar WhatsApp' : 'Configurar WhatsApp'} subtitle="Conecte seu WhatsApp ao sistema" onClose={onClose}>
       <form action={handleSubmit} className="px-7 py-6 flex flex-col gap-5">
         <input type="hidden" name="id" value={initial?.id ?? ''} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Nome da instância *" name="nome_instancia" defaultValue={initial?.nome_instancia ?? ''} placeholder="ex: rosan-clinica" required />
-          <Field label="Número (com DDI) *" name="numero" defaultValue={initial?.numero ?? ''} placeholder="5564999999999" required />
+          <Field label="Nome *" name="nome_instancia" defaultValue={initial?.nome_instancia ?? ''} placeholder="ex: rosan-clinica" required />
+          <Field label="Número (com DDD e país) *" name="numero" defaultValue={initial?.numero ?? ''} placeholder="5564999999999" required />
         </div>
 
         {error && <div className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium">{error}</div>}
