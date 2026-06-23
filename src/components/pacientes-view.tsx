@@ -249,6 +249,20 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
     setChats([]); setSelectedChatId(null); setMessages([])
   }
 
+  async function refreshAll() {
+    if (!instToken || loadingChats) return
+    setLoadingChats(true)
+    const { chats: updated } = await buscarChatsAction(instToken)
+    setChats(updated)
+    setLoadingChats(false)
+    if (selectedChatId) {
+      setLoadingMessages(true)
+      const { messages: updatedMsgs } = await buscarMensagensAction(instToken, selectedChatId)
+      setMessages(updatedMsgs)
+      setLoadingMessages(false)
+    }
+  }
+
   async function sendMessage() {
     if (!input.trim() || !selectedChatId || !instToken || sending) return
     const text = input.trim()
@@ -293,7 +307,7 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
         </div>
 
         {/* Chat list */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {connectionStatus !== 'connected' ? (
             <div className="flex flex-col items-center justify-center h-full px-6 text-center">
               <WhatsAppIcon className="w-8 h-8 text-border mb-3" />
@@ -333,6 +347,24 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
             ))
           )}
         </div>
+
+        {connectionStatus === 'connected' && (
+          <div className="px-4 py-3 border-t border-border">
+            <button
+              onClick={refreshAll}
+              disabled={loadingChats}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[13px] text-xs font-semibold text-muted hover:text-text hover:bg-bg border border-border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M8 16H3v5" />
+              </svg>
+              {loadingChats ? 'Atualizando...' : 'Atualizar conversas'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Right panel ── */}
