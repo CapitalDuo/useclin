@@ -27,11 +27,20 @@ export async function POST(req: NextRequest) {
         const plano = session.metadata?.plano as 'basico' | 'completo' | undefined
         if (!clinica_id || !plano) break
 
+        const subId = session.subscription as string
+        let periodoFim: string | null = null
+        if (subId) {
+          const sub = await stripe.subscriptions.retrieve(subId)
+          const end = sub.items.data[0]?.current_period_end
+          periodoFim = end ? new Date(end * 1000).toISOString() : null
+        }
+
         await supabase.from('clinica').update({
           stripe_customer_id: session.customer as string,
-          stripe_subscription_id: session.subscription as string,
+          stripe_subscription_id: subId,
           plano_slug: plano,
           plano_status: 'ativo',
+          plano_periodo_fim: periodoFim,
         }).eq('id', clinica_id)
         break
       }
@@ -43,11 +52,12 @@ export async function POST(req: NextRequest) {
 
         const plano = (sub.metadata?.plano ?? 'basico') as 'basico' | 'completo'
         const status = sub.status === 'active' ? 'ativo' : sub.status === 'past_due' ? 'past_due' : 'cancelado'
+        const end = sub.items.data[0]?.current_period_end
 
         await supabase.from('clinica').update({
           plano_slug: plano,
           plano_status: status,
-          plano_periodo_fim: new Date(sub.billing_cycle_anchor * 1000).toISOString(),
+          plano_periodo_fim: end ? new Date(end * 1000).toISOString() : null,
         }).eq('id', clinica_id)
         break
       }
