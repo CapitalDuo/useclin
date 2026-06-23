@@ -100,10 +100,9 @@ export async function criarConexaoWhatsappAction(formData: FormData): Promise<
 
   const nome_instancia = String(formData.get('nome_instancia') ?? '').trim()
   const numero = String(formData.get('numero') ?? '').trim()
-  const admintoken = String(formData.get('admintoken') ?? '').trim()
 
-  if (!nome_instancia || !numero || !admintoken) {
-    return { ok: false, error: 'Nome, número e Admin Token são obrigatórios' }
+  if (!nome_instancia || !numero) {
+    return { ok: false, error: 'Nome e número são obrigatórios' }
   }
 
   const webhookUrl = process.env.N8N_WEBHOOK_URL
@@ -117,7 +116,6 @@ export async function criarConexaoWhatsappAction(formData: FormData): Promise<
         acao: 'criar',
         instanceName: nome_instancia,
         numero,
-        admintoken,
         clinica_id: prof.clinica_id,
       }),
     })

@@ -611,22 +611,6 @@ function WhatsappModal({ initial, onClose }: { initial: WhatsappInstancia; onClo
               placeholder="5564999999999"
               required
             />
-            <div className="col-span-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">
-                Admin Token UAZAPI *
-              </label>
-              <input
-                name="admintoken"
-                type="password"
-                required
-                autoComplete="off"
-                placeholder="Token administrativo do painel UAZAPI"
-                className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
-              />
-              <p className="text-[10px] text-muted mt-1.5">
-                Painel UAZAPI → Configurações → Admin Token. Usado apenas para criar a instância.
-              </p>
-            </div>
           </div>
 
           {error && (

@@ -128,19 +128,6 @@ function EvolutionConnectForm({
             />
           </div>
 
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Admin Token UAZAPI</label>
-            <input
-              name="admintoken"
-              type="password"
-              placeholder="Token administrativo do painel UAZAPI"
-              required
-              autoComplete="off"
-              className="w-full px-4 py-3 rounded-[13px] border border-border text-sm bg-bg outline-none focus:border-[#5b4bd4] focus:bg-card transition-colors"
-            />
-            <p className="text-[10px] text-muted mt-1.5">Painel UAZAPI → Configurações → Admin Token</p>
-          </div>
-
           {error && (
             <div className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium">{error}</div>
           )}
