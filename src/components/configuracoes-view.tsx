@@ -20,6 +20,8 @@ export type Clinica = {
   telefone: string | null
   email: string | null
   endereco: string | null
+  logo_url: string | null
+  maps_url: string | null
 }
 
 export type Profissional = {
@@ -107,11 +109,20 @@ export function ConfiguracoesView({
   return (
     <div className="px-10 pt-7 pb-10 max-w-[920px] flex flex-col gap-6">
       <SectionCard title="Perfil da Clínica" onEdit={() => openEdit('clinica')}>
+        {clinica.logo_url && (
+          <div className="py-3 border-b border-border">
+            <img src={clinica.logo_url} alt="Logo da clínica" className="w-16 h-16 rounded-full object-cover border border-border" />
+          </div>
+        )}
         <Row label="Nome da clínica" hint="Nome exibido no sistema" value={clinica.nome} />
         <Row label="CNPJ" value={clinica.cnpj ?? '—'} />
         <Row label="Telefone" value={clinica.telefone ?? '—'} />
         <Row label="E-mail" value={clinica.email ?? '—'} />
         {clinica.endereco && <Row label="Endereço" value={clinica.endereco} />}
+        {clinica.maps_url && (
+          <Row label="Localização"
+            value={<a href={clinica.maps_url} target="_blank" rel="noopener noreferrer" className="text-[#5b4bd4] hover:underline text-sm">Ver no Google Maps →</a>} />
+        )}
       </SectionCard>
 
       <SectionCard title="Notificações">
@@ -415,6 +426,7 @@ function ClinicaModal({ clinica, onClose }: { clinica: Clinica; onClose: () => v
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
 
   useEscClose(onClose)
 
@@ -431,9 +443,39 @@ function ClinicaModal({ clinica, onClose }: { clinica: Clinica; onClose: () => v
     onClose()
   }
 
+  const logoSrc = logoPreview ?? clinica.logo_url
+  const logoInitials = clinica.nome.slice(0, 2).toUpperCase()
+
   return (
     <ModalShell title="Editar perfil da clínica" subtitle="Informações exibidas no sistema e nas comunicações" onClose={onClose}>
-      <form action={handleSubmit} className="px-7 py-6 flex flex-col gap-5">
+      <form action={handleSubmit} encType="multipart/form-data" className="px-7 py-6 flex flex-col gap-5">
+        {/* Logo upload */}
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full border-2 border-dashed border-border overflow-hidden flex items-center justify-center bg-bg flex-shrink-0">
+            {logoSrc ? (
+              <img src={logoSrc} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-lg font-bold text-muted">{logoInitials}</span>
+            )}
+          </div>
+          <div>
+            <label className="cursor-pointer text-sm font-semibold text-[#5b4bd4] hover:underline">
+              {logoSrc ? 'Trocar logo' : 'Enviar logo'}
+              <input
+                type="file"
+                name="logo"
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                onChange={e => {
+                  const f = e.target.files?.[0]
+                  if (f) setLogoPreview(URL.createObjectURL(f))
+                }}
+              />
+            </label>
+            <p className="text-xs text-muted mt-0.5">PNG, JPG ou WebP · máx. 2 MB</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Nome da clínica *" name="nome" defaultValue={clinica.nome} full required />
           <Field label="Subtítulo" name="subtitulo" defaultValue={clinica.subtitulo ?? ''} placeholder="Ex: Clínica Integrativa" full />
@@ -441,6 +483,7 @@ function ClinicaModal({ clinica, onClose }: { clinica: Clinica; onClose: () => v
           <Field label="Telefone" name="telefone" defaultValue={clinica.telefone ?? ''} placeholder="(11) 99999-9999" />
           <Field label="E-mail" name="email" type="email" defaultValue={clinica.email ?? ''} placeholder="contato@clinica.com.br" full />
           <Field label="Endereço" name="endereco" defaultValue={clinica.endereco ?? ''} placeholder="Rua, número, bairro, cidade" full />
+          <Field label="Link do Google Maps" name="maps_url" defaultValue={clinica.maps_url ?? ''} placeholder="https://maps.google.com/..." full />
         </div>
 
         {error && <div className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium">{error}</div>}

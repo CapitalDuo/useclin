@@ -68,6 +68,7 @@ export type Database = {
           endereco: string | null
           id: string
           logo_url: string | null
+          maps_url: string | null
           nome: string
           onboarding_completo: boolean
           onboarding_step: number
@@ -82,6 +83,7 @@ export type Database = {
           endereco?: string | null
           id?: string
           logo_url?: string | null
+          maps_url?: string | null
           nome: string
           onboarding_completo?: boolean
           onboarding_step?: number
@@ -96,6 +98,7 @@ export type Database = {
           endereco?: string | null
           id?: string
           logo_url?: string | null
+          maps_url?: string | null
           nome?: string
           onboarding_completo?: boolean
           onboarding_step?: number

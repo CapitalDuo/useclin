@@ -44,7 +44,7 @@ export default async function ConfiguracoesPage() {
   const [{ data: clinica }, { data: horarios }, { data: whatsapp }, { data: notificacoes }] = await Promise.all([
     supabase
       .from('clinica')
-      .select('id, nome, subtitulo, cnpj, telefone, email, endereco')
+      .select('id, nome, subtitulo, cnpj, telefone, email, endereco, logo_url, maps_url')
       .eq('id', prof.clinica_id)
       .maybeSingle(),
     supabase

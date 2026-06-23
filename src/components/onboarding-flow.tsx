@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { completeOnboarding } from '@/app/onboarding/actions'
+import { useRef, useState } from 'react'
+import { completeOnboarding, uploadLogoAction } from '@/app/onboarding/actions'
 
 const STEPS = [
   { label: 'Clínica', icon: '🏥' },
@@ -21,7 +21,7 @@ const WEEKDAYS = [
   { key: 'dom', label: 'Domingo' },
 ]
 
-interface ClinicData { telefone: string; cnpj: string; endereco: string }
+interface ClinicData { telefone: string; cnpj: string; endereco: string; logo_url: string | null; maps_url: string }
 interface MyProfile { especialidade: string; registro: string }
 interface Professional { nome: string; especialidade: string; registro: string }
 interface DaySchedule { aberto: boolean; inicio: string; fim: string }
@@ -34,10 +34,14 @@ export function OnboardingFlow({
 }: {
   userName: string
   clinicName: string
-  initialClinic: ClinicData
+  initialClinic: Omit<ClinicData, 'logo_url'>
 }) {
   const [step, setStep] = useState(0)
-  const [clinic, setClinic] = useState<ClinicData>(initialClinic)
+  const [clinic, setClinic] = useState<ClinicData>({ ...initialClinic, logo_url: null, maps_url: '' })
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadLogoError, setUploadLogoError] = useState<string | null>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
   const [myProfile, setMyProfile] = useState<MyProfile>({ especialidade: '', registro: '' })
   const [extras, setExtras] = useState<Professional[]>([])
   const [schedule, setSchedule] = useState<Record<string, DaySchedule>>(() => {
@@ -59,6 +63,24 @@ export function OnboardingFlow({
   function back() {
     if (qrStep) { setQrStep(false); return }
     if (step > 0) setStep(step - 1)
+  }
+
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadLogoError(null)
+    setLogoPreview(URL.createObjectURL(file))
+    setUploadingLogo(true)
+    const fd = new FormData()
+    fd.append('logo', file)
+    const result = await uploadLogoAction(fd)
+    setUploadingLogo(false)
+    if (result.ok) {
+      setClinic(c => ({ ...c, logo_url: result.url }))
+    } else {
+      setUploadLogoError(result.error)
+      setLogoPreview(null)
+    }
   }
 
   function addExtra() {
@@ -89,7 +111,7 @@ export function OnboardingFlow({
     setSaving(true)
     setSaveError(null)
     const result = await completeOnboarding({
-      clinic,
+      clinic: { ...clinic, logo_url: clinic.logo_url, maps_url: clinic.maps_url },
       myProfile,
       additionalProfessionals: extras,
       schedule,
@@ -151,6 +173,46 @@ export function OnboardingFlow({
         <div className="min-h-[280px]">
           {step === 0 && (
             <div className="flex flex-col gap-5">
+              {/* Logo upload */}
+              <div className="flex flex-col items-center gap-2">
+                <label className="relative cursor-pointer group">
+                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-border overflow-hidden flex items-center justify-center bg-bg hover:border-[#d4c5a9] transition-colors relative">
+                    {logoPreview || clinic.logo_url ? (
+                      <img
+                        src={logoPreview ?? clinic.logo_url!}
+                        alt="Logo"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xl font-bold text-muted">
+                        {clinicName.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                    {uploadingLogo && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-xs shadow-sm">
+                    ✏️
+                  </div>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    onChange={handleLogoChange}
+                  />
+                </label>
+                <span className="text-xs text-muted">
+                  {uploadingLogo ? 'Enviando...' : clinic.logo_url ? 'Logo enviada ✓' : 'Clique para adicionar logo'}
+                </span>
+                {uploadLogoError && (
+                  <span className="text-xs text-red font-medium">{uploadLogoError}</span>
+                )}
+              </div>
+
               <div className="bg-bg rounded-[13px] px-4 py-3">
                 <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Clínica</div>
                 <div className="text-sm font-semibold">{clinicName}</div>
@@ -160,6 +222,7 @@ export function OnboardingFlow({
                 <Field label="CNPJ (opcional)" placeholder="00.000.000/0001-00" value={clinic.cnpj} onChange={v => setClinic({ ...clinic, cnpj: v })} />
               </div>
               <Field label="Endereço" placeholder="Rua, número, bairro, cidade" value={clinic.endereco} onChange={v => setClinic({ ...clinic, endereco: v })} />
+              <Field label="Link do Google Maps (opcional)" placeholder="https://maps.google.com/..." value={clinic.maps_url} onChange={v => setClinic({ ...clinic, maps_url: v })} />
             </div>
           )}
 
@@ -291,10 +354,16 @@ export function OnboardingFlow({
           {step === 4 && (
             <div className="flex flex-col gap-4">
               <SummarySection title="Clínica">
+                {clinic.logo_url && (
+                  <div className="mb-2">
+                    <img src={clinic.logo_url} alt="Logo" className="w-12 h-12 rounded-full object-cover border border-border" />
+                  </div>
+                )}
                 <SummaryItem label="Nome" value={clinicName} />
                 <SummaryItem label="Telefone" value={clinic.telefone || '—'} />
                 {clinic.cnpj && <SummaryItem label="CNPJ" value={clinic.cnpj} />}
                 <SummaryItem label="Endereço" value={clinic.endereco || '—'} />
+                {clinic.maps_url && <SummaryItem label="Google Maps" value="Link configurado ✓" />}
               </SummarySection>
 
               <SummarySection title="Profissionais">

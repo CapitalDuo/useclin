@@ -17,7 +17,7 @@ function iniciais(nome: string) {
 }
 
 export type OnboardingPayload = {
-  clinic: { telefone: string; cnpj: string; endereco: string }
+  clinic: { telefone: string; cnpj: string; endereco: string; logo_url?: string | null; maps_url?: string | null }
   myProfile: { especialidade: string; registro: string }
   additionalProfessionals: { nome: string; especialidade: string; registro: string }[]
   schedule: Record<string, { aberto: boolean; inicio: string; fim: string }>
@@ -49,6 +49,8 @@ export async function completeOnboarding(payload: OnboardingPayload) {
       telefone: payload.clinic.telefone || null,
       cnpj: payload.clinic.cnpj || null,
       endereco: payload.clinic.endereco || null,
+      logo_url: payload.clinic.logo_url ?? null,
+      maps_url: payload.clinic.maps_url || null,
       onboarding_completo: true,
       onboarding_step: 4,
     })
@@ -105,6 +107,38 @@ export async function completeOnboarding(payload: OnboardingPayload) {
   }
 
   return { ok: true as const, clinicaId }
+}
+
+export async function uploadLogoAction(
+  formData: FormData,
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Não autenticado' }
+
+  const file = formData.get('logo') as File | null
+  if (!file || file.size === 0) return { ok: false, error: 'Arquivo inválido' }
+  if (file.size > 2 * 1024 * 1024) return { ok: false, error: 'Imagem muito grande (máx. 2 MB)' }
+
+  const { data: prof } = await supabase
+    .from('profissionais')
+    .select('clinica_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!prof?.clinica_id) return { ok: false, error: 'Clínica não encontrada' }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+  const path = `${prof.clinica_id}/logo.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('logos')
+    .upload(path, file, { upsert: true, contentType: file.type })
+  if (uploadError) return { ok: false, error: uploadError.message }
+
+  const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
+  return { ok: true, url: publicUrl }
 }
 
 export async function skipToDashboardAction() {

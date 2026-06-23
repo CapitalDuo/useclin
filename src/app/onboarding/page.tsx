@@ -21,7 +21,7 @@ export default async function OnboardingPage() {
 
   const { data: clinica } = await supabase
     .from('clinica')
-    .select('id, nome, telefone, cnpj, endereco, onboarding_completo')
+    .select('id, nome, telefone, cnpj, endereco, maps_url, onboarding_completo')
     .eq('id', prof.clinica_id)
     .maybeSingle()
 
@@ -42,6 +42,7 @@ export default async function OnboardingPage() {
           telefone: clinica.telefone ?? '',
           cnpj: clinica.cnpj ?? '',
           endereco: clinica.endereco ?? '',
+          maps_url: clinica.maps_url ?? '',
         }}
       />
     </div>

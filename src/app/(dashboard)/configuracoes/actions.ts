@@ -29,8 +29,26 @@ export async function updateClinicaAction(formData: FormData) {
   const telefone = String(formData.get('telefone') ?? '').trim()
   const email = String(formData.get('email') ?? '').trim()
   const endereco = String(formData.get('endereco') ?? '').trim()
+  const maps_url = String(formData.get('maps_url') ?? '').trim()
 
   if (!nome) return { ok: false as const, error: 'Nome da clínica é obrigatório' }
+
+  // Upload logo if provided
+  let logo_url: string | undefined
+  const logoFile = formData.get('logo') as File | null
+  if (logoFile && logoFile.size > 0) {
+    if (logoFile.size > 2 * 1024 * 1024) {
+      return { ok: false as const, error: 'Imagem muito grande (máx. 2 MB)' }
+    }
+    const ext = logoFile.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+    const path = `${prof.clinica_id}/logo.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(path, logoFile, { upsert: true, contentType: logoFile.type })
+    if (uploadError) return { ok: false as const, error: `Erro no upload: ${uploadError.message}` }
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
+    logo_url = publicUrl
+  }
 
   const { error } = await supabase
     .from('clinica')
@@ -41,6 +59,8 @@ export async function updateClinicaAction(formData: FormData) {
       telefone: telefone || null,
       email: email || null,
       endereco: endereco || null,
+      maps_url: maps_url || null,
+      ...(logo_url !== undefined && { logo_url }),
     })
     .eq('id', prof.clinica_id)
 
