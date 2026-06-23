@@ -28,10 +28,12 @@ export function Sidebar({
   userName,
   userRole,
   userInitials,
+  clinicLogoUrl,
 }: {
   userName: string
   userRole: string
   userInitials: string
+  clinicLogoUrl?: string | null
 }) {
   const pathname = usePathname()
   const suporteActive = pathname.startsWith('/configuracoes/suporte')
@@ -79,8 +81,12 @@ export function Sidebar({
           Suporte
         </Link>
         <div className="flex items-center gap-3 mt-3.5 px-2 pt-3.5 border-t border-[#f0efec]">
-          <div className="w-10 h-10 rounded-[12px] bg-text text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
-            {userInitials}
+          <div className="w-10 h-10 rounded-[12px] bg-text text-white flex items-center justify-center font-bold text-sm flex-shrink-0 overflow-hidden">
+            {clinicLogoUrl ? (
+              <img src={clinicLogoUrl} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              userInitials
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-text leading-tight truncate">{userName}</div>

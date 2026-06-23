@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { formatBrl } from '@/lib/currency'
 
 export type SeriePonto = { label: string; valor: number; data: string }

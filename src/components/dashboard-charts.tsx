@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Chart as ChartJS,
   ArcElement,
@@ -21,7 +21,9 @@ export type DonutSlice = { label: string; value: number; color: string }
 export function DonutChart({ data }: { data: DonutSlice[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const chartRef = useRef<ChartJS | null>(null)
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const total = data.reduce((acc, s) => acc + s.value, 0)
+  const hovered = hoveredIdx !== null ? data[hoveredIdx] : null
 
   useEffect(() => {
     if (!canvasRef.current) return
@@ -34,6 +36,7 @@ export function DonutChart({ data }: { data: DonutSlice[] }) {
           data: data.map((s) => Math.max(s.value, 0.0001)),
           backgroundColor: data.map((s) => s.color),
           borderWidth: 0,
+          hoverOffset: 4,
         }],
       },
       options: {
@@ -42,15 +45,10 @@ export function DonutChart({ data }: { data: DonutSlice[] }) {
         cutout: '70%',
         plugins: {
           legend: { display: false },
-          tooltip: {
-            enabled: true,
-            callbacks: {
-              label: (ctx) => {
-                const slice = data[ctx.dataIndex]
-                return `${slice.label}: ${slice.value}`
-              },
-            },
-          },
+          tooltip: { enabled: false },
+        },
+        onHover: (_evt, elements) => {
+          setHoveredIdx(elements.length > 0 ? elements[0].index : null)
         },
       },
     })
@@ -58,26 +56,43 @@ export function DonutChart({ data }: { data: DonutSlice[] }) {
   }, [data])
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="relative w-[104px] h-[104px] flex-shrink-0">
-        {total > 0 ? (
-          <canvas ref={canvasRef} />
-        ) : (
-          <div className="w-full h-full rounded-full border-[16px] border-[#f1f0ed]" />
-        )}
-        <div className="absolute inset-4 rounded-full bg-card flex flex-col items-center justify-center">
-          <div className="font-newsreader font-semibold text-2xl text-text leading-none">{total}</div>
-          <div className="text-[10px] text-muted">Total</div>
+    <div
+      className="flex flex-col gap-3"
+      onMouseLeave={() => setHoveredIdx(null)}
+    >
+      {/* Tooltip — aparece acima do gráfico, nunca sobre a legenda */}
+      <div className={`transition-opacity duration-150 ${hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-[9px] bg-bg border border-border w-fit">
+          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: hovered?.color }} />
+          <span className="text-[12px] font-semibold text-text">{hovered?.label}</span>
+          <span className="text-[12px] font-bold text-text">{hovered?.value}</span>
         </div>
       </div>
-      <div className="flex flex-col gap-[9px] flex-1">
-        {data.map((s) => (
-          <div key={s.label} className="flex items-center gap-2 text-[12.5px]">
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
-            <span className="text-muted flex-1">{s.label}</span>
-            <span className="font-bold text-text">{s.value}</span>
+
+      <div className="flex items-center gap-4">
+        <div className="relative w-[104px] h-[104px] flex-shrink-0">
+          {total > 0 ? (
+            <canvas ref={canvasRef} />
+          ) : (
+            <div className="w-full h-full rounded-full border-[16px] border-[#f1f0ed]" />
+          )}
+          <div className="absolute inset-4 rounded-full bg-card flex flex-col items-center justify-center pointer-events-none">
+            <div className="font-newsreader font-semibold text-2xl text-text leading-none">{total}</div>
+            <div className="text-[10px] text-muted">Total</div>
           </div>
-        ))}
+        </div>
+        <div className="flex flex-col gap-[9px] flex-1">
+          {data.map((s, i) => (
+            <div
+              key={s.label}
+              className={`flex items-center gap-2 text-[12.5px] transition-opacity ${hoveredIdx !== null && hoveredIdx !== i ? 'opacity-40' : 'opacity-100'}`}
+            >
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
+              <span className="text-muted flex-1">{s.label}</span>
+              <span className="font-bold text-text">{s.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

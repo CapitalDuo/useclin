@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { updatePacienteAction } from '../../actions'
+import { updatePacienteAction, deletePacienteAction } from '../../actions'
 
 type Plano = { id: string; nome: string; tipo: string }
 type Paciente = {
@@ -23,6 +23,8 @@ type Paciente = {
 export function EditarPacienteForm({ paciente, planos }: { paciente: Paciente; planos: Plano[] }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   async function handleSubmit(formData: FormData) {
     setPending(true)
@@ -31,6 +33,16 @@ export function EditarPacienteForm({ paciente, planos }: { paciente: Paciente; p
     if (result && !result.ok) {
       setPending(false)
       setError(result.error)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    const result = await deletePacienteAction(paciente.id)
+    if (result && !result.ok) {
+      setDeleting(false)
+      setConfirmDelete(false)
+      setError(result.error ?? 'Erro ao excluir')
     }
   }
 
@@ -99,20 +111,53 @@ export function EditarPacienteForm({ paciente, planos }: { paciente: Paciente; p
 
       {error && <div className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium">{error}</div>}
 
-      <div className="flex justify-end gap-3 pt-3 border-t border-border">
-        <Link
-          href="/pacientes"
-          className="px-5 py-2.5 rounded-[13px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
-        >
-          Cancelar
-        </Link>
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {pending ? 'Salvando…' : 'Salvar alterações'}
-        </button>
+      <div className="flex items-center justify-between gap-3 pt-3 border-t border-border flex-wrap">
+        {/* Delete zone */}
+        {!confirmDelete ? (
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="text-sm font-semibold text-red hover:text-red/80 transition-colors cursor-pointer"
+          >
+            Excluir paciente
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-red">Confirmar exclusão?</span>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-4 py-2 rounded-[11px] bg-red text-white text-xs font-semibold hover:bg-red/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deleting ? 'Excluindo…' : 'Sim, excluir'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="px-4 py-2 rounded-[11px] border border-border text-xs font-semibold hover:bg-bg transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
+
+        {/* Save zone */}
+        <div className="flex items-center gap-3 ml-auto">
+          <Link
+            href="/pacientes"
+            className="px-5 py-2.5 rounded-[13px] border border-border text-sm font-semibold hover:bg-bg transition-colors"
+          >
+            Cancelar
+          </Link>
+          <button
+            type="submit"
+            disabled={pending}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {pending ? 'Salvando…' : 'Salvar alterações'}
+          </button>
+        </div>
       </div>
     </form>
   )

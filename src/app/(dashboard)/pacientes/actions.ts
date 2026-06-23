@@ -117,3 +117,29 @@ export async function updatePacienteAction(id: string, formData: FormData) {
   revalidatePath(`/pacientes/${id}/editar`)
   redirect('/pacientes')
 }
+
+export async function deletePacienteAction(id: string): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Não autenticado' }
+
+  const { data: prof } = await supabase
+    .from('profissionais')
+    .select('clinica_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!prof?.clinica_id) return { ok: false, error: 'Conta sem clínica vinculada' }
+
+  const { error } = await supabase
+    .from('pacientes')
+    .delete()
+    .eq('id', id)
+    .eq('clinica_id', prof.clinica_id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/pacientes')
+  redirect('/pacientes')
+}

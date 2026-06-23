@@ -28,6 +28,10 @@ export default async function SuporteClientePage() {
 
   return (
     <div className="px-10 pt-7 pb-10 max-w-[820px]">
+      <div className="mb-6">
+        <h1 className="font-newsreader text-[28px] font-semibold tracking-tight">Suporte</h1>
+        <p className="text-sm text-muted mt-0.5">Abra chamados e acompanhe suas solicitações</p>
+      </div>
       <div className="grid grid-cols-1 gap-6">
         <NovoTicketForm />
 

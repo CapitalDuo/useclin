@@ -27,16 +27,18 @@ export default async function DashboardLayout({
     .eq('user_id', user.id)
     .maybeSingle()
 
+  let clinicLogoUrl: string | null = null
   if (prof?.clinica_id) {
     const { data: clinica } = await supabase
       .from('clinica')
-      .select('nome, onboarding_completo')
+      .select('nome, onboarding_completo, logo_url')
       .eq('id', prof.clinica_id)
       .maybeSingle()
 
     if (clinica && !clinica.onboarding_completo) {
       redirect('/onboarding')
     }
+    clinicLogoUrl = clinica?.logo_url ?? null
   }
 
   return (
@@ -45,6 +47,7 @@ export default async function DashboardLayout({
         userName={prof?.nome ?? user.email ?? '—'}
         userRole={prof?.role === 'admin' ? 'Administrador' : 'Profissional'}
         userInitials={prof?.iniciais ?? user.email?.slice(0, 2).toUpperCase() ?? '??'}
+        clinicLogoUrl={clinicLogoUrl}
       />
       <main className="flex-1 min-h-screen min-w-0">{children}</main>
     </div>
