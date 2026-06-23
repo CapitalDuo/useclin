@@ -7,8 +7,10 @@ import { DashboardHero } from '@/components/dashboard-hero'
 import { DashboardCalendar } from '@/components/dashboard-calendar'
 import { DailyGoals } from '@/components/daily-goals'
 
+const TZ = 'America/Sao_Paulo'
+
 function todayISO() {
-  return new Date().toISOString().slice(0, 10)
+  return new Date().toLocaleDateString('en-CA', { timeZone: TZ })
 }
 
 function formatHora(t: string | null) {
@@ -25,7 +27,10 @@ function mondayOf(d: Date) {
 }
 
 function isoDate(d: Date) {
-  return d.toISOString().slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 const WEEK_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -46,9 +51,10 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
 
   const today = todayISO()
-  const nowTime = new Date().toTimeString().slice(0, 8)
+  const nowTime = new Date().toLocaleTimeString('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit' })
   const firstOfMonth = today.slice(0, 7) + '-01'
-  const monday = mondayOf(new Date())
+  const [ty, tm, td] = today.split('-').map(Number)
+  const monday = mondayOf(new Date(ty, tm - 1, td))
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
 

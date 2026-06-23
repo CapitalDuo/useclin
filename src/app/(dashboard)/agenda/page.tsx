@@ -10,8 +10,19 @@ function mondayOf(d: Date) {
   return m
 }
 
+const TZ = 'America/Sao_Paulo'
+
 function isoDate(d: Date) {
-  return d.toISOString().slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function todayBrazil() {
+  const s = new Date().toLocaleDateString('en-CA', { timeZone: TZ })
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
 }
 
 export default async function AgendaPage({
@@ -21,7 +32,7 @@ export default async function AgendaPage({
 }) {
   const sp = await searchParams
   const view: AgendaView = sp.view === 'day' ? 'day' : 'week'
-  const ref = sp.date ? new Date(sp.date + 'T00:00:00') : new Date()
+  const ref = sp.date ? new Date(sp.date + 'T00:00:00') : todayBrazil()
 
   let anchor: Date
   let from: Date

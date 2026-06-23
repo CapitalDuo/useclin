@@ -23,11 +23,12 @@ export function DashboardHero({
   consultasHoje: number
   proximaHora: string | null
 }) {
+  const TZ = 'America/Sao_Paulo'
   const now = new Date()
-  const hour = now.getHours()
+  const hour = parseInt(now.toLocaleString('en-US', { timeZone: TZ, hour: 'numeric', hour12: false })) % 24
   const firstName = userName.split(' ').slice(0, 2).join(' ')
-  const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
-  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: TZ })
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: TZ })
 
   const subtitle = consultasHoje > 0
     ? `Você tem ${consultasHoje} consulta${consultasHoje === 1 ? '' : 's'} hoje${proximaHora ? `. A próxima é às ${proximaHora}.` : '.'}`
