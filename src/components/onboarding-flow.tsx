@@ -69,6 +69,13 @@ export function OnboardingFlow({
     const file = e.target.files?.[0]
     if (!file) return
     setUploadLogoError(null)
+
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadLogoError('Imagem muito grande. Use uma foto de até 2 MB.')
+      e.target.value = ''
+      return
+    }
+
     setLogoPreview(URL.createObjectURL(file))
     setUploadingLogo(true)
     const fd = new FormData()

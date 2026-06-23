@@ -460,6 +460,7 @@ function ClinicaModal({ clinica, onClose }: { clinica: Clinica; onClose: () => v
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoError, setLogoError] = useState<string | null>(null)
 
   useEscClose(onClose)
 
@@ -501,11 +502,21 @@ function ClinicaModal({ clinica, onClose }: { clinica: Clinica; onClose: () => v
                 className="sr-only"
                 onChange={e => {
                   const f = e.target.files?.[0]
-                  if (f) setLogoPreview(URL.createObjectURL(f))
+                  if (!f) return
+                  setLogoError(null)
+                  if (f.size > 2 * 1024 * 1024) {
+                    setLogoError('Imagem muito grande. Use uma foto de até 2 MB.')
+                    e.target.value = ''
+                    return
+                  }
+                  setLogoPreview(URL.createObjectURL(f))
                 }}
               />
             </label>
             <p className="text-xs text-muted mt-0.5">PNG, JPG ou WebP · máx. 2 MB</p>
+            {logoError && (
+              <p className="text-xs text-red font-medium mt-1">{logoError}</p>
+            )}
           </div>
         </div>
 
