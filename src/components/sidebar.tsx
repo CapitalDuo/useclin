@@ -16,6 +16,7 @@ import {
 import { logoutAction } from '@/app/login/actions'
 
 const NAV_BG = '#1e1b4b'
+const CONTENT_BG = '#f4f3f1' // cor de fundo do conteúdo — aba ativa e notch usam ela
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: HomeIcon },
@@ -34,8 +35,8 @@ function NavNotch({ position }: { position: 'top' | 'bottom' }) {
   return (
     <span
       aria-hidden
-      className="absolute right-0 w-4 h-4 bg-white pointer-events-none"
-      style={{ [isTop ? 'bottom' : 'top']: '100%' }}
+      className="absolute right-0 w-4 h-4 pointer-events-none"
+      style={{ [isTop ? 'bottom' : 'top']: '100%', background: CONTENT_BG }}
     >
       <span
         className={`block w-full h-full ${isTop ? 'rounded-br-[16px]' : 'rounded-tr-[16px]'}`}
@@ -85,7 +86,7 @@ export function Sidebar({
               href={item.href}
               className={`relative flex items-center gap-3 px-3.5 py-[11px] text-[14.5px] font-semibold transition-colors ${
                 isActive
-                  ? 'bg-white text-[#1e1b4b] rounded-l-[18px] z-[1]'
+                  ? 'bg-[#f4f3f1] text-[#1e1b4b] rounded-l-[18px] z-[1]'
                   : 'text-white/60 font-medium rounded-[12px] mr-4 hover:bg-white/8 hover:text-white/90'
               }`}
             >
@@ -111,7 +112,7 @@ export function Sidebar({
           href="/configuracoes/suporte"
           className={`relative flex items-center gap-3 px-3.5 py-[11px] text-sm font-medium transition-colors ${
             suporteActive
-              ? 'bg-white text-[#1e1b4b] rounded-l-[18px] z-[1]'
+              ? 'bg-[#f4f3f1] text-[#1e1b4b] rounded-l-[18px] z-[1]'
               : 'text-white/50 rounded-[12px] mr-4 hover:text-white/80 hover:bg-white/8'
           }`}
         >

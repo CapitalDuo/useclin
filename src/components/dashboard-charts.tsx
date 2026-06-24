@@ -1,60 +1,28 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import {
-  Chart as ChartJS,
-  ArcElement,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Filler,
-  Tooltip,
-  DoughnutController,
-  LineController,
-} from 'chart.js'
-
-ChartJS.register(ArcElement, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip, DoughnutController, LineController)
+import { useState } from 'react'
 
 export type DonutSlice = { label: string; value: number; color: string }
 
+// Donut em SVG puro (sem chart.js): cada fatia é um <circle> com
+// stroke-dasharray proporcional ao valor, posicionado via dashoffset.
 export function DonutChart({ data, compact = false }: { data: DonutSlice[]; compact?: boolean }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const chartRef = useRef<ChartJS | null>(null)
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const total = data.reduce((acc, s) => acc + s.value, 0)
   const hovered = hoveredIdx !== null ? data[hoveredIdx] : null
   const size = compact ? 62 : 104
+  const stroke = compact ? 11 : 16
+  const r = (size - stroke) / 2
+  const cx = size / 2
+  const C = 2 * Math.PI * r
 
-  useEffect(() => {
-    if (!canvasRef.current) return
-    chartRef.current?.destroy()
-    chartRef.current = new ChartJS(canvasRef.current, {
-      type: 'doughnut',
-      data: {
-        labels: data.map((s) => s.label),
-        datasets: [{
-          data: data.map((s) => Math.max(s.value, 0.0001)),
-          backgroundColor: data.map((s) => s.color),
-          borderWidth: 0,
-          hoverOffset: 0,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '70%',
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: false },
-        },
-        onHover: (_evt, elements) => {
-          setHoveredIdx(elements.length > 0 ? elements[0].index : null)
-        },
-      },
-    })
-    return () => { chartRef.current?.destroy() }
-  }, [data])
+  let acc = 0
+  const segments = data.map((s, i) => {
+    const frac = total > 0 ? s.value / total : 0
+    const offset = acc
+    acc += frac
+    return { ...s, i, frac, offset }
+  })
 
   return (
     <div
@@ -62,11 +30,26 @@ export function DonutChart({ data, compact = false }: { data: DonutSlice[]; comp
       onMouseLeave={() => setHoveredIdx(null)}
     >
       <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-        {total > 0 ? (
-          <canvas ref={canvasRef} />
-        ) : (
-          <div className="w-full h-full rounded-full border-[12px] border-[#f1f0ed]" />
-        )}
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx={cx} cy={cx} r={r} fill="none" stroke="#f1f0ed" strokeWidth={stroke} />
+          {total > 0 &&
+            segments.map((s) => (
+              <circle
+                key={s.i}
+                cx={cx}
+                cy={cx}
+                r={r}
+                fill="none"
+                stroke={s.color}
+                strokeWidth={hoveredIdx === s.i ? stroke + 2 : stroke}
+                strokeDasharray={`${s.frac * C} ${C - s.frac * C}`}
+                strokeDashoffset={-s.offset * C}
+                opacity={hoveredIdx !== null && hoveredIdx !== s.i ? 0.35 : 1}
+                onMouseEnter={() => setHoveredIdx(s.i)}
+                style={{ transition: 'opacity .15s, stroke-width .15s', cursor: 'pointer' }}
+              />
+            ))}
+        </svg>
         <div className="absolute rounded-full flex flex-col items-center justify-center pointer-events-none transition-all duration-150" style={{ inset: compact ? '10px' : '16px' }}>
           {hovered ? (
             <>
@@ -86,6 +69,7 @@ export function DonutChart({ data, compact = false }: { data: DonutSlice[]; comp
           <div
             key={s.label}
             className={`flex items-center gap-1.5 transition-opacity ${compact ? 'text-[10.5px]' : 'text-[12.5px]'} ${hoveredIdx !== null && hoveredIdx !== i ? 'opacity-40' : 'opacity-100'}`}
+            onMouseEnter={() => setHoveredIdx(i)}
           >
             <span className={`rounded-full flex-shrink-0 ${compact ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} style={{ background: s.color }} />
             <span className="text-muted flex-1 truncate">{s.label}</span>
@@ -194,44 +178,4 @@ export function WeekChart({ points }: { points: WeekPoint[] }) {
       </div>
     </div>
   )
-}
-
-export function PatientsChart() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const chartRef = useRef<ChartJS | null>(null)
-
-  useEffect(() => {
-    if (!canvasRef.current) return
-    chartRef.current?.destroy()
-    chartRef.current = new ChartJS(canvasRef.current, {
-      type: 'line',
-      data: {
-        labels: ['1', '5', '10', '15', '20', '25', '30'],
-        datasets: [{
-          data: [10, 11, 12, 14, 13, 16, 18],
-          borderColor: '#6d5ae6',
-          backgroundColor: 'rgba(109,90,230,0.06)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 4,
-          pointBackgroundColor: '#6d5ae6',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: true } },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#a3a09a' } },
-          y: { display: false },
-        },
-      },
-    })
-    return () => { chartRef.current?.destroy() }
-  }, [])
-
-  return <canvas ref={canvasRef} />
 }

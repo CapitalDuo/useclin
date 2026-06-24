@@ -51,24 +51,27 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen" style={{ background: '#1e1b4b' }}>
       <Sidebar
         userName={prof?.nome ?? user.email ?? '—'}
         userRole={prof?.role === 'admin' ? 'Administrador' : 'Profissional'}
         userInitials={prof?.iniciais ?? user.email?.slice(0, 2).toUpperCase() ?? '??'}
         clinicLogoUrl={clinicLogoUrl}
       />
-      <div className="flex-1 min-h-screen min-w-0 flex flex-col">
+      {/* Painel de conteúdo: fundo do projeto com cantos esquerdos arredondados,
+          revelando o navy do container → curvas no topo e na base, conectando
+          com o notch da aba ativa. */}
+      <div className="flex-1 min-h-screen min-w-0 flex flex-col bg-[#f4f3f1] rounded-l-[26px]">
         {trialBanner && (
           trialBanner.expirou ? (
-            <div className="flex items-center justify-between gap-4 px-8 py-2.5 bg-[#fdeaea] border-b border-[#d24343]/20 text-sm text-[#d24343]">
+            <div className="flex items-center justify-between gap-4 px-8 py-2.5 bg-[#fdeaea] border-b border-[#d24343]/20 text-sm text-[#d24343] rounded-tl-[26px]">
               <span className="font-medium">Seu período de teste encerrou — o módulo de Atendimento está restrito.</span>
               <a href="/configuracoes" className="whitespace-nowrap font-semibold underline hover:opacity-80 transition-opacity">
                 Assinar agora →
               </a>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-4 px-8 py-2.5 bg-[#fff8f0] border-b border-[#f5a623]/25 text-sm text-[#b87a00]">
+            <div className="flex items-center justify-between gap-4 px-8 py-2.5 bg-[#fff8f0] border-b border-[#f5a623]/25 text-sm text-[#b87a00] rounded-tl-[26px]">
               <span>
                 <span className="font-semibold">Período de teste:</span>{' '}
                 {trialBanner.dias === 0
