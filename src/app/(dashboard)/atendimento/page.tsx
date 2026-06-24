@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PacientesView } from '@/components/pacientes-view'
 import { AtendimentoLocked } from '@/components/atendimento-locked'
+import { planoEfetivo } from '@/lib/plano'
 
 export default async function AtendimentoPage() {
   const supabase = await createClient()
@@ -18,6 +19,7 @@ export default async function AtendimentoPage() {
 
   let whatsapp = null
   let plano_slug = 'gratuito'
+  let trial_ends_at: string | null = null
 
   if (prof?.clinica_id) {
     const [whatsappResult, clinicaResult] = await Promise.all([
@@ -30,15 +32,16 @@ export default async function AtendimentoPage() {
         .maybeSingle(),
       supabase
         .from('clinica')
-        .select('plano_slug')
+        .select('plano_slug, trial_ends_at')
         .eq('id', prof.clinica_id)
         .maybeSingle(),
     ])
     whatsapp = whatsappResult.data
     plano_slug = clinicaResult.data?.plano_slug ?? 'gratuito'
+    trial_ends_at = clinicaResult.data?.trial_ends_at ?? null
   }
 
-  if (plano_slug !== 'completo') {
+  if (planoEfetivo(plano_slug, trial_ends_at) !== 'completo') {
     return <AtendimentoLocked />
   }
 

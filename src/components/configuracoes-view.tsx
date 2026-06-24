@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { isTrialAtivo, trialDiasRestantes } from '@/lib/plano'
 import {
   updateClinicaAction,
   updateHorariosAction,
@@ -27,6 +28,7 @@ export type Clinica = {
   plano_status: string
   plano_periodo_fim: string | null
   plano_cancelando: boolean
+  trial_ends_at: string | null
 }
 
 export type Profissional = {
@@ -123,7 +125,7 @@ export function ConfiguracoesView({
   return (
     <div className="px-10 pt-7 pb-10 max-w-[920px] flex flex-col gap-6">
       <SectionCard title="Plano" icon={SECTION_ICONS.plano}>
-        <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} plano_cancelando={clinica.plano_cancelando} />
+        <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} plano_cancelando={clinica.plano_cancelando} trial_ends_at={clinica.trial_ends_at} />
       </SectionCard>
 
       <SectionCard title="Perfil da Clínica" icon={SECTION_ICONS.clinica} onEdit={() => openEdit('clinica')}>
@@ -233,11 +235,12 @@ const PLAN_CARDS: {
   },
 ]
 
-function PlanCard({ plano_slug, plano_status, plano_periodo_fim, plano_cancelando }: {
+function PlanCard({ plano_slug, plano_status, plano_periodo_fim, plano_cancelando, trial_ends_at }: {
   plano_slug: string
   plano_status: string
   plano_periodo_fim: string | null
   plano_cancelando: boolean
+  trial_ends_at: string | null
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -252,6 +255,9 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim, plano_canceland
   const isCanceled = plano_status === 'cancelado'
   const isSubscriber = plano_slug !== 'gratuito'
   const fimFmt = plano_periodo_fim ? new Date(plano_periodo_fim).toLocaleDateString('pt-BR') : null
+  const trialAtivo = plano_slug === 'gratuito' && isTrialAtivo(trial_ends_at)
+  const trialDias = trialAtivo ? trialDiasRestantes(trial_ends_at) : 0
+  const trialExpirou = plano_slug === 'gratuito' && !trialAtivo
 
   // Ao voltar do checkout, o webhook pode levar alguns segundos para gravar o
   // novo plano. Atualiza a página uma vez para refletir a mudança.
@@ -360,6 +366,17 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim, plano_canceland
       {isPastDue && (
         <Banner tone="amber">Pagamento pendente. Atualize seu método de pagamento para continuar.</Banner>
       )}
+      {trialAtivo && (
+        <Banner tone="amber">
+          Período de teste ativo —{' '}
+          {trialDias === 0
+            ? 'último dia. Escolha um plano para manter o acesso completo.'
+            : `${trialDias} dia${trialDias !== 1 ? 's' : ''} restante${trialDias !== 1 ? 's' : ''}. Você tem acesso a todos os recursos.`}
+        </Banner>
+      )}
+      {trialExpirou && (
+        <Banner tone="amber">Período de teste encerrado. Assine um plano para acessar o módulo de Atendimento.</Banner>
+      )}
       {plano_cancelando && fimFmt && (
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-[13px] bg-[#fff8f0] border border-[#f5a623]/30 text-sm text-[#b87a00]">
           <span>Assinatura cancelada — você mantém acesso até {fimFmt}.</span>
@@ -388,8 +405,10 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim, plano_canceland
         <span className="px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide flex-shrink-0"
           style={plano_cancelando
             ? { background: '#fff1dd', color: '#b87a00' }
-            : { background: info.bg, color: info.cor }}>
-          {isCanceled ? 'CANCELADO' : isPastDue ? 'INADIMPLENTE' : plano_cancelando ? 'CANCELANDO' : 'ATIVO'}
+            : trialAtivo
+              ? { background: '#fff8f0', color: '#b87a00' }
+              : { background: info.bg, color: info.cor }}>
+          {isCanceled ? 'CANCELADO' : isPastDue ? 'INADIMPLENTE' : plano_cancelando ? 'CANCELANDO' : trialAtivo ? 'TESTE' : 'ATIVO'}
         </span>
       </div>
 
