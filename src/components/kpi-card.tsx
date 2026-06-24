@@ -70,18 +70,18 @@ export function KpiCard({ icon, label, value, color, sparkline = 'up', valueSmal
   const sp = sparklinePaths[sparkline]
   return (
     <div
-      className="relative overflow-hidden rounded-[18px] p-[17px_17px_0] h-[148px] border"
+      className="relative overflow-hidden rounded-[18px] p-[14px_14px_0] h-[126px] border"
       style={{ background: c.bg, borderColor: c.border }}
     >
       <div
-        className="w-[38px] h-[38px] rounded-[11px] bg-white flex items-center justify-center"
+        className="w-[34px] h-[34px] rounded-[10px] bg-white flex items-center justify-center"
         style={{ boxShadow: `0 2px 6px ${c.iconShadow}`, color: c.icon }}
       >
         {icon}
       </div>
-      <div className="text-[12.5px] font-semibold mt-3" style={{ color: c.label }}>{label}</div>
+      <div className="text-[11.5px] font-semibold mt-2.5" style={{ color: c.label }}>{label}</div>
       <div
-        className={`font-newsreader font-semibold leading-none mt-0.5 ${valueSmall ? 'text-[26px] mt-1.5' : 'text-[34px]'}`}
+        className={`font-newsreader font-semibold leading-none mt-0.5 ${valueSmall ? 'text-[22px]' : 'text-[28px]'}`}
         style={{ color: c.value }}
       >
         {value}
@@ -89,7 +89,7 @@ export function KpiCard({ icon, label, value, color, sparkline = 'up', valueSmal
       <svg
         viewBox="0 0 200 40"
         preserveAspectRatio="none"
-        className="absolute left-0 right-0 bottom-0 w-full h-[40px]"
+        className="absolute left-0 right-0 bottom-0 w-full h-[34px]"
       >
         <path d={sp.area} fill={c.icon} fillOpacity="0.16" />
         <path d={sp.line} fill="none" stroke={c.icon} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />

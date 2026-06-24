@@ -18,12 +18,13 @@ ChartJS.register(ArcElement, LineElement, PointElement, CategoryScale, LinearSca
 
 export type DonutSlice = { label: string; value: number; color: string }
 
-export function DonutChart({ data }: { data: DonutSlice[] }) {
+export function DonutChart({ data, compact = false }: { data: DonutSlice[]; compact?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const chartRef = useRef<ChartJS | null>(null)
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const total = data.reduce((acc, s) => acc + s.value, 0)
   const hovered = hoveredIdx !== null ? data[hoveredIdx] : null
+  const size = compact ? 76 : 104
 
   useEffect(() => {
     if (!canvasRef.current) return
@@ -56,35 +57,38 @@ export function DonutChart({ data }: { data: DonutSlice[] }) {
   }, [data])
 
   return (
-    <div className="flex items-center gap-4" onMouseLeave={() => setHoveredIdx(null)}>
-      <div className="relative w-[104px] h-[104px] flex-shrink-0">
+    <div
+      className={`flex items-center ${compact ? 'gap-3' : 'gap-4'}`}
+      onMouseLeave={() => setHoveredIdx(null)}
+    >
+      <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
         {total > 0 ? (
           <canvas ref={canvasRef} />
         ) : (
-          <div className="w-full h-full rounded-full border-[16px] border-[#f1f0ed]" />
+          <div className="w-full h-full rounded-full border-[14px] border-[#f1f0ed]" />
         )}
-        <div className="absolute inset-4 rounded-full bg-card flex flex-col items-center justify-center pointer-events-none transition-all duration-150">
+        <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center pointer-events-none transition-all duration-150" style={{ inset: compact ? '12px' : '16px' }}>
           {hovered ? (
             <>
-              <div className="font-newsreader font-semibold text-2xl leading-none" style={{ color: hovered.color }}>{hovered.value}</div>
-              <div className="text-[9px] text-muted text-center leading-tight mt-0.5 max-w-[48px] truncate">{hovered.label}</div>
+              <div className={`font-newsreader font-semibold leading-none ${compact ? 'text-xl' : 'text-2xl'}`} style={{ color: hovered.color }}>{hovered.value}</div>
+              {!compact && <div className="text-[9px] text-muted text-center leading-tight mt-0.5 max-w-[48px] truncate">{hovered.label}</div>}
             </>
           ) : (
             <>
-              <div className="font-newsreader font-semibold text-2xl text-text leading-none">{total}</div>
-              <div className="text-[10px] text-muted">Total</div>
+              <div className={`font-newsreader font-semibold text-text leading-none ${compact ? 'text-xl' : 'text-2xl'}`}>{total}</div>
+              <div className={`text-muted ${compact ? 'text-[9px]' : 'text-[10px]'}`}>Total</div>
             </>
           )}
         </div>
       </div>
-      <div className="flex flex-col gap-[9px] flex-1">
+      <div className={`flex flex-col ${compact ? 'gap-[7px]' : 'gap-[9px]'} flex-1`}>
         {data.map((s, i) => (
           <div
             key={s.label}
-            className={`flex items-center gap-2 text-[12.5px] transition-opacity ${hoveredIdx !== null && hoveredIdx !== i ? 'opacity-40' : 'opacity-100'}`}
+            className={`flex items-center gap-1.5 transition-opacity ${compact ? 'text-[11px]' : 'text-[12.5px]'} ${hoveredIdx !== null && hoveredIdx !== i ? 'opacity-40' : 'opacity-100'}`}
           >
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
-            <span className="text-muted flex-1">{s.label}</span>
+            <span className={`rounded-full flex-shrink-0 ${compact ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} style={{ background: s.color }} />
+            <span className="text-muted flex-1 truncate">{s.label}</span>
             <span className="font-bold text-text">{s.value}</span>
           </div>
         ))}

@@ -157,57 +157,61 @@ export default async function DashboardPage() {
             proximaHora={proxima ? formatHora(proxima.hora_inicio) : null}
           />
 
-          {/* KPIs — 2 cards (Pacientes ativos removido) */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* KPIs — 3 cards compactos abaixo do hero */}
+          <div className="grid grid-cols-3 gap-4">
             <KpiCard
-              icon={<CalendarIcon className="w-[19px] h-[19px]" />}
+              icon={<CalendarIcon className="w-[18px] h-[18px]" />}
               label="Consultas hoje"
               value={String(kpis?.consultas_hoje ?? 0)}
               color="purple"
               sparkline="up"
             />
             <KpiCard
-              icon={<WalletIcon className="w-[19px] h-[19px]" />}
+              icon={<WalletIcon className="w-[18px] h-[18px]" />}
               label="Faturamento"
               value={`R$ ${((Number(kpis?.receita_mensal ?? 0)) / 1000).toFixed(1).replace('.', ',')}k`}
               color="orange"
               sparkline="flat"
               valueSmall
             />
+            {/* Consultas por status — compacto, no lugar do 3º KPI */}
+            <div
+              className="bg-[#f1eefb] border border-[#e7e1fa] rounded-[18px] p-[14px_14px_14px] relative overflow-hidden"
+            >
+              <div className="text-[11.5px] font-semibold text-[#7c6fae] mb-2.5">Consultas por status</div>
+              <DonutChart data={statusChart} compact />
+            </div>
           </div>
 
-          {/* Gráfico semanal */}
-          <div className="bg-card border border-border rounded-[18px] p-5" style={{ boxShadow: CARD_SHADOW }}>
-            <div className="flex justify-between items-center">
-              <div className="font-newsreader font-semibold text-[19px] text-text">Atendimentos da semana</div>
-              <div className="flex gap-1.5">
-                <span className="text-xs font-semibold text-[#5b4bd4] bg-[#f1eefb] px-3 py-1.5 rounded-[9px]">Semana</span>
-                <span className="text-xs font-semibold text-muted px-3 py-1.5 rounded-[9px]">Mês</span>
+          {/* Gráfico semanal + Minha Agenda lado a lado */}
+          <div className="grid grid-cols-2 gap-[22px]">
+            <div className="bg-card border border-border rounded-[18px] p-5" style={{ boxShadow: CARD_SHADOW }}>
+              <div className="flex justify-between items-center mb-3.5">
+                <div className="font-newsreader font-semibold text-[17px] text-text">Atendimentos da semana</div>
+                <div className="flex gap-1.5">
+                  <span className="text-[11px] font-semibold text-[#5b4bd4] bg-[#f1eefb] px-2.5 py-1 rounded-[8px]">Semana</span>
+                  <span className="text-[11px] font-semibold text-muted px-2.5 py-1 rounded-[8px]">Mês</span>
+                </div>
               </div>
-            </div>
-            <div className="mt-3.5">
               <WeekChart points={weekPoints} />
             </div>
-          </div>
 
-          {/* Minha Agenda — movida para o rodapé da coluna */}
-          <DashboardCalendar
-            events={(hoje ?? []).map((e) => ({
-              id: e.id ?? '',
-              hora_inicio: e.hora_inicio ?? '00:00',
-              hora_fim: e.hora_fim ?? '00:00',
-              status: e.status ?? 'agendado',
-              paciente_nome: e.paciente_nome ?? '—',
-              tipo_nome: e.tipo_nome ?? null,
-            }))}
-            weekDots={weekDots}
-          />
+            <DashboardCalendar
+              events={(hoje ?? []).map((e) => ({
+                id: e.id ?? '',
+                hora_inicio: e.hora_inicio ?? '00:00',
+                hora_fim: e.hora_fim ?? '00:00',
+                status: e.status ?? 'agendado',
+                paciente_nome: e.paciente_nome ?? '—',
+                tipo_nome: e.tipo_nome ?? null,
+              }))}
+              weekDots={weekDots}
+            />
+          </div>
         </div>
 
-        {/* Coluna lateral */}
-        <aside className="w-[340px] flex-none flex flex-col gap-[18px]">
-
-          {/* Avisos — placeholder (funcionalidade futura) */}
+        {/* Coluna lateral — Avisos */}
+        <aside className="w-[300px] flex-none flex flex-col gap-[18px]">
           <div className="bg-card border border-border rounded-[18px] p-[18px]" style={{ boxShadow: CARD_SHADOW }}>
             <div className="font-newsreader font-semibold text-[18px] text-text mb-3">Avisos</div>
             <div className="flex flex-col gap-2.5">
@@ -227,13 +231,6 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
-
-          {/* Consultas por status */}
-          <div className="bg-card border border-border rounded-[18px] p-[18px]" style={{ boxShadow: CARD_SHADOW }}>
-            <div className="font-newsreader font-semibold text-[18px] text-text mb-3.5">Consultas por status</div>
-            <DonutChart data={statusChart} />
-          </div>
-
         </aside>
       </div>
     </div>
