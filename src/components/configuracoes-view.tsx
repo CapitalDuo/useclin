@@ -61,7 +61,6 @@ const DAY_KEYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
 const NOTIF_ITEMS: { tipo: NotificacaoTipo; label: string; descricao: string }[] = [
   { tipo: 'lembrete_consulta', label: 'Lembrete de consulta', descricao: 'Enviar lembrete 24h antes da consulta' },
   { tipo: 'confirmacao_whatsapp', label: 'Confirmação por WhatsApp', descricao: 'Solicitar confirmação via mensagem' },
-  { tipo: 'email_pos_consulta', label: 'E-mail pós-consulta', descricao: 'Enviar resumo da consulta por e-mail' },
 ]
 
 const WHATSAPP_STATUS_LABEL: Record<string, string> = {
@@ -75,6 +74,40 @@ const WHATSAPP_STATUS_STYLE: Record<string, string> = {
   aguardando_scan: 'bg-orange-light text-orange',
   desconectado: 'bg-bg text-muted',
   erro: 'bg-red-light text-red',
+}
+
+const ICON_CLS = 'w-5 h-5'
+const SECTION_ICONS = {
+  plano: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={ICON_CLS}>
+      <rect x="2" y="5" width="20" height="14" rx="2.5" /><line x1="2" y1="10" x2="22" y2="10" /><line x1="6" y1="15" x2="9" y2="15" />
+    </svg>
+  ),
+  clinica: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={ICON_CLS}>
+      <rect x="4" y="2" width="11" height="20" rx="1.5" /><path d="M15 8h4a1 1 0 011 1v12a1 1 0 01-1 1h-4" /><line x1="8" y1="6" x2="11" y2="6" /><line x1="8" y1="10" x2="11" y2="10" /><line x1="8" y1="14" x2="11" y2="14" />
+    </svg>
+  ),
+  perfil: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={ICON_CLS}>
+      <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+    </svg>
+  ),
+  notificacoes: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={ICON_CLS}>
+      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" />
+    </svg>
+  ),
+  horarios: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={ICON_CLS}>
+      <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" />
+    </svg>
+  ),
+  whatsapp: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={ICON_CLS}>
+      <path d="M21 11.5a8.38 8.38 0 01-8.5 8.5 8.48 8.48 0 01-3.8-.9L3 20l1.4-5.2a8.38 8.38 0 01-.9-3.8A8.5 8.5 0 0112 2.5a8.38 8.38 0 018.5 8.5z" />
+    </svg>
+  ),
 }
 
 export function ConfiguracoesView({
@@ -111,7 +144,11 @@ export function ConfiguracoesView({
 
   return (
     <div className="px-10 pt-7 pb-10 max-w-[920px] flex flex-col gap-6">
-      <SectionCard title="Perfil da Clínica" onEdit={() => openEdit('clinica')}>
+      <SectionCard title="Plano" icon={SECTION_ICONS.plano}>
+        <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} />
+      </SectionCard>
+
+      <SectionCard title="Perfil da Clínica" icon={SECTION_ICONS.clinica} onEdit={() => openEdit('clinica')}>
         {clinica.logo_url && (
           <div className="py-3 border-b border-border">
             <img src={clinica.logo_url} alt="Logo da clínica" className="w-16 h-16 rounded-full object-cover border border-border" />
@@ -128,7 +165,15 @@ export function ConfiguracoesView({
         )}
       </SectionCard>
 
-      <SectionCard title="Notificações">
+      <SectionCard title="Meu Perfil" icon={SECTION_ICONS.perfil} onEdit={() => openEdit('meu-perfil')}>
+        <Row label="Nome completo" value={profissional.nome} />
+        <Row label="Especialidade" value={profissional.especialidade ?? '—'} />
+        <Row label="Registro (CRM/CRO)" value={profissional.registro ?? '—'} />
+        <Row label="Telefone" value={profissional.telefone ?? '—'} />
+        <Row label="E-mail" value={profissional.email ?? '—'} hint="Usado para login — fale com o admin para alterar" />
+      </SectionCard>
+
+      <SectionCard title="Notificações" icon={SECTION_ICONS.notificacoes}>
         {NOTIF_ITEMS.map((item) => (
           <NotificacaoRow
             key={item.tipo}
@@ -140,7 +185,7 @@ export function ConfiguracoesView({
         ))}
       </SectionCard>
 
-      <SectionCard title="Horário de Funcionamento" onEdit={() => openEdit('horarios')}>
+      <SectionCard title="Horário de Funcionamento" icon={SECTION_ICONS.horarios} onEdit={() => openEdit('horarios')}>
         {DAY_ORDER.map((dia) => {
           const h = horariosByDay.get(dia)
           const label = DAY_LABELS[dia]
@@ -151,7 +196,7 @@ export function ConfiguracoesView({
         })}
       </SectionCard>
 
-      <SectionCard title="WhatsApp" onEdit={() => openEdit('whatsapp')}>
+      <SectionCard title="WhatsApp" icon={SECTION_ICONS.whatsapp} onEdit={() => openEdit('whatsapp')}>
         {whatsapp ? (
           <>
             <Row label="Instância" value={whatsapp.nome_instancia} />
@@ -168,18 +213,6 @@ export function ConfiguracoesView({
         ) : (
           <div className="py-3 text-sm text-muted">Nenhuma instância WhatsApp configurada ainda.</div>
         )}
-      </SectionCard>
-
-      <SectionCard title="Meu Perfil" onEdit={() => openEdit('meu-perfil')}>
-        <Row label="Nome completo" value={profissional.nome} />
-        <Row label="Especialidade" value={profissional.especialidade ?? '—'} />
-        <Row label="Registro (CRM/CRO)" value={profissional.registro ?? '—'} />
-        <Row label="Telefone" value={profissional.telefone ?? '—'} />
-        <Row label="E-mail" value={profissional.email ?? '—'} hint="Usado para login — fale com o admin para alterar" />
-      </SectionCard>
-
-      <SectionCard title="Plano">
-        <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} />
       </SectionCard>
 
       {editKind === 'clinica' && <ClinicaModal clinica={clinica} onClose={closeModal} />}
@@ -395,17 +428,22 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
 
 function SectionCard({
   title,
+  icon,
   onEdit,
   children,
 }: {
   title: string
+  icon?: React.ReactNode
   onEdit?: () => void
   children: React.ReactNode
 }) {
   return (
     <section className="bg-card border border-border rounded-[14px] overflow-hidden">
       <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-border">
-        <h2 className="font-playfair text-[20px] font-extrabold tracking-tight">{title}</h2>
+        <h2 className="font-playfair text-[20px] font-extrabold tracking-tight flex items-center gap-2.5">
+          {icon && <span className="text-text/80">{icon}</span>}
+          {title}
+        </h2>
         {onEdit && (
           <button
             type="button"

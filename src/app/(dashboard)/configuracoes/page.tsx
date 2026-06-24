@@ -15,7 +15,6 @@ const DEFAULT_HORARIO: Omit<HorarioRow, 'dia_semana'> = {
 const NOTIF_DEFAULTS: Notificacoes = {
   lembrete_consulta: true,
   confirmacao_whatsapp: true,
-  email_pos_consulta: false,
 }
 
 export default async function ConfiguracoesPage() {
@@ -87,7 +86,7 @@ export default async function ConfiguracoesPage() {
 
   const notif: Notificacoes = { ...NOTIF_DEFAULTS }
   for (const row of notificacoes ?? []) {
-    if (row.tipo === 'lembrete_consulta' || row.tipo === 'confirmacao_whatsapp' || row.tipo === 'email_pos_consulta') {
+    if (row.tipo === 'lembrete_consulta' || row.tipo === 'confirmacao_whatsapp') {
       notif[row.tipo] = row.ativo ?? false
     }
   }

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { AdminDeleteButton } from '@/components/admin-delete-button'
 
 export default async function AdminClinicasPage() {
   const supabase = await createClient()
@@ -34,12 +35,13 @@ export default async function AdminClinicasPage() {
               <th className="text-left text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Telefone</th>
               <th className="text-left text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Status</th>
               <th className="text-left text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Criada em</th>
+              <th className="text-right text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Ações</th>
             </tr>
           </thead>
           <tbody>
             {clinicas?.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-16 text-sm text-muted">
+                <td colSpan={6} className="text-center py-16 text-sm text-muted">
                   Nenhuma clínica ainda. Crie a primeira →
                 </td>
               </tr>
@@ -58,6 +60,9 @@ export default async function AdminClinicasPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-muted">
                     {new Date(c.created_at).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-6 py-4">
+                    <AdminDeleteButton kind="clinica" id={c.id} nome={c.nome} />
                   </td>
                 </tr>
               ))

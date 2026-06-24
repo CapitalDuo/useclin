@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { AdminDeleteButton } from '@/components/admin-delete-button'
 
 export default async function AdminUsuariosPage() {
   const supabase = await createClient()
@@ -31,12 +32,13 @@ export default async function AdminUsuariosPage() {
               <th className="text-left text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Clínica</th>
               <th className="text-left text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Função</th>
               <th className="text-left text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Acesso</th>
+              <th className="text-right text-[11px] font-semibold text-muted uppercase tracking-wider px-6 py-3">Ações</th>
             </tr>
           </thead>
           <tbody>
             {profissionais?.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-16 text-sm text-muted">
+                <td colSpan={6} className="text-center py-16 text-sm text-muted">
                   Nenhum usuário ainda.
                 </td>
               </tr>
@@ -59,6 +61,9 @@ export default async function AdminUsuariosPage() {
                       ) : (
                         <span className="text-[11px] font-semibold px-3 py-1 rounded-md bg-orange-light text-orange">Pendente convite</span>
                       )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <AdminDeleteButton kind="usuario" id={p.id} nome={p.nome} />
                     </td>
                   </tr>
                 )

@@ -297,7 +297,7 @@ export async function updateMeuPerfilAction(formData: FormData) {
   return { ok: true as const }
 }
 
-const NOTIF_TIPOS = ['lembrete_consulta', 'confirmacao_whatsapp', 'email_pos_consulta'] as const
+const NOTIF_TIPOS = ['lembrete_consulta', 'confirmacao_whatsapp'] as const
 export type NotificacaoTipo = (typeof NOTIF_TIPOS)[number]
 
 export async function toggleNotificacaoAction(tipo: NotificacaoTipo, ativo: boolean) {
