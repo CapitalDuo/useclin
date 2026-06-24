@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
           plano_slug: plano,
           plano_status: status,
           plano_periodo_fim: end ? new Date(end * 1000).toISOString() : null,
+          plano_cancelando: sub.cancel_at_period_end ?? false,
         }).eq('id', clinica_id)
         break
       }
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest) {
           plano_status: 'cancelado',
           stripe_subscription_id: null,
           plano_periodo_fim: null,
+          plano_cancelando: false,
         }).eq('id', clinica_id)
         break
       }

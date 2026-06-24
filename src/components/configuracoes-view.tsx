@@ -26,6 +26,7 @@ export type Clinica = {
   plano_slug: string
   plano_status: string
   plano_periodo_fim: string | null
+  plano_cancelando: boolean
 }
 
 export type Profissional = {
@@ -122,7 +123,7 @@ export function ConfiguracoesView({
   return (
     <div className="px-10 pt-7 pb-10 max-w-[920px] flex flex-col gap-6">
       <SectionCard title="Plano" icon={SECTION_ICONS.plano}>
-        <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} />
+        <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} plano_cancelando={clinica.plano_cancelando} />
       </SectionCard>
 
       <SectionCard title="Perfil da Clínica" icon={SECTION_ICONS.clinica} onEdit={() => openEdit('clinica')}>
@@ -232,19 +233,25 @@ const PLAN_CARDS: {
   },
 ]
 
-function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
+function PlanCard({ plano_slug, plano_status, plano_periodo_fim, plano_cancelando }: {
   plano_slug: string
   plano_status: string
   plano_periodo_fim: string | null
+  plano_cancelando: boolean
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const justUpgraded = searchParams.get('upgrade') === 'success'
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [changed, setChanged] = useState<string | null>(null)
+  const [confirmPlano, setConfirmPlano] = useState<'basico' | 'completo' | null>(null)
+  const [confirmCancel, setConfirmCancel] = useState(false)
   const info = PLAN_INFO[plano_slug] ?? PLAN_INFO.gratuito
   const isPastDue = plano_status === 'past_due'
   const isCanceled = plano_status === 'cancelado'
+  const isSubscriber = plano_slug !== 'gratuito'
+  const fimFmt = plano_periodo_fim ? new Date(plano_periodo_fim).toLocaleDateString('pt-BR') : null
 
   // Ao voltar do checkout, o webhook pode levar alguns segundos para gravar o
   // novo plano. Atualiza a página uma vez para refletir a mudança.
@@ -254,7 +261,8 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
     return () => clearTimeout(t)
   }, [justUpgraded, router])
 
-  async function goToCheckout(plano: 'basico' | 'completo') {
+  // Inicia assinatura nova (Gratuito → pago) via Stripe Checkout.
+  async function startCheckout(plano: 'basico' | 'completo') {
     setLoading(plano)
     setError(null)
     try {
@@ -264,18 +272,57 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
         body: JSON.stringify({ plano }),
       })
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else if (data.updated) {
-        // Troca de plano aplicada na assinatura existente — recarrega.
-        router.refresh()
-        setLoading(null)
-      } else {
+      if (data.url) window.location.href = data.url
+      else {
         setError(data.error ?? 'Não foi possível iniciar o pagamento.')
         setLoading(null)
       }
     } catch {
       setError('Erro de conexão. Tente novamente.')
+      setLoading(null)
+    }
+  }
+
+  // Troca de plano de quem já assina (confirmada no modal).
+  async function changePlan(plano: 'basico' | 'completo') {
+    setLoading(plano)
+    setError(null)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plano }),
+      })
+      const data = await res.json()
+      if (data.updated || data.url) {
+        setConfirmPlano(null)
+        setChanged(PLAN_INFO[plano].nome)
+        router.refresh()
+      } else {
+        setError(data.error ?? 'Não foi possível trocar de plano.')
+      }
+    } catch {
+      setError('Erro de conexão. Tente novamente.')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function callBilling(endpoint: 'cancel' | 'reactivate') {
+    setLoading(endpoint)
+    setError(null)
+    try {
+      const res = await fetch(`/api/stripe/${endpoint}`, { method: 'POST' })
+      const data = await res.json()
+      if (data.ok) {
+        setConfirmCancel(false)
+        router.refresh()
+      } else {
+        setError(data.error ?? 'Não foi possível concluir.')
+      }
+    } catch {
+      setError('Erro de conexão. Tente novamente.')
+    } finally {
       setLoading(null)
     }
   }
@@ -297,23 +344,29 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
     }
   }
 
+  function onCardCta(plano: 'basico' | 'completo') {
+    if (!isSubscriber) startCheckout(plano)
+    else setConfirmPlano(plano)
+  }
+
   return (
     <div className="py-3 flex flex-col gap-4">
       {justUpgraded && plano_slug === 'gratuito' && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-[13px] bg-[#eaf8f3] border border-[#2fb98a]/30 text-sm text-[#1c8b66]">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 flex-shrink-0">
-            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-          Pagamento confirmado! Seu plano será ativado em instantes…
-        </div>
+        <Banner tone="green">Pagamento confirmado! Seu plano será ativado em instantes…</Banner>
+      )}
+      {changed && (
+        <Banner tone="green">Plano alterado para {changed} com sucesso.</Banner>
       )}
       {isPastDue && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-[13px] bg-[#fff8f0] border border-[#f5a623]/30 text-sm text-[#b87a00]">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 flex-shrink-0">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-          Pagamento pendente. Atualize seu método de pagamento para continuar.
+        <Banner tone="amber">Pagamento pendente. Atualize seu método de pagamento para continuar.</Banner>
+      )}
+      {plano_cancelando && fimFmt && (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-[13px] bg-[#fff8f0] border border-[#f5a623]/30 text-sm text-[#b87a00]">
+          <span>Assinatura cancelada — você mantém acesso até {fimFmt}.</span>
+          <button onClick={() => callBilling('reactivate')} disabled={loading !== null}
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-md bg-[#5b4bd4] text-white hover:bg-[#4a3cb8] transition-colors cursor-pointer disabled:opacity-50">
+            {loading === 'reactivate' ? 'Reativando…' : 'Reativar plano'}
+          </button>
         </div>
       )}
 
@@ -326,15 +379,17 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
         <div className="flex-1 min-w-0">
           <div className="text-[14px] font-bold text-text">Plano {info.nome}</div>
           <div className="text-xs text-muted mt-0.5">{info.descricao}</div>
-          {plano_periodo_fim && !isCanceled && (
+          {fimFmt && !isCanceled && (
             <div className="text-xs text-muted mt-0.5">
-              Renova em {new Date(plano_periodo_fim).toLocaleDateString('pt-BR')}
+              {plano_cancelando ? `Acesso até ${fimFmt}` : `Renova em ${fimFmt}`}
             </div>
           )}
         </div>
         <span className="px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide flex-shrink-0"
-          style={{ background: info.bg, color: info.cor }}>
-          {isCanceled ? 'CANCELADO' : isPastDue ? 'INADIMPLENTE' : 'ATIVO'}
+          style={plano_cancelando
+            ? { background: '#fff1dd', color: '#b87a00' }
+            : { background: info.bg, color: info.cor }}>
+          {isCanceled ? 'CANCELADO' : isPastDue ? 'INADIMPLENTE' : plano_cancelando ? 'CANCELANDO' : 'ATIVO'}
         </span>
       </div>
 
@@ -346,6 +401,7 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
           else if (plano_slug === 'completo' && p.slug === 'basico') ctaLabel = 'Mudar para Básico'
           else if (plano_slug === 'basico' && p.slug === 'completo') ctaLabel = 'Fazer upgrade'
           else ctaLabel = `Assinar ${p.nome}`
+          const disabled = isCurrent || plano_cancelando || loading !== null
 
           return (
             <div
@@ -375,8 +431,8 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
                 ))}
               </ul>
               <button
-                onClick={() => goToCheckout(p.slug)}
-                disabled={isCurrent || loading !== null}
+                onClick={() => onCardCta(p.slug)}
+                disabled={disabled}
                 className={`w-full px-4 py-2.5 rounded-[11px] text-sm font-semibold transition-colors disabled:cursor-default ${
                   isCurrent
                     ? 'bg-bg border border-border text-muted'
@@ -392,13 +448,102 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim }: {
         })}
       </div>
 
-      {plano_slug !== 'gratuito' && (
-        <button onClick={goToPortal} disabled={loading !== null}
-          className="w-full px-5 py-3 rounded-[13px] border border-border text-sm font-semibold text-muted hover:text-text hover:bg-bg transition-colors cursor-pointer disabled:opacity-50">
-          {loading === 'portal' ? 'Abrindo portal…' : 'Gerenciar assinatura'}
-        </button>
+      {isSubscriber && (
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button onClick={goToPortal} disabled={loading !== null}
+            className="flex-1 px-5 py-3 rounded-[13px] border border-border text-sm font-semibold text-muted hover:text-text hover:bg-bg transition-colors cursor-pointer disabled:opacity-50">
+            {loading === 'portal' ? 'Abrindo…' : 'Gerenciar pagamento'}
+          </button>
+          {!plano_cancelando && (
+            <button
+              onClick={() => { setError(null); setConfirmPlano(null); setConfirmCancel(true) }}
+              disabled={loading !== null}
+              className="flex-1 px-5 py-3 rounded-[13px] border border-border text-sm font-semibold text-[#d24343] hover:bg-[#fdeaea] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Cancelar plano
+            </button>
+          )}
+        </div>
       )}
       {error && <div className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium">{error}</div>}
+
+      {confirmPlano && (
+        <ConfirmDialog
+          title={`Mudar para o plano ${PLAN_INFO[confirmPlano].nome}?`}
+          body={`A diferença de valor é ajustada proporcionalmente (proração) no seu próximo ciclo. A mudança vale a partir de agora.`}
+          confirmLabel={loading ? 'Aplicando…' : 'Confirmar mudança'}
+          confirmTone="purple"
+          pending={loading !== null}
+          onConfirm={() => changePlan(confirmPlano)}
+          onClose={() => setConfirmPlano(null)}
+        />
+      )}
+      {confirmCancel && (
+        <ConfirmDialog
+          title="Cancelar sua assinatura?"
+          body={fimFmt
+            ? `Você mantém acesso ao plano ${info.nome} até ${fimFmt}. Depois disso, sua conta volta para o plano Gratuito. Você pode reativar antes dessa data.`
+            : `Sua assinatura será cancelada no fim do período atual.`}
+          confirmLabel={loading === 'cancel' ? 'Cancelando…' : 'Sim, cancelar'}
+          confirmTone="red"
+          pending={loading !== null}
+          onConfirm={() => callBilling('cancel')}
+          onClose={() => setConfirmCancel(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function Banner({ tone, children }: { tone: 'green' | 'amber'; children: React.ReactNode }) {
+  const styles = tone === 'green'
+    ? 'bg-[#eaf8f3] border-[#2fb98a]/30 text-[#1c8b66]'
+    : 'bg-[#fff8f0] border-[#f5a623]/30 text-[#b87a00]'
+  return (
+    <div className={`flex items-center gap-2 px-4 py-3 rounded-[13px] border text-sm ${styles}`}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 flex-shrink-0">
+        {tone === 'green'
+          ? <><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>
+          : <><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></>}
+      </svg>
+      {children}
+    </div>
+  )
+}
+
+function ConfirmDialog({
+  title, body, confirmLabel, confirmTone, pending, onConfirm, onClose,
+}: {
+  title: string
+  body: string
+  confirmLabel: string
+  confirmTone: 'purple' | 'red'
+  pending: boolean
+  onConfirm: () => void
+  onClose: () => void
+}) {
+  useEscClose(onClose)
+  const confirmCls = confirmTone === 'red'
+    ? 'bg-[#d24343] text-white hover:bg-[#b83838]'
+    : 'bg-[#5b4bd4] text-white hover:bg-[#4a3cb8]'
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-text/30 backdrop-blur-sm"
+      role="dialog" aria-modal="true"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="bg-card border border-border rounded-[18px] shadow-2xl w-full max-w-[440px] p-7 animate-[modalIn_180ms_ease-out]">
+        <h3 className="font-playfair text-[20px] font-extrabold tracking-tight mb-2">{title}</h3>
+        <p className="text-sm text-muted leading-relaxed mb-6">{body}</p>
+        <div className="flex items-center justify-end gap-3">
+          <button type="button" onClick={onClose} disabled={pending}
+            className="px-5 py-2.5 rounded-[13px] border border-border text-sm font-semibold hover:bg-bg transition-colors cursor-pointer disabled:opacity-50">
+            Voltar
+          </button>
+          <button type="button" onClick={onConfirm} disabled={pending}
+            className={`px-6 py-2.5 rounded-[13px] text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50 ${confirmCls}`}>
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -72,6 +72,7 @@ export type Database = {
           nome: string
           onboarding_completo: boolean
           onboarding_step: number
+          plano_cancelando: boolean
           plano_periodo_fim: string | null
           plano_slug: string
           plano_status: string
@@ -92,6 +93,7 @@ export type Database = {
           nome: string
           onboarding_completo?: boolean
           onboarding_step?: number
+          plano_cancelando?: boolean
           plano_periodo_fim?: string | null
           plano_slug?: string
           plano_status?: string
@@ -112,6 +114,7 @@ export type Database = {
           nome?: string
           onboarding_completo?: boolean
           onboarding_step?: number
+          plano_cancelando?: boolean
           plano_periodo_fim?: string | null
           plano_slug?: string
           plano_status?: string
