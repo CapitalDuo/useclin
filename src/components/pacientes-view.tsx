@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
 import { SearchIcon, CalendarIcon, ChatIcon, SendIcon, PaperclipIcon, SmileIcon } from '@/components/icons'
 import {
   criarConexaoWhatsappAction,
@@ -193,6 +194,11 @@ function QrCodeView({
 export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
   const router = useRouter()
 
+  const supabase = useMemo(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+  ), [])
+
   const initStatus = (): ConnectionStatus => {
     if (!whatsapp) return 'disconnected'
     if (whatsapp.status === 'conectado') return 'connected'
@@ -215,6 +221,11 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
 
+  // Refs para evitar closures stale e auto-scroll
+  const selectedChatIdRef = useRef<string | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { selectedChatIdRef.current = selectedChatId }, [selectedChatId])
+
   // Fetch chats when connected
   useEffect(() => {
     if (connectionStatus !== 'connected' || !instToken) return
@@ -224,6 +235,91 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
       setLoadingChats(false)
     })
   }, [connectionStatus, instToken])
+
+  // Polling de chats a cada 30s (fallback para quando Realtime não alcança lista)
+  useEffect(() => {
+    if (connectionStatus !== 'connected' || !instToken) return
+    const id = setInterval(() => {
+      buscarChatsAction(instToken).then(({ chats }) => setChats(chats))
+    }, 30_000)
+    return () => clearInterval(id)
+  }, [connectionStatus, instToken])
+
+  // Supabase Realtime: nova mensagem via n8n → atualiza lista e chat aberto
+  useEffect(() => {
+    if (connectionStatus !== 'connected' || !instanceName) return
+
+    const canal = supabase
+      .channel(`wa-msgs-${instanceName}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'whatsapp_mensagens',
+          filter: `instance_name=eq.${instanceName}`,
+        },
+        (payload) => {
+          const nova = payload.new as {
+            id: string
+            message_id: string | null
+            instance_name: string
+            remote_jid: string
+            from_me: boolean
+            push_name: string | null
+            message_type: string | null
+            text: string | null
+            file_url: string | null
+            message_timestamp: number | null
+          }
+
+          // Atualiza lista de chats: move para o topo
+          setChats((prev) => {
+            const existente = prev.find((c) => c.id === nova.remote_jid)
+            const atualizado = {
+              id: nova.remote_jid,
+              name: existente?.name || nova.push_name || nova.remote_jid,
+              profilePicUrl: existente?.profilePicUrl ?? null,
+              lastMessageText: nova.text ?? '[mídia]',
+              lastMessageTimestamp: nova.message_timestamp,
+              fromMe: nova.from_me,
+              unread: nova.from_me ? (existente?.unread ?? 0) : (existente?.unread ?? 0) + 1,
+            }
+            return [atualizado, ...prev.filter((c) => c.id !== nova.remote_jid)]
+          })
+
+          // Se o chat aberto é esse, adiciona a mensagem
+          if (selectedChatIdRef.current === nova.remote_jid) {
+            setMessages((prev) => {
+              const dedupeId = nova.message_id ?? nova.id
+              if (prev.some((m) => (m.id ?? '') === dedupeId)) return prev
+              return [
+                ...prev,
+                {
+                  id: dedupeId,
+                  fromMe: nova.from_me,
+                  remoteJid: nova.remote_jid,
+                  pushName: nova.push_name ?? '',
+                  messageType: nova.message_type ?? 'textMessage',
+                  messageTimestamp: nova.message_timestamp,
+                  status: null,
+                  text: nova.text,
+                  fileUrl: nova.file_url ?? undefined,
+                },
+              ]
+            })
+          }
+        },
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(canal) }
+  }, [connectionStatus, instanceName, supabase])
+
+  // Auto-scroll ao final quando chegam novas mensagens
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   // Fetch messages when chat selected
   useEffect(() => {
@@ -410,26 +506,29 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
                   <p className="text-xs text-muted">Nenhuma mensagem encontrada.</p>
                 </div>
               ) : (
-                messages.map((msg, i) => (
-                  <div key={msg.id ?? i}
-                    className={`flex gap-3 max-w-[75%] ${msg.fromMe ? 'self-end flex-row-reverse' : 'self-start'}`}>
-                    {!msg.fromMe && <ChatAvatar name={msg.pushName || selectedChat.name} />}
-                    <div className={`px-4 py-3 rounded-[14px] text-[13px] leading-relaxed ${
-                      msg.fromMe ? 'bg-[#f0f7f0] rounded-br-[4px]' : 'bg-bg rounded-bl-[4px]'
-                    }`}>
-                      {!msg.fromMe && (
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-xs font-bold">{msg.pushName || selectedChat.name}</span>
-                          <span className="text-[11px] text-muted">{formatTs(msg.messageTimestamp)}</span>
-                        </div>
-                      )}
-                      {msg.fromMe && (
-                        <div className="text-[11px] text-muted mb-1.5 text-right">{formatTs(msg.messageTimestamp)}</div>
-                      )}
-                      <span>{msgText(msg)}</span>
+                <>
+                  {messages.map((msg, i) => (
+                    <div key={msg.id ?? i}
+                      className={`flex gap-3 max-w-[75%] ${msg.fromMe ? 'self-end flex-row-reverse' : 'self-start'}`}>
+                      {!msg.fromMe && <ChatAvatar name={msg.pushName || selectedChat.name} />}
+                      <div className={`px-4 py-3 rounded-[14px] text-[13px] leading-relaxed ${
+                        msg.fromMe ? 'bg-[#f0f7f0] rounded-br-[4px]' : 'bg-bg rounded-bl-[4px]'
+                      }`}>
+                        {!msg.fromMe && (
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-xs font-bold">{msg.pushName || selectedChat.name}</span>
+                            <span className="text-[11px] text-muted">{formatTs(msg.messageTimestamp)}</span>
+                          </div>
+                        )}
+                        {msg.fromMe && (
+                          <div className="text-[11px] text-muted mb-1.5 text-right">{formatTs(msg.messageTimestamp)}</div>
+                        )}
+                        <span>{msgText(msg)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  <div ref={messagesEndRef} />
+                </>
               )}
             </div>
 
