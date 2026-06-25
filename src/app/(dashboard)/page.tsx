@@ -127,96 +127,28 @@ export default async function DashboardPage() {
   return (
     <div className="px-8 py-6 flex flex-col gap-[22px] max-w-[1500px] w-full mx-auto min-w-0">
 
-      {/* Barra de ações — acima do hero */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/agenda?new=1"
-          className="inline-flex items-center gap-2 bg-[#5b4bd4] text-white px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#4f40c0] transition-colors shadow-sm"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Nova consulta
-        </Link>
-        <Link
-          href="/agenda"
-          className="inline-flex items-center gap-2 border border-[#5b4bd4]/30 text-[#5b4bd4] px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#f1eefb] transition-colors"
-        >
-          Ver agenda
-        </Link>
-      </div>
-
+      {/* Linha do topo: botões + Avisos na mesma linha */}
       <div className="flex gap-[26px] items-start">
-
-        {/* Coluna principal */}
-        <div className="flex-1 flex flex-col gap-[22px] min-w-0">
-          <DashboardHero
-            userName={userName}
-            consultasHoje={kpis?.consultas_hoje ?? 0}
-            proximaHora={proxima ? formatHora(proxima.hora_inicio) : null}
-          />
-
-          {/* KPIs — 3 cards compactos abaixo do hero */}
-          <div className="grid grid-cols-3 gap-4">
-            <KpiCard
-              icon={<CalendarIcon className="w-[18px] h-[18px]" />}
-              label="Consultas hoje"
-              value={String(kpis?.consultas_hoje ?? 0)}
-              color="purple"
-              sparkline="up"
-            />
-            <KpiCard
-              icon={<WalletIcon className="w-[18px] h-[18px]" />}
-              label="Faturamento"
-              value={`R$ ${((Number(kpis?.receita_mensal ?? 0)) / 1000).toFixed(1).replace('.', ',')}k`}
-              color="orange"
-              sparkline="flat"
-              valueSmall
-            />
-            {/* Consultas por status — compacto, fundo branco, no lugar do 3º KPI */}
-            <div
-              className="rounded-[18px] h-[126px] p-[13px] overflow-hidden flex flex-col border"
-              style={{ background: '#fff', borderColor: '#ecebe8', boxShadow: '0 1px 2px rgba(28,27,26,.05)' }}
-            >
-              <div className="text-[11.5px] font-semibold text-muted mb-1">Consultas por status</div>
-              <div className="flex-1 min-h-0 flex items-center">
-                <DonutChart data={statusChart} compact />
-              </div>
-            </div>
-          </div>
-
-          {/* Gráfico semanal + Minha Agenda lado a lado */}
-          <div className="grid grid-cols-2 gap-[22px] items-stretch">
-            <div className="bg-card border border-border rounded-[18px] p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
-              <div className="flex justify-between items-center mb-3.5">
-                <div className="font-newsreader font-semibold text-[17px] text-text">Atendimentos da semana</div>
-                <div className="flex gap-1.5">
-                  <span className="text-[11px] font-semibold text-[#5b4bd4] bg-[#f1eefb] px-2.5 py-1 rounded-[8px]">Semana</span>
-                  <span className="text-[11px] font-semibold text-muted px-2.5 py-1 rounded-[8px]">Mês</span>
-                </div>
-              </div>
-              <div className="flex-1 min-h-[200px]">
-                <WeekChart points={weekPoints} />
-              </div>
-            </div>
-
-            <DashboardCalendar
-              events={(hoje ?? []).map((e) => ({
-                id: e.id ?? '',
-                hora_inicio: e.hora_inicio ?? '00:00',
-                hora_fim: e.hora_fim ?? '00:00',
-                status: e.status ?? 'agendado',
-                paciente_nome: e.paciente_nome ?? '—',
-                tipo_nome: e.tipo_nome ?? null,
-              }))}
-              weekDots={weekDots}
-            />
-          </div>
+        <div className="flex-1 flex items-center gap-3">
+          <Link
+            href="/agenda?new=1"
+            className="inline-flex items-center gap-2 bg-[#5b4bd4] text-white px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#4f40c0] transition-colors shadow-sm"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nova consulta
+          </Link>
+          <Link
+            href="/agenda"
+            className="inline-flex items-center gap-2 border border-[#5b4bd4]/30 text-[#5b4bd4] px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#f1eefb] transition-colors"
+          >
+            Ver agenda
+          </Link>
         </div>
 
-        {/* Coluna lateral — Avisos */}
-        <aside className="w-[300px] flex-none flex flex-col gap-[18px]">
+        <aside className="w-[300px] flex-none">
           <div className="bg-card border border-border rounded-[18px] p-[18px]" style={{ boxShadow: CARD_SHADOW }}>
             <div className="font-newsreader font-semibold text-[18px] text-text mb-3">Avisos</div>
             <div className="flex flex-col gap-2.5">
@@ -237,6 +169,69 @@ export default async function DashboardPage() {
             </div>
           </div>
         </aside>
+      </div>
+
+      {/* Hero — largura completa */}
+      <DashboardHero
+        userName={userName}
+        consultasHoje={kpis?.consultas_hoje ?? 0}
+        proximaHora={proxima ? formatHora(proxima.hora_inicio) : null}
+      />
+
+      {/* KPIs — largura completa, um pouco mais altos */}
+      <div className="grid grid-cols-3 gap-4">
+        <KpiCard
+          icon={<CalendarIcon className="w-[18px] h-[18px]" />}
+          label="Consultas hoje"
+          value={String(kpis?.consultas_hoje ?? 0)}
+          color="purple"
+          sparkline="up"
+        />
+        <KpiCard
+          icon={<WalletIcon className="w-[18px] h-[18px]" />}
+          label="Faturamento"
+          value={`R$ ${((Number(kpis?.receita_mensal ?? 0)) / 1000).toFixed(1).replace('.', ',')}k`}
+          color="orange"
+          sparkline="flat"
+          valueSmall
+        />
+        <div
+          className="rounded-[18px] h-[152px] p-[13px] overflow-hidden flex flex-col border"
+          style={{ background: '#fff', borderColor: '#ecebe8', boxShadow: '0 1px 2px rgba(28,27,26,.05)' }}
+        >
+          <div className="text-[11.5px] font-semibold text-muted mb-1">Consultas por status</div>
+          <div className="flex-1 min-h-0 flex items-center">
+            <DonutChart data={statusChart} compact />
+          </div>
+        </div>
+      </div>
+
+      {/* Cards inferiores — largura completa, mais altos */}
+      <div className="grid grid-cols-2 gap-[22px] items-stretch">
+        <div className="bg-card border border-border rounded-[18px] p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
+          <div className="flex justify-between items-center mb-3.5">
+            <div className="font-newsreader font-semibold text-[17px] text-text">Atendimentos da semana</div>
+            <div className="flex gap-1.5">
+              <span className="text-[11px] font-semibold text-[#5b4bd4] bg-[#f1eefb] px-2.5 py-1 rounded-[8px]">Semana</span>
+              <span className="text-[11px] font-semibold text-muted px-2.5 py-1 rounded-[8px]">Mês</span>
+            </div>
+          </div>
+          <div className="flex-1 min-h-[300px]">
+            <WeekChart points={weekPoints} />
+          </div>
+        </div>
+
+        <DashboardCalendar
+          events={(hoje ?? []).map((e) => ({
+            id: e.id ?? '',
+            hora_inicio: e.hora_inicio ?? '00:00',
+            hora_fim: e.hora_fim ?? '00:00',
+            status: e.status ?? 'agendado',
+            paciente_nome: e.paciente_nome ?? '—',
+            tipo_nome: e.tipo_nome ?? null,
+          }))}
+          weekDots={weekDots}
+        />
       </div>
     </div>
   )

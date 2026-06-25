@@ -70,7 +70,7 @@ export function KpiCard({ icon, label, value, color, sparkline = 'up', valueSmal
   const sp = sparklinePaths[sparkline]
   return (
     <div
-      className="relative overflow-hidden rounded-[18px] p-[14px_14px_0] h-[126px] border"
+      className="relative overflow-hidden rounded-[18px] p-[14px_14px_0] h-[152px] border"
       style={{ background: c.bg, borderColor: c.border }}
     >
       <div
@@ -89,7 +89,7 @@ export function KpiCard({ icon, label, value, color, sparkline = 'up', valueSmal
       <svg
         viewBox="0 0 200 40"
         preserveAspectRatio="none"
-        className="absolute left-0 right-0 bottom-0 w-full h-[34px]"
+        className="absolute left-0 right-0 bottom-0 w-full h-[48px]"
       >
         <path d={sp.area} fill={c.icon} fillOpacity="0.16" />
         <path d={sp.line} fill="none" stroke={c.icon} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
