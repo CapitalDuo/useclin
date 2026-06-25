@@ -10,8 +10,8 @@ export function DonutChart({ data, compact = false }: { data: DonutSlice[]; comp
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const total = data.reduce((acc, s) => acc + s.value, 0)
   const hovered = hoveredIdx !== null ? data[hoveredIdx] : null
-  const size = compact ? 62 : 104
-  const stroke = compact ? 11 : 16
+  const size = compact ? 90 : 104
+  const stroke = compact ? 13 : 16
   const r = (size - stroke) / 2
   const cx = size / 2
   const C = 2 * Math.PI * r
@@ -50,16 +50,16 @@ export function DonutChart({ data, compact = false }: { data: DonutSlice[]; comp
               />
             ))}
         </svg>
-        <div className="absolute rounded-full flex flex-col items-center justify-center pointer-events-none transition-all duration-150" style={{ inset: compact ? '10px' : '16px' }}>
+        <div className="absolute rounded-full flex flex-col items-center justify-center pointer-events-none transition-all duration-150" style={{ inset: compact ? '14px' : '16px' }}>
           {hovered ? (
             <>
-              <div className={`font-newsreader font-semibold leading-none ${compact ? 'text-lg' : 'text-2xl'}`} style={{ color: hovered.color }}>{hovered.value}</div>
+              <div className={`font-newsreader font-semibold leading-none ${compact ? 'text-xl' : 'text-2xl'}`} style={{ color: hovered.color }}>{hovered.value}</div>
               {!compact && <div className="text-[9px] text-muted text-center leading-tight mt-0.5 max-w-[48px] truncate">{hovered.label}</div>}
             </>
           ) : (
             <>
-              <div className={`font-newsreader font-semibold text-text leading-none ${compact ? 'text-lg' : 'text-2xl'}`}>{total}</div>
-              <div className={`text-muted ${compact ? 'text-[8.5px]' : 'text-[10px]'}`}>Total</div>
+              <div className={`font-newsreader font-semibold text-text leading-none ${compact ? 'text-xl' : 'text-2xl'}`}>{total}</div>
+              <div className={`text-muted ${compact ? 'text-[9px]' : 'text-[10px]'}`}>Total</div>
             </>
           )}
         </div>
@@ -72,7 +72,7 @@ export function DonutChart({ data, compact = false }: { data: DonutSlice[]; comp
             onMouseEnter={() => setHoveredIdx(i)}
           >
             <span className={`rounded-full flex-shrink-0 ${compact ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} style={{ background: s.color }} />
-            <span className="text-muted flex-1 truncate">{s.label}</span>
+            <span className={compact ? 'text-muted mr-1.5' : 'text-muted flex-1 truncate'}>{s.label}</span>
             <span className="font-bold text-text">{s.value}</span>
           </div>
         ))}
