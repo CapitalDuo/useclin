@@ -127,29 +127,36 @@ export default async function DashboardPage() {
   return (
     <div className="px-8 py-6 flex flex-col gap-[22px] max-w-[1500px] w-full mx-auto min-w-0">
 
-      {/* Linha do topo: botões + Avisos na mesma linha */}
-      <div className="flex gap-[26px] items-start">
-        <div className="flex-1 flex items-center gap-3">
-          <Link
-            href="/agenda?new=1"
-            className="inline-flex items-center gap-2 bg-[#5b4bd4] text-white px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#4f40c0] transition-colors shadow-sm"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Nova consulta
-          </Link>
-          <Link
-            href="/agenda"
-            className="inline-flex items-center gap-2 border border-[#5b4bd4]/30 text-[#5b4bd4] px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#f1eefb] transition-colors"
-          >
-            Ver agenda
-          </Link>
+      {/* Seção do topo: [botões + hero] à esquerda, Avisos à direita */}
+      <div className="flex gap-[26px] items-stretch">
+        <div className="flex-1 flex flex-col gap-[18px] min-w-0">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/agenda?new=1"
+              className="inline-flex items-center gap-2 bg-[#5b4bd4] text-white px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#4f40c0] transition-colors shadow-sm"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nova consulta
+            </Link>
+            <Link
+              href="/agenda"
+              className="inline-flex items-center gap-2 border border-[#5b4bd4]/30 text-[#5b4bd4] px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#f1eefb] transition-colors"
+            >
+              Ver agenda
+            </Link>
+          </div>
+          <DashboardHero
+            userName={userName}
+            consultasHoje={kpis?.consultas_hoje ?? 0}
+            proximaHora={proxima ? formatHora(proxima.hora_inicio) : null}
+          />
         </div>
 
-        <aside className="w-[300px] flex-none">
-          <div className="bg-card border border-border rounded-[18px] p-[18px]" style={{ boxShadow: CARD_SHADOW }}>
+        <aside className="w-[300px] flex-none flex flex-col">
+          <div className="bg-card border border-border rounded-[18px] p-[18px] flex-1 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
             <div className="font-newsreader font-semibold text-[18px] text-text mb-3">Avisos</div>
             <div className="flex flex-col gap-2.5">
               <div className="flex items-start gap-3 bg-[#f1eefb] rounded-[13px] px-3.5 py-3">
@@ -170,13 +177,6 @@ export default async function DashboardPage() {
           </div>
         </aside>
       </div>
-
-      {/* Hero — largura completa */}
-      <DashboardHero
-        userName={userName}
-        consultasHoje={kpis?.consultas_hoje ?? 0}
-        proximaHora={proxima ? formatHora(proxima.hora_inicio) : null}
-      />
 
       {/* KPIs — largura completa, um pouco mais altos */}
       <div className="grid grid-cols-3 gap-4">
