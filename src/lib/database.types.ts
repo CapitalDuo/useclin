@@ -294,6 +294,7 @@ export type Database = {
           nome: string
           observacoes: string | null
           plano_id: string | null
+          protegido: boolean
           status: string
           telefone: string | null
           updated_at: string
@@ -317,6 +318,7 @@ export type Database = {
           nome: string
           observacoes?: string | null
           plano_id?: string | null
+          protegido?: boolean
           status?: string
           telefone?: string | null
           updated_at?: string
@@ -340,6 +342,7 @@ export type Database = {
           nome?: string
           observacoes?: string | null
           plano_id?: string | null
+          protegido?: boolean
           status?: string
           telefone?: string | null
           updated_at?: string
