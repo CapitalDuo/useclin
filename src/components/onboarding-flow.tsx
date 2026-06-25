@@ -2,13 +2,14 @@
 
 import { useRef, useState } from 'react'
 import { completeOnboarding, uploadLogoAction } from '@/app/onboarding/actions'
+import { HomeIcon, UsersIcon, ClockIcon, ChatIcon, CheckCircleIcon, UploadIcon } from '@/components/icons'
 
 const STEPS = [
-  { label: 'Clínica', icon: '🏥' },
-  { label: 'Profissionais', icon: '👨‍⚕️' },
-  { label: 'Horários', icon: '🕐' },
-  { label: 'WhatsApp', icon: '💬' },
-  { label: 'Confirmação', icon: '✅' },
+  { label: 'Clínica', Icon: HomeIcon },
+  { label: 'Profissionais', Icon: UsersIcon },
+  { label: 'Horários', Icon: ClockIcon },
+  { label: 'WhatsApp', Icon: ChatIcon },
+  { label: 'Confirmação', Icon: CheckCircleIcon },
 ]
 
 const WEEKDAYS = [
@@ -132,6 +133,8 @@ export function OnboardingFlow({
     window.location.href = '/'
   }
 
+  const StepIcon = STEPS[step].Icon
+
   return (
     <div className="w-full max-w-[640px]">
       <div className="flex items-center justify-center gap-3 mb-8">
@@ -160,7 +163,11 @@ export function OnboardingFlow({
         </div>
 
         <div className="text-center mb-7">
-          <div className="text-2xl mb-1">{STEPS[step].icon}</div>
+          <div className="flex justify-center mb-2">
+            <div className="w-10 h-10 rounded-[12px] bg-[#f0edfb] flex items-center justify-center">
+              <StepIcon className="w-5 h-5 text-[#5b4bd4]" />
+            </div>
+          </div>
           <h2 className="font-playfair text-xl font-extrabold tracking-tight">
             {step === 0 && 'Dados da Clínica'}
             {step === 1 && 'Seu perfil profissional'}
@@ -201,8 +208,8 @@ export function OnboardingFlow({
                       </div>
                     )}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-xs shadow-sm">
-                    ✏️
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center shadow-sm">
+                    <UploadIcon className="w-3 h-3 text-muted" />
                   </div>
                   <input
                     ref={logoInputRef}
