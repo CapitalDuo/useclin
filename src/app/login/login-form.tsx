@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { loginAction } from './actions'
 
 export function LoginForm({ next, initialError }: { next: string; initialError?: string }) {
@@ -26,17 +27,14 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
       >
         {/* Logo */}
         <div className="flex-1 flex items-center justify-center">
-          <svg viewBox="0 0 160 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-40">
-            {/* u mark */}
-            <path
-              d="M6 8 L6 28 Q6 40 18 40 Q30 40 30 28 L30 8"
-              stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none"
-            />
-            {/* seclin text */}
-            <text x="38" y="38" fontFamily="'Hanken Grotesk', sans-serif" fontSize="30" fontWeight="700" fill="white" letterSpacing="-0.5">
-              seclin
-            </text>
-          </svg>
+          <Image
+            src="/useclin-logo-white.png"
+            alt="Useclin"
+            width={200}
+            height={54}
+            className="w-44 object-contain"
+            priority
+          />
         </div>
 
         {/* CTA button */}
