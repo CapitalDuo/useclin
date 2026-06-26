@@ -46,6 +46,8 @@ export type HorarioRow = {
   aberto: boolean
   hora_inicio: string
   hora_fim: string
+  intervalo_inicio: string | null
+  intervalo_fim: string | null
 }
 
 export type WhatsappInstancia = {
@@ -169,9 +171,13 @@ export function ConfiguracoesView({
         {DAY_ORDER.map((dia) => {
           const h = horariosByDay.get(dia)
           const label = DAY_LABELS[dia]
-          const valor = h?.aberto
-            ? `${h.hora_inicio.slice(0, 5)} – ${h.hora_fim.slice(0, 5)}`
-            : 'Fechado'
+          let valor = 'Fechado'
+          if (h?.aberto) {
+            valor = `${h.hora_inicio.slice(0, 5)} – ${h.hora_fim.slice(0, 5)}`
+            if (h.intervalo_inicio) {
+              valor += ` · Intervalo: ${h.intervalo_inicio.slice(0, 5)} – ${(h.intervalo_fim ?? '').slice(0, 5)}`
+            }
+          }
           return <Row key={dia} label={label} value={valor} dim={!h?.aberto} />
         })}
       </SectionCard>
@@ -932,39 +938,80 @@ function HorariosModal({ initial, onClose }: { initial: HorarioRow[]; onClose: (
             if (!row) return null
             const key = DAY_KEYS[dia]
             return (
-              <div key={dia} className="flex items-center gap-4 py-2.5 px-4 rounded-[13px] bg-bg">
-                <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-[180px]">
-                  <input
-                    type="checkbox"
-                    name={`${key}_aberto`}
-                    checked={row.aberto}
-                    onChange={(e) => updateRow(dia, { aberto: e.target.checked })}
-                    className="w-4 h-4 rounded accent-green cursor-pointer"
-                  />
-                  <span className={`text-sm font-medium ${row.aberto ? 'text-text' : 'text-muted line-through'}`}>
-                    {DAY_LABELS[dia]}
-                  </span>
-                </label>
-                {row.aberto ? (
-                  <div className="flex items-center gap-2">
+              <div key={dia} className="flex flex-col py-2.5 px-4 rounded-[13px] bg-bg">
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-[160px]">
                     <input
-                      type="time"
-                      name={`${key}_inicio`}
-                      value={row.hora_inicio}
-                      onChange={(e) => updateRow(dia, { hora_inicio: e.target.value })}
-                      className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors"
+                      type="checkbox"
+                      name={`${key}_aberto`}
+                      checked={row.aberto}
+                      onChange={(e) => updateRow(dia, { aberto: e.target.checked })}
+                      className="w-4 h-4 rounded accent-green cursor-pointer"
                     />
-                    <span className="text-xs text-muted">às</span>
-                    <input
-                      type="time"
-                      name={`${key}_fim`}
-                      value={row.hora_fim}
-                      onChange={(e) => updateRow(dia, { hora_fim: e.target.value })}
-                      className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors"
-                    />
+                    <span className={`text-sm font-medium ${row.aberto ? 'text-text' : 'text-muted line-through'}`}>
+                      {DAY_LABELS[dia]}
+                    </span>
+                  </label>
+                  {row.aberto ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="time"
+                        name={`${key}_inicio`}
+                        value={row.hora_inicio}
+                        onChange={(e) => updateRow(dia, { hora_inicio: e.target.value })}
+                        className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors"
+                      />
+                      <span className="text-xs text-muted">às</span>
+                      <input
+                        type="time"
+                        name={`${key}_fim`}
+                        value={row.hora_fim}
+                        onChange={(e) => updateRow(dia, { hora_fim: e.target.value })}
+                        className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors"
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted font-medium ml-auto">Fechado</span>
+                  )}
+                </div>
+
+                {row.aberto && (
+                  <div className="flex items-center gap-2 mt-1.5 pl-7 flex-wrap">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name={`${key}_int_ativo`}
+                        checked={!!row.intervalo_inicio}
+                        onChange={(e) =>
+                          updateRow(dia, e.target.checked
+                            ? { intervalo_inicio: '12:00', intervalo_fim: '13:00' }
+                            : { intervalo_inicio: null, intervalo_fim: null }
+                          )
+                        }
+                        className="w-3.5 h-3.5 rounded accent-[#5b4bd4] cursor-pointer"
+                      />
+                      <span className="text-xs text-muted">Intervalo (almoço)</span>
+                    </label>
+                    {row.intervalo_inicio && (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="time"
+                          name={`${key}_int_inicio`}
+                          value={row.intervalo_inicio}
+                          onChange={(e) => updateRow(dia, { intervalo_inicio: e.target.value || null })}
+                          className="px-2 py-1 rounded-md border border-border text-xs bg-card outline-none focus:border-[#5b4bd4] transition-colors"
+                        />
+                        <span className="text-xs text-muted">às</span>
+                        <input
+                          type="time"
+                          name={`${key}_int_fim`}
+                          value={row.intervalo_fim ?? ''}
+                          onChange={(e) => updateRow(dia, { intervalo_fim: e.target.value || null })}
+                          className="px-2 py-1 rounded-md border border-border text-xs bg-card outline-none focus:border-[#5b4bd4] transition-colors"
+                        />
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <span className="text-xs text-muted font-medium">Fechado</span>
                 )}
               </div>
             )

@@ -2,14 +2,15 @@
 
 import { useRef, useState } from 'react'
 import { completeOnboarding, uploadLogoAction } from '@/app/onboarding/actions'
-import { HomeIcon, UsersIcon, ClockIcon, ChatIcon, CheckCircleIcon, UploadIcon } from '@/components/icons'
+import { HomeIcon, UsersIcon, ClockIcon, ChatIcon, CheckCircleIcon, UploadIcon, WalletIcon } from '@/components/icons'
 
 const STEPS = [
-  { label: 'Clínica', Icon: HomeIcon },
+  { label: 'Clínica',      Icon: HomeIcon },
   { label: 'Profissionais', Icon: UsersIcon },
-  { label: 'Horários', Icon: ClockIcon },
-  { label: 'WhatsApp', Icon: ChatIcon },
-  { label: 'Confirmação', Icon: CheckCircleIcon },
+  { label: 'Horários',     Icon: ClockIcon },
+  { label: 'Serviços',     Icon: WalletIcon },
+  { label: 'WhatsApp',     Icon: ChatIcon },
+  { label: 'Confirmação',  Icon: CheckCircleIcon },
 ]
 
 const WEEKDAYS = [
@@ -22,10 +23,21 @@ const WEEKDAYS = [
   { key: 'dom', label: 'Domingo' },
 ]
 
+function formatCNPJ(value: string): string {
+  const d = value.replace(/\D/g, '').slice(0, 14)
+  if (d.length <= 2) return d
+  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`
+  if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`
+  if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`
+}
+
 interface ClinicData { telefone: string; cnpj: string; endereco: string; logo_url: string | null; maps_url: string }
 interface MyProfile { especialidade: string; registro: string }
 interface Professional { nome: string; especialidade: string; registro: string }
-interface DaySchedule { aberto: boolean; inicio: string; fim: string }
+interface DaySchedule { aberto: boolean; inicio: string; fim: string; intervalo: boolean; intervalo_inicio: string; intervalo_fim: string }
+interface Servico { nome: string; valor: string }
+interface Convenio { nome: string; valor: string }
 interface WhatsAppData { instancia: string; numero: string }
 
 export function OnboardingFlow({
@@ -38,6 +50,7 @@ export function OnboardingFlow({
   initialClinic: Omit<ClinicData, 'logo_url'>
 }) {
   const [step, setStep] = useState(0)
+  const [stepError, setStepError] = useState<string | null>(null)
   const [clinic, setClinic] = useState<ClinicData>({ ...initialClinic, logo_url: null, maps_url: '' })
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
@@ -48,20 +61,35 @@ export function OnboardingFlow({
   const [schedule, setSchedule] = useState<Record<string, DaySchedule>>(() => {
     const initial: Record<string, DaySchedule> = {}
     WEEKDAYS.forEach(d => {
-      initial[d.key] = { aberto: d.key !== 'dom', inicio: '08:00', fim: '18:00' }
+      initial[d.key] = {
+        aberto: d.key !== 'dom' && d.key !== 'sab',
+        inicio: '08:00',
+        fim: '18:00',
+        intervalo: false,
+        intervalo_inicio: '12:00',
+        intervalo_fim: '13:00',
+      }
     })
     return initial
   })
+  const [servicos, setServicos] = useState<Servico[]>([{ nome: '', valor: '' }])
+  const [convenios, setConvenios] = useState<Convenio[]>([{ nome: '', valor: '' }])
   const [whatsapp, setWhatsApp] = useState<WhatsAppData>({ instancia: '', numero: '' })
   const [qrStep, setQrStep] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   function next() {
+    if (step === 0 && !clinic.maps_url.trim()) {
+      setStepError('O link do Google Maps é obrigatório')
+      return
+    }
+    setStepError(null)
     if (step < STEPS.length - 1) setStep(step + 1)
   }
 
   function back() {
+    setStepError(null)
     if (qrStep) { setQrStep(false); return }
     if (step > 0) setStep(step - 1)
   }
@@ -91,28 +119,30 @@ export function OnboardingFlow({
     }
   }
 
-  function addExtra() {
-    setExtras([...extras, { nome: '', especialidade: '', registro: '' }])
-  }
-
+  function addExtra() { setExtras([...extras, { nome: '', especialidade: '', registro: '' }]) }
   function updateExtra(index: number, field: keyof Professional, value: string) {
     const updated = [...extras]
     updated[index] = { ...updated[index], [field]: value }
     setExtras(updated)
   }
-
-  function removeExtra(index: number) {
-    setExtras(extras.filter((_, i) => i !== index))
-  }
+  function removeExtra(index: number) { setExtras(extras.filter((_, i) => i !== index)) }
 
   function updateSchedule(key: string, field: keyof DaySchedule, value: string | boolean) {
     setSchedule(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }))
   }
 
+  function updateServico(i: number, field: keyof Servico, value: string) {
+    const n = [...servicos]; n[i] = { ...n[i], [field]: value }; setServicos(n)
+  }
+  function removeServico(i: number) { setServicos(servicos.filter((_, j) => j !== i)) }
+
+  function updateConvenio(i: number, field: keyof Convenio, value: string) {
+    const n = [...convenios]; n[i] = { ...n[i], [field]: value }; setConvenios(n)
+  }
+  function removeConvenio(i: number) { setConvenios(convenios.filter((_, j) => j !== i)) }
+
   function handleWhatsAppConnect() {
-    if (whatsapp.instancia.trim() && whatsapp.numero.trim()) {
-      setQrStep(true)
-    }
+    if (whatsapp.instancia.trim() && whatsapp.numero.trim()) setQrStep(true)
   }
 
   async function handleFinish() {
@@ -123,6 +153,8 @@ export function OnboardingFlow({
       myProfile,
       additionalProfessionals: extras,
       schedule,
+      servicos,
+      convenios,
       whatsapp,
     })
     if (!result.ok) {
@@ -172,35 +204,31 @@ export function OnboardingFlow({
             {step === 0 && 'Dados da Clínica'}
             {step === 1 && 'Seu perfil profissional'}
             {step === 2 && 'Horários de Funcionamento'}
-            {step === 3 && (qrStep ? 'Conectar WhatsApp' : 'WhatsApp Business')}
-            {step === 4 && 'Tudo pronto!'}
+            {step === 3 && 'Serviços e Convênios'}
+            {step === 4 && (qrStep ? 'Conectar WhatsApp' : 'WhatsApp Business')}
+            {step === 5 && 'Tudo pronto!'}
           </h2>
           <p className="text-sm text-muted mt-1">
             {step === 0 && `Complete o cadastro de ${clinicName}`}
             {step === 1 && 'Seus dados profissionais e outros membros da equipe'}
-            {step === 2 && 'Defina os dias e horários de atendimento'}
-            {step === 3 && (qrStep ? 'Escaneie o QR Code com o WhatsApp' : 'Conecte o WhatsApp para atendimentos')}
-            {step === 4 && 'Confira as informações e comece a usar'}
+            {step === 2 && 'Defina os dias, horários e intervalos de atendimento'}
+            {step === 3 && 'Informe seus serviços e planos aceitos (pode editar depois)'}
+            {step === 4 && (qrStep ? 'Escaneie o QR Code com o WhatsApp' : 'Conecte o WhatsApp para atendimentos')}
+            {step === 5 && 'Confira as informações e comece a usar'}
           </p>
         </div>
 
         <div className="min-h-[280px]">
+          {/* ── Step 0: Dados da Clínica ── */}
           {step === 0 && (
             <div className="flex flex-col gap-5">
-              {/* Logo upload */}
               <div className="flex flex-col items-center gap-2">
                 <label className="relative cursor-pointer group">
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-border overflow-hidden flex items-center justify-center bg-bg hover:border-[#d4c5a9] transition-colors relative">
                     {logoPreview || clinic.logo_url ? (
-                      <img
-                        src={logoPreview ?? clinic.logo_url!}
-                        alt="Logo"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={logoPreview ?? clinic.logo_url!} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xl font-bold text-muted">
-                        {clinicName.slice(0, 2).toUpperCase()}
-                      </span>
+                      <span className="text-xl font-bold text-muted">{clinicName.slice(0, 2).toUpperCase()}</span>
                     )}
                     {uploadingLogo && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
@@ -211,35 +239,54 @@ export function OnboardingFlow({
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center shadow-sm">
                     <UploadIcon className="w-3 h-3 text-muted" />
                   </div>
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    className="sr-only"
-                    onChange={handleLogoChange}
-                  />
+                  <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={handleLogoChange} />
                 </label>
                 <span className="text-xs text-muted">
                   {uploadingLogo ? 'Enviando...' : clinic.logo_url ? 'Logo enviada ✓' : 'Clique para adicionar logo'}
                 </span>
-                {uploadLogoError && (
-                  <span className="text-xs text-red font-medium">{uploadLogoError}</span>
-                )}
+                {uploadLogoError && <span className="text-xs text-red font-medium">{uploadLogoError}</span>}
               </div>
 
               <div className="bg-bg rounded-[13px] px-4 py-3">
                 <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Clínica</div>
                 <div className="text-sm font-semibold">{clinicName}</div>
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Telefone" placeholder="(11) 99999-9999" value={clinic.telefone} onChange={v => setClinic({ ...clinic, telefone: v })} />
-                <Field label="CNPJ (opcional)" placeholder="00.000.000/0001-00" value={clinic.cnpj} onChange={v => setClinic({ ...clinic, cnpj: v })} />
+                <div>
+                  <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">CNPJ (opcional)</label>
+                  <input
+                    type="text"
+                    placeholder="00.000.000/0001-00"
+                    value={clinic.cnpj}
+                    onChange={e => setClinic({ ...clinic, cnpj: formatCNPJ(e.target.value) })}
+                    className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
+                  />
+                </div>
               </div>
+
               <Field label="Endereço" placeholder="Rua, número, bairro, cidade" value={clinic.endereco} onChange={v => setClinic({ ...clinic, endereco: v })} />
-              <Field label="Link do Google Maps (opcional)" placeholder="https://maps.google.com/..." value={clinic.maps_url} onChange={v => setClinic({ ...clinic, maps_url: v })} />
+
+              <div>
+                <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">
+                  Link do Google Maps <span className="text-red text-[10px] normal-case tracking-normal font-bold">obrigatório</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://maps.google.com/..."
+                  value={clinic.maps_url}
+                  onChange={e => { setClinic({ ...clinic, maps_url: e.target.value }); setStepError(null) }}
+                  className={`w-full px-4 py-3 rounded-[13px] border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg ${stepError ? 'border-red' : 'border-border'}`}
+                />
+                {stepError && (
+                  <p className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium mt-2">{stepError}</p>
+                )}
+              </div>
             </div>
           )}
 
+          {/* ── Step 1: Profissionais ── */}
           {step === 1 && (
             <div className="flex flex-col gap-5">
               <div className="bg-bg rounded-[12px] p-4">
@@ -260,12 +307,7 @@ export function OnboardingFlow({
 
               {extras.map((prof, i) => (
                 <div key={i} className="bg-bg rounded-[12px] p-4 relative">
-                  <button
-                    onClick={() => removeExtra(i)}
-                    className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red hover:bg-red-light transition-colors cursor-pointer text-sm"
-                  >
-                    ✕
-                  </button>
+                  <button onClick={() => removeExtra(i)} className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red hover:bg-red-light transition-colors cursor-pointer text-sm">✕</button>
                   <div className="flex flex-col gap-3">
                     <Field label="Nome completo" placeholder="Ex: Dr. João Silva" value={prof.nome} onChange={v => updateExtra(i, 'nome', v)} bg="bg-card" />
                     <div className="grid grid-cols-2 gap-3">
@@ -276,40 +318,61 @@ export function OnboardingFlow({
                 </div>
               ))}
 
-              <button
-                onClick={addExtra}
-                className="w-full py-3 rounded-[13px] border-2 border-dashed border-border text-sm font-semibold text-muted hover:border-text hover:text-text transition-colors cursor-pointer"
-              >
+              <button onClick={addExtra} className="w-full py-3 rounded-[13px] border-2 border-dashed border-border text-sm font-semibold text-muted hover:border-text hover:text-text transition-colors cursor-pointer">
                 + Adicionar outro profissional
               </button>
             </div>
           )}
 
+          {/* ── Step 2: Horários ── */}
           {step === 2 && (
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               {WEEKDAYS.map(day => {
                 const s = schedule[day.key]
                 return (
-                  <div key={day.key} className="flex items-center gap-4 py-2.5 px-4 rounded-[13px] bg-bg">
-                    <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-[160px]">
-                      <input
-                        type="checkbox"
-                        checked={s.aberto}
-                        onChange={e => updateSchedule(day.key, 'aberto', e.target.checked)}
-                        className="w-4 h-4 rounded accent-green cursor-pointer"
-                      />
-                      <span className={`text-sm font-medium ${s.aberto ? 'text-text' : 'text-muted line-through'}`}>
-                        {day.label}
-                      </span>
-                    </label>
-                    {s.aberto ? (
-                      <div className="flex items-center gap-2">
-                        <input type="time" value={s.inicio} onChange={e => updateSchedule(day.key, 'inicio', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
-                        <span className="text-xs text-muted">às</span>
-                        <input type="time" value={s.fim} onChange={e => updateSchedule(day.key, 'fim', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
+                  <div key={day.key} className="flex flex-col py-2.5 px-4 rounded-[13px] bg-bg">
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-[140px]">
+                        <input
+                          type="checkbox"
+                          checked={s.aberto}
+                          onChange={e => updateSchedule(day.key, 'aberto', e.target.checked)}
+                          className="w-4 h-4 rounded accent-green cursor-pointer"
+                        />
+                        <span className={`text-sm font-medium ${s.aberto ? 'text-text' : 'text-muted line-through'}`}>
+                          {day.label}
+                        </span>
+                      </label>
+                      {s.aberto ? (
+                        <div className="flex items-center gap-2">
+                          <input type="time" value={s.inicio} onChange={e => updateSchedule(day.key, 'inicio', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
+                          <span className="text-xs text-muted">às</span>
+                          <input type="time" value={s.fim} onChange={e => updateSchedule(day.key, 'fim', e.target.value)} className="px-3 py-1.5 rounded-lg border border-border text-sm bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted font-medium ml-auto">Fechado</span>
+                      )}
+                    </div>
+
+                    {s.aberto && (
+                      <div className="flex items-center gap-2 mt-1.5 pl-7 flex-wrap">
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={s.intervalo}
+                            onChange={e => updateSchedule(day.key, 'intervalo', e.target.checked)}
+                            className="w-3.5 h-3.5 rounded accent-[#5b4bd4] cursor-pointer"
+                          />
+                          <span className="text-xs text-muted">Intervalo (almoço)</span>
+                        </label>
+                        {s.intervalo && (
+                          <div className="flex items-center gap-1.5">
+                            <input type="time" value={s.intervalo_inicio} onChange={e => updateSchedule(day.key, 'intervalo_inicio', e.target.value)} className="px-2 py-1 rounded-md border border-border text-xs bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
+                            <span className="text-xs text-muted">às</span>
+                            <input type="time" value={s.intervalo_fim} onChange={e => updateSchedule(day.key, 'intervalo_fim', e.target.value)} className="px-2 py-1 rounded-md border border-border text-xs bg-card outline-none focus:border-[#5b4bd4] transition-colors" />
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <span className="text-xs text-muted font-medium">Fechado</span>
                     )}
                   </div>
                 )
@@ -317,7 +380,83 @@ export function OnboardingFlow({
             </div>
           )}
 
-          {step === 3 && !qrStep && (
+          {/* ── Step 3: Serviços e Convênios ── */}
+          {step === 3 && (
+            <div className="flex flex-col gap-6">
+              {/* Serviços */}
+              <div>
+                <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-2.5">Serviços prestados</div>
+                <div className="flex flex-col gap-2">
+                  {servicos.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Ex: Consulta, Retorno, Limpeza..."
+                        value={s.nome}
+                        onChange={e => updateServico(i, 'nome', e.target.value)}
+                        className="flex-1 px-4 py-2.5 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-muted font-medium">R$</span>
+                        <input
+                          type="text"
+                          placeholder="0,00"
+                          value={s.valor}
+                          onChange={e => updateServico(i, 'valor', e.target.value)}
+                          className="w-20 px-3 py-2.5 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
+                        />
+                      </div>
+                      {servicos.length > 1 && (
+                        <button type="button" onClick={() => removeServico(i)} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red hover:bg-red-light transition-colors cursor-pointer text-sm shrink-0">✕</button>
+                      )}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setServicos([...servicos, { nome: '', valor: '' }])} className="text-xs text-[#5b4bd4] font-semibold hover:underline text-left cursor-pointer w-fit">
+                    + Adicionar serviço
+                  </button>
+                </div>
+              </div>
+
+              {/* Convênios */}
+              <div>
+                <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-2.5">Planos e convênios aceitos</div>
+                <div className="flex flex-col gap-2">
+                  {convenios.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Ex: Unimed, Bradesco Saúde, Particular..."
+                        value={c.nome}
+                        onChange={e => updateConvenio(i, 'nome', e.target.value)}
+                        className="flex-1 px-4 py-2.5 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-muted font-medium">R$</span>
+                        <input
+                          type="text"
+                          placeholder="0,00"
+                          value={c.valor}
+                          onChange={e => updateConvenio(i, 'valor', e.target.value)}
+                          className="w-20 px-3 py-2.5 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
+                        />
+                      </div>
+                      {convenios.length > 1 && (
+                        <button type="button" onClick={() => removeConvenio(i)} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-red hover:bg-red-light transition-colors cursor-pointer text-sm shrink-0">✕</button>
+                      )}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setConvenios([...convenios, { nome: '', valor: '' }])} className="text-xs text-[#5b4bd4] font-semibold hover:underline text-left cursor-pointer w-fit">
+                    + Adicionar convênio
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted text-center">Você pode editar essas informações depois nas configurações.</p>
+            </div>
+          )}
+
+          {/* ── Step 4: WhatsApp ── */}
+          {step === 4 && !qrStep && (
             <div className="flex flex-col gap-5">
               <div className="flex items-center justify-center">
                 <div className="w-14 h-14 rounded-[14px] bg-green/10 flex items-center justify-center">
@@ -333,7 +472,7 @@ export function OnboardingFlow({
             </div>
           )}
 
-          {step === 3 && qrStep && (
+          {step === 4 && qrStep && (
             <div className="flex flex-col items-center gap-5">
               <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-light">
                 <div className="w-2 h-2 rounded-full bg-orange animate-pulse" />
@@ -365,7 +504,8 @@ export function OnboardingFlow({
             </div>
           )}
 
-          {step === 4 && (
+          {/* ── Step 5: Confirmação ── */}
+          {step === 5 && (
             <div className="flex flex-col gap-4">
               <SummarySection title="Clínica">
                 {clinic.logo_url && (
@@ -377,7 +517,7 @@ export function OnboardingFlow({
                 <SummaryItem label="Telefone" value={clinic.telefone || '—'} />
                 {clinic.cnpj && <SummaryItem label="CNPJ" value={clinic.cnpj} />}
                 <SummaryItem label="Endereço" value={clinic.endereco || '—'} />
-                {clinic.maps_url && <SummaryItem label="Google Maps" value="Link configurado ✓" />}
+                <SummaryItem label="Google Maps" value="Link configurado ✓" />
               </SummarySection>
 
               <SummarySection title="Profissionais">
@@ -390,16 +530,30 @@ export function OnboardingFlow({
               <SummarySection title="Horários">
                 {WEEKDAYS.map(day => {
                   const s = schedule[day.key]
-                  return (
-                    <SummaryItem
-                      key={day.key}
-                      label={day.label}
-                      value={s.aberto ? `${s.inicio} – ${s.fim}` : 'Fechado'}
-                      muted={!s.aberto}
-                    />
-                  )
+                  let value = 'Fechado'
+                  if (s.aberto) {
+                    value = `${s.inicio} – ${s.fim}`
+                    if (s.intervalo) value += ` · Int: ${s.intervalo_inicio}–${s.intervalo_fim}`
+                  }
+                  return <SummaryItem key={day.key} label={day.label} value={value} muted={!s.aberto} />
                 })}
               </SummarySection>
+
+              {servicos.some(s => s.nome) && (
+                <SummarySection title="Serviços">
+                  {servicos.filter(s => s.nome).map((s, i) => (
+                    <SummaryItem key={i} label={s.nome} value={s.valor ? `R$ ${s.valor}` : '—'} />
+                  ))}
+                </SummarySection>
+              )}
+
+              {convenios.some(c => c.nome) && (
+                <SummarySection title="Convênios">
+                  {convenios.filter(c => c.nome).map((c, i) => (
+                    <SummaryItem key={i} label={c.nome} value={c.valor ? `R$ ${c.valor}` : '—'} />
+                  ))}
+                </SummarySection>
+              )}
 
               <SummarySection title="WhatsApp">
                 {whatsapp.instancia ? (
@@ -423,8 +577,11 @@ export function OnboardingFlow({
           )}
 
           {step < STEPS.length - 1 ? (
-            <button onClick={step === 3 ? (qrStep ? next : handleWhatsAppConnect) : next} className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer">
-              {step === 3 ? (qrStep ? 'Continuar' : 'Conectar') : 'Próximo'} →
+            <button
+              onClick={step === 4 ? (qrStep ? next : handleWhatsAppConnect) : next}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-text text-white rounded-[13px] text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer"
+            >
+              {step === 4 ? (qrStep ? 'Continuar' : 'Conectar') : 'Próximo'} →
             </button>
           ) : (
             <div className="flex flex-col items-end gap-2">

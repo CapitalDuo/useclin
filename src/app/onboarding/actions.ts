@@ -16,11 +16,19 @@ function iniciais(nome: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
+function parseValor(v: string): number | null {
+  if (!v.trim()) return null
+  const n = parseFloat(v.replace(',', '.').replace(/[^\d.]/g, ''))
+  return isNaN(n) ? null : n
+}
+
 export type OnboardingPayload = {
   clinic: { telefone: string; cnpj: string; endereco: string; logo_url?: string | null; maps_url?: string | null }
   myProfile: { especialidade: string; registro: string }
   additionalProfessionals: { nome: string; especialidade: string; registro: string }[]
-  schedule: Record<string, { aberto: boolean; inicio: string; fim: string }>
+  schedule: Record<string, { aberto: boolean; inicio: string; fim: string; intervalo: boolean; intervalo_inicio: string; intervalo_fim: string }>
+  servicos: { nome: string; valor: string }[]
+  convenios: { nome: string; valor: string }[]
   whatsapp: { instancia: string; numero: string }
 }
 
@@ -52,7 +60,7 @@ export async function completeOnboarding(payload: OnboardingPayload) {
       logo_url: payload.clinic.logo_url ?? null,
       maps_url: payload.clinic.maps_url || null,
       onboarding_completo: true,
-      onboarding_step: 4,
+      onboarding_step: 5,
     })
     .eq('id', clinicaId)
 
@@ -91,10 +99,30 @@ export async function completeOnboarding(payload: OnboardingPayload) {
     aberto: day.aberto,
     hora_inicio: day.aberto ? day.inicio : null,
     hora_fim: day.aberto ? day.fim : null,
+    intervalo_inicio: day.aberto && day.intervalo ? day.intervalo_inicio : null,
+    intervalo_fim: day.aberto && day.intervalo ? day.intervalo_fim : null,
   }))
 
   const { error: schedError } = await supabase.from('horarios_funcionamento').insert(horarios)
   if (schedError) return { ok: false as const, error: schedError.message }
+
+  const servicosToSave = payload.servicos
+    .filter(s => s.nome.trim())
+    .map(s => ({ clinica_id: clinicaId, nome: s.nome.trim(), valor: parseValor(s.valor) }))
+
+  if (servicosToSave.length > 0) {
+    const { error: servError } = await supabase.from('clinica_servicos').insert(servicosToSave)
+    if (servError) return { ok: false as const, error: servError.message }
+  }
+
+  const conveniosToSave = payload.convenios
+    .filter(c => c.nome.trim())
+    .map(c => ({ clinica_id: clinicaId, nome: c.nome.trim(), valor: parseValor(c.valor) }))
+
+  if (conveniosToSave.length > 0) {
+    const { error: convError } = await supabase.from('clinica_convenios').insert(conveniosToSave)
+    if (convError) return { ok: false as const, error: convError.message }
+  }
 
   if (payload.whatsapp.instancia.trim() && payload.whatsapp.numero.trim()) {
     const { error: waError } = await supabase.from('whatsapp_instancias').insert({

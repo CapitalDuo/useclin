@@ -83,17 +83,19 @@ export async function updateHorariosAction(formData: FormData) {
   const { prof } = await clinicaIdOf(user.id)
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
-  const rows = WEEKDAY_KEYS.map((key, dia) => ({
-    clinica_id: prof.clinica_id!,
-    dia_semana: dia,
-    aberto: formData.get(`${key}_aberto`) === 'on',
-    hora_inicio: (formData.get(`${key}_inicio`) as string) || null,
-    hora_fim: (formData.get(`${key}_fim`) as string) || null,
-  })).map((r) => ({
-    ...r,
-    hora_inicio: r.aberto ? r.hora_inicio : null,
-    hora_fim: r.aberto ? r.hora_fim : null,
-  }))
+  const rows = WEEKDAY_KEYS.map((key, dia) => {
+    const aberto = formData.get(`${key}_aberto`) === 'on'
+    const intAtivo = formData.get(`${key}_int_ativo`) === 'on'
+    return {
+      clinica_id: prof.clinica_id!,
+      dia_semana: dia,
+      aberto,
+      hora_inicio: aberto ? (formData.get(`${key}_inicio`) as string) || null : null,
+      hora_fim: aberto ? (formData.get(`${key}_fim`) as string) || null : null,
+      intervalo_inicio: aberto && intAtivo ? (formData.get(`${key}_int_inicio`) as string) || null : null,
+      intervalo_fim: aberto && intAtivo ? (formData.get(`${key}_int_fim`) as string) || null : null,
+    }
+  })
 
   const { error } = await supabase
     .from('horarios_funcionamento')

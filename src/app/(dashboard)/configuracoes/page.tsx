@@ -10,6 +10,8 @@ const DEFAULT_HORARIO: Omit<HorarioRow, 'dia_semana'> = {
   aberto: true,
   hora_inicio: '08:00',
   hora_fim: '18:00',
+  intervalo_inicio: null,
+  intervalo_fim: null,
 }
 
 const NOTIF_DEFAULTS: Notificacoes = {
@@ -48,7 +50,7 @@ export default async function ConfiguracoesPage() {
       .maybeSingle(),
     supabase
       .from('horarios_funcionamento')
-      .select('dia_semana, aberto, hora_inicio, hora_fim')
+      .select('dia_semana, aberto, hora_inicio, hora_fim, intervalo_inicio, intervalo_fim')
       .eq('clinica_id', prof.clinica_id),
     supabase
       .from('whatsapp_instancias')
@@ -81,6 +83,8 @@ export default async function ConfiguracoesPage() {
       aberto: h?.aberto ?? (d !== 0),
       hora_inicio: h?.hora_inicio?.slice(0, 5) ?? DEFAULT_HORARIO.hora_inicio,
       hora_fim: h?.hora_fim?.slice(0, 5) ?? DEFAULT_HORARIO.hora_fim,
+      intervalo_inicio: h?.intervalo_inicio?.slice(0, 5) ?? null,
+      intervalo_fim: h?.intervalo_fim?.slice(0, 5) ?? null,
     }
   })
 
