@@ -199,9 +199,7 @@ export async function updateAgendamentoAction(id: string, formData: FormData) {
 
 export async function deleteAgendamentoAction(id: string) {
   const supabase = await createClient()
-  // ON DELETE SET NULL no FK transacoes.agendamento_id mantém a transação
-  // como entrada avulsa. Se preferir apagar junto, descomente:
-  // await supabase.from('transacoes').delete().eq('agendamento_id', id)
+  await supabase.from('transacoes').delete().eq('agendamento_id', id)
   const { error } = await supabase.from('agendamentos').delete().eq('id', id)
   if (error) return { ok: false as const, error: error.message }
 
