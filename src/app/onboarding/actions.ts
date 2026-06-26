@@ -2,15 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { iniciais, AVATAR_PALETTE } from '@/lib/avatar'
+import { parseBrlInput } from '@/lib/currency'
 
 const WEEKDAY_MAP: Record<string, number> = {
   dom: 0, seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6,
-}
-
-function parseValor(v: string): number | null {
-  if (!v.trim()) return null
-  const n = parseFloat(v.replace(',', '.').replace(/[^\d.]/g, ''))
-  return isNaN(n) ? null : n
 }
 
 export type OnboardingPayload = {
@@ -101,7 +96,7 @@ export async function completeOnboarding(payload: OnboardingPayload) {
 
   const servicosToSave = payload.servicos
     .filter(s => s.nome.trim())
-    .map(s => ({ clinica_id: clinicaId, nome: s.nome.trim(), valor: parseValor(s.valor) }))
+    .map(s => ({ clinica_id: clinicaId, nome: s.nome.trim(), valor: parseBrlInput(s.valor)?.valor ?? null }))
 
   if (servicosToSave.length > 0) {
     const { error: servError } = await supabase.from('clinica_servicos').insert(servicosToSave)
@@ -110,7 +105,7 @@ export async function completeOnboarding(payload: OnboardingPayload) {
 
   const conveniosToSave = payload.convenios
     .filter(c => c.nome.trim())
-    .map(c => ({ clinica_id: clinicaId, nome: c.nome.trim(), valor: parseValor(c.valor) }))
+    .map(c => ({ clinica_id: clinicaId, nome: c.nome.trim(), valor: parseBrlInput(c.valor)?.valor ?? null }))
 
   if (conveniosToSave.length > 0) {
     const { error: convError } = await supabase.from('clinica_convenios').insert(conveniosToSave)

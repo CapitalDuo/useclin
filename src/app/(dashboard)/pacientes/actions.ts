@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { iniciais, randomColor } from '@/lib/avatar'
+import { parseBrlInput } from '@/lib/currency'
 
 export async function createPacienteAction(formData: FormData) {
   const nome = String(formData.get('nome') ?? '').trim()
@@ -38,7 +39,7 @@ export async function createPacienteAction(formData: FormData) {
     .maybeSingle()
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
-  const valor = valor_plano_raw ? Number(valor_plano_raw.replace(',', '.')) : null
+  const valor = parseBrlInput(valor_plano_raw)?.valor ?? null
 
   const { error } = await supabase.from('pacientes').insert({
     clinica_id: prof.clinica_id,
@@ -79,7 +80,7 @@ export async function updatePacienteAction(id: string, formData: FormData) {
   if (!nome) return { ok: false as const, error: 'Nome é obrigatório' }
 
   const supabase = await createClient()
-  const valor = valor_plano_raw ? Number(valor_plano_raw.replace(',', '.')) : null
+  const valor = parseBrlInput(valor_plano_raw)?.valor ?? null
 
   const { error } = await supabase
     .from('pacientes')
