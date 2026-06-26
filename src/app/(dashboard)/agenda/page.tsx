@@ -1,29 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { AgendaCalendar, type AgendaView } from '@/components/agenda-calendar'
-
-function mondayOf(d: Date) {
-  const day = d.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const m = new Date(d)
-  m.setDate(d.getDate() + diff)
-  m.setHours(0, 0, 0, 0)
-  return m
-}
-
-const TZ = 'America/Sao_Paulo'
-
-function isoDate(d: Date) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function todayBrazil() {
-  const s = new Date().toLocaleDateString('en-CA', { timeZone: TZ })
-  const [y, m, d] = s.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
+import { mondayOf, isoDate, todayBrazil } from '@/lib/date'
 
 export default async function AgendaPage({
   searchParams,

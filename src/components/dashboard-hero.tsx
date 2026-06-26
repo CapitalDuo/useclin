@@ -1,4 +1,5 @@
 import { CalendarIcon } from '@/components/icons'
+import { TZ } from '@/lib/date'
 
 function greeting(hour: number) {
   return hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
@@ -22,7 +23,6 @@ export function DashboardHero({
   consultasHoje: number
   proximaHora: string | null
 }) {
-  const TZ = 'America/Sao_Paulo'
   const now = new Date()
   const hour = parseInt(now.toLocaleString('en-US', { timeZone: TZ, hour: 'numeric', hour12: false })) % 24
   const firstName = userName.split(' ').slice(0, 2).join(' ')

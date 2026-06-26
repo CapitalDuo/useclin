@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@/components/icons'
 import { moveAgendamentoAction } from '@/app/(dashboard)/agenda/actions'
 import { AgendamentoModal, type AgendamentoModalMode } from '@/components/agendamento-modal'
+import { todayISO } from '@/lib/date'
 
 export type AgendaEvento = {
   id: string
@@ -77,10 +78,6 @@ function formatDayLabel(d: Date) {
   const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' })
   const cap = weekday.charAt(0).toUpperCase() + weekday.slice(1)
   return `${cap}, ${d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}`
-}
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
 }
 
 function parseHour(t: string): { h: number; m: number } {

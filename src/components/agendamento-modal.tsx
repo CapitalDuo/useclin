@@ -10,6 +10,7 @@ import {
   getAgendamentoAction,
 } from '@/app/(dashboard)/agenda/actions'
 import { formatBrlPlain, parseBrlInput } from '@/lib/currency'
+import { todayISO } from '@/lib/date'
 import { PageLoader } from '@/components/page-loader'
 
 type Paciente = { id: string; nome: string }
@@ -19,10 +20,6 @@ type Tipo = { id: string; nome: string; cor: string; duracao_padrao: string | nu
 export type AgendamentoModalMode =
   | { kind: 'new'; data?: string }
   | { kind: 'edit'; id: string }
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
-}
 
 function addMinutes(time: string, minutes: number) {
   const [h, m] = time.split(':').map(Number)

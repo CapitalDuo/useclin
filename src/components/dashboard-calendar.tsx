@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowRightIcon, ChevronDownIcon } from '@/components/icons'
+import { mondayOf } from '@/lib/date'
 
 const STATUS_COLOR: Record<string, string> = {
   agendado: '#6d5ae6',
@@ -17,15 +18,6 @@ type Event = {
   status: string
   paciente_nome: string
   tipo_nome: string | null
-}
-
-function mondayOf(d: Date) {
-  const day = d.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const m = new Date(d)
-  m.setDate(d.getDate() + diff)
-  m.setHours(0, 0, 0, 0)
-  return m
 }
 
 const WEEKDAYS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM']

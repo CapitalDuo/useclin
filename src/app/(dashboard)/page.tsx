@@ -1,36 +1,15 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
+import { TZ, todayISO, mondayOf, isoDate } from '@/lib/date'
 import { KpiCard } from '@/components/kpi-card'
 import { CalendarIcon, WalletIcon } from '@/components/icons'
 import { DonutChart, WeekChart, type WeekPoint } from '@/components/dashboard-charts'
 import { DashboardHero } from '@/components/dashboard-hero'
 import { DashboardCalendar } from '@/components/dashboard-calendar'
 
-const TZ = 'America/Sao_Paulo'
-
-function todayISO() {
-  return new Date().toLocaleDateString('en-CA', { timeZone: TZ })
-}
-
 function formatHora(t: string | null) {
   return (t ?? '').slice(0, 5)
-}
-
-function mondayOf(d: Date) {
-  const day = d.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const m = new Date(d)
-  m.setDate(d.getDate() + diff)
-  m.setHours(0, 0, 0, 0)
-  return m
-}
-
-function isoDate(d: Date) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
 }
 
 const WEEK_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
