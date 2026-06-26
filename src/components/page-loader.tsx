@@ -15,9 +15,8 @@ export function PageLoader({ message = 'Aguarde...' }: { message?: string }) {
           />
           <svg viewBox="0 0 40 40" fill="none" className="w-8 h-8">
             <circle cx="20" cy="20" r="18" stroke="#5b4bd4" strokeWidth="1.5" />
-            <path d="M20 8 C16 12, 12 14, 12 20 C12 24, 14 28, 20 32 C26 28, 28 24, 28 20 C28 14, 24 12, 20 8Z" stroke="#5b4bd4" strokeWidth="1.2" fill="none" />
-            <path d="M14 16 Q17 20, 20 16 Q23 20, 26 16" stroke="#5b4bd4" strokeWidth="1" fill="none" />
-            <path d="M15 22 Q17.5 26, 20 22 Q22.5 26, 25 22" stroke="#5b4bd4" strokeWidth="1" fill="none" />
+            {/* Marca Useclin — "U" */}
+            <path d="M15 14 L15 20 C15 23.7 17.2 26 20 26 C22.8 26 25 23.7 25 20 L25 14 C25 12.8 24.1 12.1 23.2 12.5" stroke="#5b4bd4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
         </div>
         <p className="text-sm font-semibold tracking-wide" style={{ color: 'rgba(255,255,255,0.70)' }}>

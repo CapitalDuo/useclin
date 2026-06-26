@@ -9,7 +9,8 @@ export default function DashboardLoading() {
           />
           <svg viewBox="0 0 40 40" fill="none" className="w-7 h-7">
             <circle cx="20" cy="20" r="18" stroke="#5b4bd4" strokeWidth="1.5" />
-            <path d="M20 8 C16 12, 12 14, 12 20 C12 24, 14 28, 20 32 C26 28, 28 24, 28 20 C28 14, 24 12, 20 8Z" stroke="#5b4bd4" strokeWidth="1.2" fill="none" />
+            {/* Marca Useclin — "U" */}
+            <path d="M15 14 L15 20 C15 23.7 17.2 26 20 26 C22.8 26 25 23.7 25 20 L25 14 C25 12.8 24.1 12.1 23.2 12.5" stroke="#5b4bd4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
         </div>
         <p className="text-sm font-medium text-muted">Carregando seu painel...</p>
