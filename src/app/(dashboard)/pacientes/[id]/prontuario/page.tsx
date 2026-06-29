@@ -1,8 +1,5 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { NovoProntuarioForm } from './form'
-import { Avatar } from '@/components/avatar'
 
 export default async function ProntuarioPage({
   params,
@@ -12,16 +9,11 @@ export default async function ProntuarioPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: paciente }, { data: prontuarios }] = await Promise.all([
-    supabase.from('pacientes').select('id, nome, iniciais, cor').eq('id', id).maybeSingle(),
-    supabase
-      .from('prontuarios')
-      .select('id, descricao, diagnostico, prescricao, created_at, profissional_id')
-      .eq('paciente_id', id)
-      .order('created_at', { ascending: false }),
-  ])
-
-  if (!paciente) notFound()
+  const { data: prontuarios } = await supabase
+    .from('prontuarios')
+    .select('id, descricao, diagnostico, prescricao, created_at, profissional_id')
+    .eq('paciente_id', id)
+    .order('created_at', { ascending: false })
 
   const profIds = Array.from(new Set((prontuarios ?? []).map((p) => p.profissional_id)))
   const { data: profs } = profIds.length
@@ -30,20 +22,10 @@ export default async function ProntuarioPage({
   const profNomeById = new Map((profs ?? []).map((p) => [p.id, p.nome]))
 
   return (
-    <div className="px-10 pt-7 pb-10 max-w-[820px]">
-      <div className="mb-5">
-        <Link href="/pacientes" className="text-xs text-muted hover:text-text font-medium">
-          ← Voltar para pacientes
-        </Link>
-      </div>
-
-      <div className="flex items-center gap-4 mb-7">
-        <Avatar initials={paciente.iniciais ?? paciente.nome.slice(0, 2).toUpperCase()} cor={paciente.cor} size="lg" />
-        <div>
-          <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">{paciente.nome}</h1>
-          <p className="text-sm text-muted mt-0.5">Prontuário · {prontuarios?.length ?? 0} registro{prontuarios?.length === 1 ? '' : 's'}</p>
-        </div>
-      </div>
+    <div className="max-w-[820px]">
+      <p className="text-sm text-muted mb-6">
+        {prontuarios?.length ?? 0} registro{prontuarios?.length === 1 ? '' : 's'} no prontuário
+      </p>
 
       <NovoProntuarioForm pacienteId={id} />
 

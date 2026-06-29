@@ -6,6 +6,7 @@ import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@/components/ic
 import { moveAgendamentoAction } from '@/app/(dashboard)/agenda/actions'
 import { AgendamentoModal, type AgendamentoModalMode } from '@/components/agendamento-modal'
 import { todayISO } from '@/lib/date'
+import { STATUS_COLORS, STATUS_LABEL } from '@/lib/agendamento-status'
 
 export type AgendaEvento = {
   id: string
@@ -31,24 +32,6 @@ const HOURS = Array.from({ length: 12 }, (_, i) => 7 + i) // 07h–18h
 const ROW_HEIGHT = 88 // px por hora — gera ar suficiente p/ eventos de 30 min mostrarem nome
 const COMPACT_THRESHOLD = 44 // px abaixo desse valor: layout 1-linha
 const SHOW_TIPO_THRESHOLD = 64 // px abaixo desse valor: oculta a linha do tipo
-
-const STATUS_COLORS: Record<string, string> = {
-  agendado: '#6d5ae6',
-  confirmado: '#6d5ae6',
-  em_atendimento: '#f5a623',
-  concluido: '#2fb98a',
-  faltou: '#f06a6a',
-  cancelado: '#f06a6a',
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  agendado: 'Agendado',
-  confirmado: 'Agendado',
-  em_atendimento: 'Em andamento',
-  concluido: 'Finalizado',
-  cancelado: 'Cancelado',
-  faltou: 'Faltou',
-}
 
 const STATUS_LEGEND = [
   { color: '#6d5ae6', label: 'Agendado' },
