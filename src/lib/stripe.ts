@@ -1,7 +1,22 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-05-27.dahlia',
+// Lazy singleton — não instancia no nível do módulo para não quebrar o build
+// quando STRIPE_SECRET_KEY não está disponível no ambiente de build.
+let _stripe: Stripe | undefined
+
+function getInstance(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2026-05-27.dahlia',
+    })
+  }
+  return _stripe
+}
+
+export const stripe: Stripe = new Proxy({} as Stripe, {
+  get(_, prop: string | symbol) {
+    return Reflect.get(getInstance(), prop)
+  },
 })
 
 export const PLANS = {
