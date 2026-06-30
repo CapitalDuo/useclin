@@ -52,7 +52,7 @@ export default async function PrescricoesPage({
     <div className="max-w-[860px]">
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-muted">
-          {prescricoes.length} prescrição{prescricoes.length !== 1 ? 'ões' : ''}
+          {prescricoes.length} {prescricoes.length === 1 ? 'prescrição' : 'prescrições'}
         </p>
         <Link
           href={`/pacientes/${id}/prescricoes/nova`}

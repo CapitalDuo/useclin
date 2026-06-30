@@ -69,9 +69,15 @@ export async function criarPrescricaoAction(
     : ''
   const dataFormatada = new Date(dataConsulta + 'T00:00:00').toLocaleDateString('pt-BR')
 
-  // Chama n8n para gerar o PDF
+  // Chama n8n para gerar o PDF.
+  // Usa N8N_PRESCRICAO_URL quando disponível; caso contrário deriva da
+  // variável já existente no Vercel (N8N_WEBHOOK_URL = .../webhook/whatsapp).
   let pdfUrl: string | null = null
-  const n8nUrl = process.env.N8N_PRESCRICAO_URL
+  const n8nUrl =
+    process.env.N8N_PRESCRICAO_URL ??
+    (process.env.N8N_WEBHOOK_URL
+      ? process.env.N8N_WEBHOOK_URL.replace(/\/webhook\/[^/]+$/, '/webhook/prescricao')
+      : null)
 
   if (n8nUrl) {
     try {
