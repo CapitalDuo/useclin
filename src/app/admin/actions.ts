@@ -60,7 +60,7 @@ export async function deleteClinicaAction(clinicaId: string): Promise<Result> {
   }
 
   // Cascade no banco apaga profissionais, pacientes, agendamentos,
-  // prontuários, transações, conversas, mensagens, suporte, whatsapp,
+  // transações, conversas, mensagens, suporte, whatsapp,
   // horários e notificações ligados a esta clínica.
   const { error } = await db.from('clinica').delete().eq('id', clinicaId)
   if (error) return { ok: false, error: error.message }
@@ -84,7 +84,7 @@ export async function deleteUsuarioAction(profissionalId: string): Promise<Resul
     .eq('id', profissionalId)
     .maybeSingle()
 
-  // Cascade apaga agendamentos e prontuários deste profissional.
+  // Cascade apaga agendamentos deste profissional.
   const { error } = await db.from('profissionais').delete().eq('id', profissionalId)
   if (error) return { ok: false, error: error.message }
 
