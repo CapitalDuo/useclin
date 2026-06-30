@@ -41,3 +41,24 @@ export const getCurrentUser = cache(async () => {
   } = await supabase.auth.getUser()
   return user
 })
+
+/**
+ * Usuário autenticado + seu registro de profissional (com clinica_id). Fonte
+ * única do lookup "user → profissionais" que estava repetido em cada server
+ * action — quem chama decide a mensagem de erro pra cada caso (sem usuário /
+ * sem clínica vinculada).
+ */
+export async function getProfissional(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { user: null, prof: null }
+
+  const { data: prof } = await supabase
+    .from('profissionais')
+    .select('id, nome, registro, especialidade, clinica_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  return { user, prof }
+}

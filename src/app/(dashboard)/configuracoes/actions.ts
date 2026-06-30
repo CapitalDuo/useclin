@@ -1,27 +1,13 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfissional } from '@/lib/supabase/server'
 import { WEEKDAY_KEYS } from '@/lib/weekdays'
-
-async function clinicaIdOf(userId: string) {
-  const supabase = await createClient()
-  const { data: prof } = await supabase
-    .from('profissionais')
-    .select('id, clinica_id')
-    .eq('user_id', userId)
-    .maybeSingle()
-  return { supabase, prof }
-}
 
 export async function updateClinicaAction(formData: FormData) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
-
-  const { prof } = await clinicaIdOf(user.id)
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
   const nome = String(formData.get('nome') ?? '').trim()
@@ -74,12 +60,8 @@ export async function updateClinicaAction(formData: FormData) {
 
 export async function updateHorariosAction(formData: FormData) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
-
-  const { prof } = await clinicaIdOf(user.id)
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
   const rows = WEEKDAY_KEYS.map((key, dia) => {
@@ -111,12 +93,8 @@ export async function criarConexaoWhatsappAction(formData: FormData): Promise<
   | { ok: true; qrcode: string | null; token: string | null; instancia_id: string | null }
 > {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false, error: 'Não autenticado' }
-
-  const { prof } = await clinicaIdOf(user.id)
   if (!prof?.clinica_id) return { ok: false, error: 'Conta sem clínica vinculada' }
 
   const nome_instancia = String(formData.get('nome_instancia') ?? '').trim()
@@ -267,12 +245,8 @@ export async function enviarMensagemAction(
 
 export async function updateMeuPerfilAction(formData: FormData) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
-
-  const { prof } = await clinicaIdOf(user.id)
   if (!prof) return { ok: false as const, error: 'Profissional não encontrado' }
 
   const nome = String(formData.get('nome') ?? '').trim()
@@ -303,12 +277,8 @@ export type NotificacaoTipo = (typeof NOTIF_TIPOS)[number]
 
 export async function toggleNotificacaoAction(tipo: NotificacaoTipo, ativo: boolean) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
-
-  const { prof } = await clinicaIdOf(user.id)
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
   if (!NOTIF_TIPOS.includes(tipo)) return { ok: false as const, error: 'Tipo inválido' }

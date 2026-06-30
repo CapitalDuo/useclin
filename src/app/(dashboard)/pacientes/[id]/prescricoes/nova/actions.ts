@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfissional } from '@/lib/supabase/server'
 
 type Med = { nome: string; dosagem: string; frequencia: string; duracao: string }
 
@@ -10,17 +10,8 @@ export async function criarPrescricaoAction(
   formData: FormData,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false, error: 'Não autenticado' }
-
-  const { data: prof } = await supabase
-    .from('profissionais')
-    .select('id, nome, registro, especialidade, clinica_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
   if (!prof?.clinica_id) return { ok: false, error: 'Profissional não encontrado' }
 
   const [{ data: paciente }, { data: clinica }] = await Promise.all([

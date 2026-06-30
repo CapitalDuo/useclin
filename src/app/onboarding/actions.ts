@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfissional } from '@/lib/supabase/server'
 import { iniciais, AVATAR_PALETTE } from '@/lib/avatar'
 import { parseBrlInput } from '@/lib/currency'
 import { WEEKDAY_MAP } from '@/lib/weekdays'
@@ -17,16 +17,8 @@ export type OnboardingPayload = {
 
 export async function completeOnboarding(payload: OnboardingPayload) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof: meuProf } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
-
-  const { data: meuProf } = await supabase
-    .from('profissionais')
-    .select('id, clinica_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
 
   if (!meuProf?.clinica_id) {
     return { ok: false as const, error: 'Sua conta não está vinculada a uma clínica' }
@@ -126,20 +118,13 @@ export async function uploadLogoAction(
   formData: FormData,
 ): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false, error: 'Não autenticado' }
 
   const file = formData.get('logo') as File | null
   if (!file || file.size === 0) return { ok: false, error: 'Arquivo inválido' }
   if (file.size > 2 * 1024 * 1024) return { ok: false, error: 'Imagem muito grande (máx. 2 MB)' }
 
-  const { data: prof } = await supabase
-    .from('profissionais')
-    .select('clinica_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
   if (!prof?.clinica_id) return { ok: false, error: 'Clínica não encontrada' }
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'

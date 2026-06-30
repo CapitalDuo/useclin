@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfissional } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { iniciais, randomColor } from '@/lib/avatar'
 import { parseBrlInput } from '@/lib/currency'
@@ -24,19 +24,12 @@ export async function createPacienteAction(formData: FormData) {
   }
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
 
   const rl = await checkRateLimit('write', user.id)
   if (!rl.ok) return { ok: false as const, error: rl.error }
 
-  const { data: prof } = await supabase
-    .from('profissionais')
-    .select('clinica_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
   const valor = parseBrlInput(valor_plano_raw)?.valor ?? null
@@ -109,16 +102,8 @@ export async function updatePacienteAction(id: string, formData: FormData) {
 
 export async function deletePacienteAction(id: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false, error: 'Não autenticado' }
-
-  const { data: prof } = await supabase
-    .from('profissionais')
-    .select('clinica_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
   if (!prof?.clinica_id) return { ok: false, error: 'Conta sem clínica vinculada' }
 
   const { error } = await supabase

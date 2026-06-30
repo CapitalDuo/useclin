@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfissional } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export async function createTicketAction(formData: FormData) {
@@ -14,19 +14,11 @@ export async function createTicketAction(formData: FormData) {
   }
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
 
   const rl = await checkRateLimit('ticket', user.id)
   if (!rl.ok) return { ok: false as const, error: rl.error }
-
-  const { data: prof } = await supabase
-    .from('profissionais')
-    .select('clinica_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
 
   if (!prof?.clinica_id) {
     return { ok: false as const, error: 'Sua conta não está vinculada a uma clínica' }
