@@ -1175,9 +1175,11 @@ export type Database = {
           id: string | null
           lembrete_enviado: boolean | null
           notas: string | null
+          paciente_id: string | null
           paciente_iniciais: string | null
           paciente_nome: string | null
           paciente_whatsapp: string | null
+          profissional_id: string | null
           profissional_nome: string | null
           status: string | null
           tipo_cor: string | null
