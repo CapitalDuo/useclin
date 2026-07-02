@@ -490,6 +490,11 @@ export function AgendaCalendar({
                           </div>
                           <div className="font-semibold text-[11.5px] leading-tight truncate mt-0.5">{ev.paciente_nome}</div>
                           {showTipo && <div className="text-[10px] opacity-70 truncate mt-0.5">{ev.tipo_nome}</div>}
+                          {view === 'day' && ev.notas && (
+                            <div className="text-[10px] opacity-80 leading-snug mt-0.5 line-clamp-2">
+                              📝 {ev.notas}
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
