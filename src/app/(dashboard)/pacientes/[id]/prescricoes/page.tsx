@@ -24,6 +24,14 @@ function formatDate(d: string) {
   })
 }
 
+// pdf_url agora guarda o path do objeto, mas linhas antigas podem ter a URL
+// pública completa (/object/public/...). Normaliza pra path antes de assinar.
+function toStoragePath(u: string) {
+  return u
+    .replace(/^.*\/storage\/v1\/object\/(?:public|sign)\/prescricoes\//, '')
+    .replace(/\?.*$/, '')
+}
+
 export default async function PrescricoesPage({
   params,
 }: {
@@ -42,14 +50,23 @@ export default async function PrescricoesPage({
 
   const prescricoes = (rows ?? []) as Prescricao[]
 
-  // Bucket privado: pdf_url guarda o path do objeto — gera URLs assinadas
-  // (120s) em lote pra esta página. RLS do Storage garante o escopo da clínica.
-  const pdfPaths = prescricoes.map((p) => p.pdf_url).filter((u): u is string => !!u)
+  // Bucket privado: gera URLs assinadas (120s) em lote pra esta página.
+  // RLS do Storage garante o escopo da clínica.
+  const pdfPaths = Array.from(
+    new Set(
+      prescricoes
+        .map((p) => p.pdf_url)
+        .filter((u): u is string => !!u)
+        .map(toStoragePath),
+    ),
+  )
   const { data: signed } = pdfPaths.length
     ? await supabase.storage.from('prescricoes').createSignedUrls(pdfPaths, 120)
     : { data: null }
   const signedByPath = new Map(
-    (signed ?? []).filter((s) => s.signedUrl).map((s) => [s.path, s.signedUrl]),
+    (signed ?? [])
+      .filter((s) => s.signedUrl)
+      .map((s) => [s.path, s.signedUrl as string]),
   )
 
   const profIds = Array.from(new Set(prescricoes.map((p) => p.profissional_id)))
@@ -85,7 +102,7 @@ export default async function PrescricoesPage({
               p={p}
               pacienteId={id}
               profNome={profById.get(p.profissional_id) ?? null}
-              pdfHref={p.pdf_url ? signedByPath.get(p.pdf_url) ?? null : null}
+              pdfHref={p.pdf_url ? signedByPath.get(toStoragePath(p.pdf_url)) ?? null : null}
             />
           ))}
         </div>
