@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { updatePacienteAction, deletePacienteAction } from '../../actions'
 import { PageLoader } from '@/components/page-loader'
+import { Field } from '@/components/ui/field'
+import { usePendingAction } from '@/hooks/use-pending-action'
 
 type Plano = { id: string; nome: string; tipo: string }
 type Paciente = {
@@ -22,29 +24,18 @@ type Paciente = {
 }
 
 export function EditarPacienteForm({ paciente, planos }: { paciente: Paciente; planos: Plano[] }) {
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { pending, error: saveError, run: runSave } = usePendingAction()
+  const { pending: deleting, error: deleteError, run: runDelete } = usePendingAction()
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const error = saveError ?? deleteError
 
-  async function handleSubmit(formData: FormData) {
-    setPending(true)
-    setError(null)
-    const result = await updatePacienteAction(paciente.id, formData)
-    if (result && !result.ok) {
-      setPending(false)
-      setError(result.error)
-    }
+  function handleSubmit(formData: FormData) {
+    runSave(() => updatePacienteAction(paciente.id, formData))
   }
 
   async function handleDelete() {
-    setDeleting(true)
-    const result = await deletePacienteAction(paciente.id)
-    if (result && !result.ok) {
-      setDeleting(false)
-      setConfirmDelete(false)
-      setError(result.error ?? 'Erro ao excluir')
-    }
+    const ok = await runDelete(() => deletePacienteAction(paciente.id))
+    if (!ok) setConfirmDelete(false)
   }
 
   return (
@@ -166,31 +157,5 @@ export function EditarPacienteForm({ paciente, planos }: { paciente: Paciente; p
       </div>
       </form>
     </>
-  )
-}
-
-function Field({
-  label, name, placeholder, type = 'text', required = false, full = false, defaultValue = '',
-}: {
-  label: string
-  name: string
-  placeholder?: string
-  type?: string
-  required?: boolean
-  full?: boolean
-  defaultValue?: string
-}) {
-  return (
-    <div className={full ? 'col-span-2' : ''}>
-      <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">{label}</label>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        defaultValue={defaultValue}
-        className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
-      />
-    </div>
   )
 }

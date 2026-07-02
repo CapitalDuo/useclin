@@ -1,24 +1,18 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { createPacienteAction } from '../actions'
 import { PageLoader } from '@/components/page-loader'
+import { Field } from '@/components/ui/field'
+import { usePendingAction } from '@/hooks/use-pending-action'
 
 type Plano = { id: string; nome: string; tipo: string }
 
 export function NovoPacienteForm({ planos }: { planos: Plano[] }) {
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { pending, error, run } = usePendingAction()
 
-  async function handleSubmit(formData: FormData) {
-    setPending(true)
-    setError(null)
-    const result = await createPacienteAction(formData)
-    if (result && !result.ok) {
-      setPending(false)
-      setError(result.error)
-    }
+  function handleSubmit(formData: FormData) {
+    run(() => createPacienteAction(formData))
   }
 
   return (
@@ -98,29 +92,5 @@ export function NovoPacienteForm({ planos }: { planos: Plano[] }) {
       </div>
       </form>
     </>
-  )
-}
-
-function Field({
-  label, name, placeholder, type = 'text', required = false, full = false,
-}: {
-  label: string
-  name: string
-  placeholder?: string
-  type?: string
-  required?: boolean
-  full?: boolean
-}) {
-  return (
-    <div className={full ? 'col-span-2' : ''}>
-      <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">{label}</label>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
-      />
-    </div>
   )
 }

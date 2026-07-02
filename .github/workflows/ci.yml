@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      # Todas as rotas são dinâmicas (sem prerender estático) e o cliente
+      # Stripe é lazy — o build não executa chamadas reais, só precisa das
+      # vars presentes pra não quebrar em process.env.X! no module scope.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_placeholder
+      STRIPE_PRICE_BASICO: price_placeholder
+      STRIPE_PRICE_COMPLETO: price_placeholder
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      # lint não entra aqui ainda: há 10 erros pré-existentes no projeto
+      # (setState síncrono em useEffect em pacientes-view.tsx/sidebar.tsx),
+      # não relacionados a esta mudança — precisam ser corrigidos antes de
+      # tornar lint um gate obrigatório do CI.
+      - run: npm test
+      - run: npm run build
