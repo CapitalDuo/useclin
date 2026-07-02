@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfissional } from '@/lib/supabase/server'
 import { AgendaCalendar, type AgendaView } from '@/components/agenda-calendar'
 import { mondayOf, isoDate, todayBrazil } from '@/lib/date'
 
@@ -28,7 +28,9 @@ export default async function AgendaPage({
   }
 
   const supabase = await createClient()
-  const [{ data: eventos }, { data: pacientes }, { data: profissionais }, { data: tipos }] = await Promise.all([
+  const { prof } = await getProfissional(supabase)
+
+  const [{ data: eventos }, { data: pacientes }, { data: profissionais }, { data: tipos }, { data: clinica }] = await Promise.all([
     supabase
       .from('v_agenda')
       .select('id, data, hora_inicio, hora_fim, status, notas, paciente_nome, profissional_nome, tipo_nome, tipo_cor')
@@ -39,6 +41,9 @@ export default async function AgendaPage({
     supabase.from('pacientes').select('id, nome').eq('status', 'ativo').order('nome'),
     supabase.from('profissionais').select('id, nome, especialidade').eq('ativo', true).order('nome'),
     supabase.from('tipos_consulta').select('id, nome, cor, duracao_padrao').order('nome'),
+    prof?.clinica_id
+      ? supabase.from('clinica').select('agenda_intervalo_minutos').eq('id', prof.clinica_id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
 
   return (
@@ -46,6 +51,7 @@ export default async function AgendaPage({
       <AgendaCalendar
         view={view}
         anchorISO={isoDate(anchor)}
+        intervaloMinutos={clinica?.agenda_intervalo_minutos ?? 60}
         eventos={(eventos ?? []).map((e) => ({
           id: e.id ?? '',
           data: e.data ?? '',

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@/components/icons'
-import { moveAgendamentoAction } from '@/app/(dashboard)/agenda/actions'
+import { moveAgendamentoAction, updateAgendaIntervaloAction } from '@/app/(dashboard)/agenda/actions'
 import { AgendamentoModal, type AgendamentoModalMode } from '@/components/agendamento-modal'
 import { todayISO } from '@/lib/date'
 import { STATUS_COLORS, STATUS_LABEL } from '@/lib/agendamento-status'
@@ -38,6 +38,13 @@ const STATUS_LEGEND = [
   { color: '#f5a623', label: 'Em andamento' },
   { color: '#2fb98a', label: 'Finalizado' },
   { color: '#f06a6a', label: 'Cancelado / Faltou' },
+]
+
+const INTERVALO_OPTIONS = [
+  { minutos: 20, label: '20 min' },
+  { minutos: 40, label: '40 min' },
+  { minutos: 60, label: '1h' },
+  { minutos: 90, label: '1h30' },
 ]
 
 function isoToDate(iso: string) {
@@ -120,6 +127,7 @@ export function AgendaCalendar({
   pacientes,
   profissionais,
   tipos,
+  intervaloMinutos,
 }: {
   view: AgendaView
   anchorISO: string
@@ -127,6 +135,7 @@ export function AgendaCalendar({
   pacientes: Paciente[]
   profissionais: Profissional[]
   tipos: Tipo[]
+  intervaloMinutos: number
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -136,15 +145,33 @@ export function AgendaCalendar({
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [dropHint, setDropHint] = useState<{ day: string; top: number } | null>(null)
   const [isMoving, startMoveTransition] = useTransition()
+  const [isChangingIntervalo, startIntervaloTransition] = useTransition()
+
+  const slotHeight = (ROW_HEIGHT * intervaloMinutos) / 60
+  const slots = Array.from(
+    { length: (HOURS.length * 60) / intervaloMinutos },
+    (_, i) => {
+      const totalMin = HOURS[0] * 60 + i * intervaloMinutos
+      return { h: Math.floor(totalMin / 60), m: totalMin % 60 }
+    },
+  )
+
+  function changeIntervalo(minutos: number) {
+    startIntervaloTransition(async () => {
+      await updateAgendaIntervaloAction(minutos)
+      router.refresh()
+    })
+  }
 
   const editId = searchParams.get('edit')
   const newFlag = searchParams.get('new')
   const newData = searchParams.get('data') ?? undefined
+  const newHora = searchParams.get('hora') ?? undefined
 
   const modalMode: AgendamentoModalMode | null = editId
     ? { kind: 'edit', id: editId }
     : newFlag
-      ? { kind: 'new', data: newData }
+      ? { kind: 'new', data: newData, hora: newHora }
       : null
 
   function preserveBaseParams() {
@@ -156,10 +183,11 @@ export function AgendaCalendar({
     return params
   }
 
-  function openNew(date?: string) {
+  function openNew(date?: string, hora?: string) {
     const params = preserveBaseParams()
     params.set('new', '1')
     if (date) params.set('data', date)
+    if (hora) params.set('hora', hora)
     router.push(`/agenda?${params.toString()}`)
   }
 
@@ -298,6 +326,22 @@ export function AgendaCalendar({
         </button>
       </div>
 
+      <div className="flex items-center justify-end pt-6">
+        <label className="flex items-center gap-2 text-[12px] text-muted font-medium">
+          Escala da agenda
+          <select
+            value={intervaloMinutos}
+            onChange={(e) => changeIntervalo(Number(e.target.value))}
+            disabled={isChangingIntervalo}
+            className="px-3 py-1.5 rounded-[10px] border border-border bg-card text-[12px] font-semibold text-text outline-none focus:border-[#5b4bd4] transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {INTERVALO_OPTIONS.map((opt) => (
+              <option key={opt.minutos} value={opt.minutos}>{opt.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       <div className="flex items-center justify-between py-6">
         <div className="flex items-center gap-2">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-[13px] border border-border bg-card flex items-center justify-center cursor-pointer hover:bg-bg transition-colors">
@@ -366,9 +410,15 @@ export function AgendaCalendar({
 
         <div className={`grid ${gridCols} relative`}>
           <div>
-            {HOURS.map((h) => (
-              <div key={h} className="border-b border-border text-[11px] text-muted text-center pt-1" style={{ height: `${ROW_HEIGHT}px` }}>
-                {String(h).padStart(2, '0')}:00
+            {slots.map((s, i) => (
+              <div
+                key={i}
+                className={`border-b border-border text-center pt-1 ${
+                  s.m === 0 ? 'text-[11px] text-muted font-medium' : 'text-[9px] text-muted/60'
+                }`}
+                style={{ height: `${slotHeight}px` }}
+              >
+                {pad(s.h)}:{pad(s.m)}
               </div>
             ))}
           </div>
@@ -387,16 +437,19 @@ export function AgendaCalendar({
                 onDragLeave={onColumnDragLeave}
                 onDrop={(e) => onColumnDrop(e, iso)}
               >
-                {HOURS.map((h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={() => openNew(iso)}
-                    className="w-full border-b border-border block hover:bg-bg/50 transition-colors cursor-pointer"
-                    style={{ height: `${ROW_HEIGHT}px` }}
-                    aria-label={`Criar consulta em ${iso} às ${String(h).padStart(2, '0')}:00`}
-                  />
-                ))}
+                {slots.map((s, i) => {
+                  const timeStr = `${pad(s.h)}:${pad(s.m)}`
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => openNew(iso, timeStr)}
+                      className="w-full border-b border-border block hover:bg-bg/50 transition-colors cursor-pointer"
+                      style={{ height: `${slotHeight}px` }}
+                      aria-label={`Criar consulta em ${iso} às ${timeStr}`}
+                    />
+                  )
+                })}
                 {showHint && dropHint && (
                   <div
                     className="absolute left-0 right-0 pointer-events-none border-t-2 border-text/60 z-10"

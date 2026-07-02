@@ -18,7 +18,7 @@ type Profissional = { id: string; nome: string; especialidade: string | null }
 type Tipo = { id: string; nome: string; cor: string; duracao_padrao: string | null }
 
 export type AgendamentoModalMode =
-  | { kind: 'new'; data?: string }
+  | { kind: 'new'; data?: string; hora?: string }
   | { kind: 'edit'; id: string }
 
 function addMinutes(time: string, minutes: number) {
@@ -75,8 +75,8 @@ export function AgendamentoModal({
       setProfissionalId(profissionais[0]?.id ?? '')
       setTipoId('none')
       setData(mode.data ?? todayISO())
-      setHoraInicio('09:00')
-      setHoraFim('09:30')
+      setHoraInicio(mode.hora ?? '09:00')
+      setHoraFim(mode.hora ? addMinutes(mode.hora, 30) : '09:30')
       setStatus('agendado')
       setValor('')
       setNotas('')

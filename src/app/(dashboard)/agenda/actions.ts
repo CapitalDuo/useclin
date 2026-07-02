@@ -1,13 +1,36 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfissional } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { parseBrlInput } from '@/lib/currency'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
 
 type Sb = SupabaseClient<Database>
+
+const INTERVALOS_AGENDA = [20, 40, 60, 90] as const
+
+export async function updateAgendaIntervaloAction(minutos: number) {
+  if (!INTERVALOS_AGENDA.includes(minutos as (typeof INTERVALOS_AGENDA)[number])) {
+    return { ok: false as const, error: 'Intervalo inválido' }
+  }
+
+  const supabase = await createClient()
+  const { user, prof } = await getProfissional(supabase)
+  if (!user) return { ok: false as const, error: 'Não autenticado' }
+  if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
+
+  const { error } = await supabase
+    .from('clinica')
+    .update({ agenda_intervalo_minutos: minutos })
+    .eq('id', prof.clinica_id)
+
+  if (error) return { ok: false as const, error: error.message }
+
+  revalidatePath('/agenda')
+  return { ok: true as const }
+}
 
 function transacaoStatusFromAgendamento(
   agendamentoStatus: string,

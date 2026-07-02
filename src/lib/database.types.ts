@@ -100,6 +100,7 @@ export type Database = {
       }
       clinica: {
         Row: {
+          agenda_intervalo_minutos: number
           cnpj: string | null
           created_at: string
           descricao: string | null
@@ -123,6 +124,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agenda_intervalo_minutos?: number
           cnpj?: string | null
           created_at?: string
           descricao?: string | null
@@ -146,6 +148,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agenda_intervalo_minutos?: number
           cnpj?: string | null
           created_at?: string
           descricao?: string | null
