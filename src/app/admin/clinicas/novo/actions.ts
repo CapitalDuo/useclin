@@ -3,11 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { iniciais, COR_AVATAR_PADRAO } from '@/lib/avatar'
+import { TIPOS_CLINICA } from '@/lib/features'
 
 export async function createClinicaAction(formData: FormData) {
   const clinicaNome = String(formData.get('clinica_nome') ?? '').trim()
   const adminNome = String(formData.get('admin_nome') ?? '').trim()
   const adminEmail = String(formData.get('admin_email') ?? '').trim().toLowerCase()
+  const tipoRaw = String(formData.get('tipo_clinica') ?? 'geral')
+  const tipoClinica = tipoRaw in TIPOS_CLINICA ? tipoRaw : 'geral'
 
   if (!clinicaNome || !adminNome || !adminEmail) {
     return { ok: false as const, error: 'Todos os campos são obrigatórios' }
@@ -20,6 +23,7 @@ export async function createClinicaAction(formData: FormData) {
     .insert({
       nome: clinicaNome,
       email: adminEmail,
+      tipo_clinica: tipoClinica,
       onboarding_completo: false,
       onboarding_step: 0,
     })

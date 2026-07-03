@@ -106,6 +106,7 @@ export type Database = {
           descricao: string | null
           email: string | null
           endereco: string | null
+          features: Json
           id: string
           logo_url: string | null
           maps_url: string | null
@@ -120,6 +121,7 @@ export type Database = {
           stripe_subscription_id: string | null
           subtitulo: string | null
           telefone: string | null
+          tipo_clinica: string
           trial_ends_at: string | null
           updated_at: string
         }
@@ -130,6 +132,7 @@ export type Database = {
           descricao?: string | null
           email?: string | null
           endereco?: string | null
+          features?: Json
           id?: string
           logo_url?: string | null
           maps_url?: string | null
@@ -144,6 +147,7 @@ export type Database = {
           stripe_subscription_id?: string | null
           subtitulo?: string | null
           telefone?: string | null
+          tipo_clinica?: string
           trial_ends_at?: string | null
           updated_at?: string
         }
@@ -154,6 +158,7 @@ export type Database = {
           descricao?: string | null
           email?: string | null
           endereco?: string | null
+          features?: Json
           id?: string
           logo_url?: string | null
           maps_url?: string | null
@@ -168,6 +173,7 @@ export type Database = {
           stripe_subscription_id?: string | null
           subtitulo?: string | null
           telefone?: string | null
+          tipo_clinica?: string
           trial_ends_at?: string | null
           updated_at?: string
         }
@@ -704,6 +710,111 @@ export type Database = {
         }
         Relationships: []
       }
+      prescricoes: {
+        Row: {
+          agendamento_id: string | null
+          clinica_id: string
+          convenio: string | null
+          created_at: string
+          data_consulta: string
+          diagnostico: string | null
+          id: string
+          medicamentos: Json
+          orientacoes: string | null
+          paciente_id: string
+          pdf_url: string | null
+          plano_tratamento: string | null
+          profissional_id: string
+        }
+        Insert: {
+          agendamento_id?: string | null
+          clinica_id: string
+          convenio?: string | null
+          created_at?: string
+          data_consulta?: string
+          diagnostico?: string | null
+          id?: string
+          medicamentos?: Json
+          orientacoes?: string | null
+          paciente_id: string
+          pdf_url?: string | null
+          plano_tratamento?: string | null
+          profissional_id: string
+        }
+        Update: {
+          agendamento_id?: string | null
+          clinica_id?: string
+          convenio?: string | null
+          created_at?: string
+          data_consulta?: string
+          diagnostico?: string | null
+          id?: string
+          medicamentos?: Json
+          orientacoes?: string | null
+          paciente_id?: string
+          pdf_url?: string | null
+          plano_tratamento?: string | null
+          profissional_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescricoes_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescricoes_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "v_agenda"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescricoes_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescricoes_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "v_clinica_planos"
+            referencedColumns: ["clinica_id"]
+          },
+          {
+            foreignKeyName: "prescricoes_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescricoes_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_atendimento"
+            referencedColumns: ["paciente_id"]
+          },
+          {
+            foreignKeyName: "prescricoes_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_pacientes_tabela"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescricoes_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profissionais: {
         Row: {
           ativo: boolean
@@ -770,83 +881,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_clinica_planos"
             referencedColumns: ["clinica_id"]
-          },
-        ]
-      }
-      prescricoes: {
-        Row: {
-          id: string
-          clinica_id: string
-          paciente_id: string
-          agendamento_id: string | null
-          profissional_id: string
-          diagnostico: string | null
-          medicamentos: Json
-          plano_tratamento: string | null
-          orientacoes: string | null
-          convenio: string | null
-          data_consulta: string
-          pdf_url: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          clinica_id: string
-          paciente_id: string
-          agendamento_id?: string | null
-          profissional_id: string
-          diagnostico?: string | null
-          medicamentos?: Json
-          plano_tratamento?: string | null
-          orientacoes?: string | null
-          convenio?: string | null
-          data_consulta?: string
-          pdf_url?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          clinica_id?: string
-          paciente_id?: string
-          agendamento_id?: string | null
-          profissional_id?: string
-          diagnostico?: string | null
-          medicamentos?: Json
-          plano_tratamento?: string | null
-          orientacoes?: string | null
-          convenio?: string | null
-          data_consulta?: string
-          pdf_url?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "prescricoes_clinica_id_fkey"
-            columns: ["clinica_id"]
-            isOneToOne: false
-            referencedRelation: "clinica"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "prescricoes_paciente_id_fkey"
-            columns: ["paciente_id"]
-            isOneToOne: false
-            referencedRelation: "pacientes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "prescricoes_agendamento_id_fkey"
-            columns: ["agendamento_id"]
-            isOneToOne: false
-            referencedRelation: "agendamentos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "prescricoes_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -1007,7 +1041,7 @@ export type Database = {
           despesa_fixa_id?: string | null
           forma_pagamento?: string | null
           id?: string
-          mes_referencia?: never
+          mes_referencia?: string | null
           paciente_id?: string | null
           status?: string
           tipo: string
@@ -1022,7 +1056,7 @@ export type Database = {
           despesa_fixa_id?: string | null
           forma_pagamento?: string | null
           id?: string
-          mes_referencia?: never
+          mes_referencia?: string | null
           paciente_id?: string | null
           status?: string
           tipo?: string
@@ -1058,6 +1092,13 @@ export type Database = {
             referencedColumns: ["clinica_id"]
           },
           {
+            foreignKeyName: "transacoes_despesa_fixa_id_fkey"
+            columns: ["despesa_fixa_id"]
+            isOneToOne: false
+            referencedRelation: "despesas_fixas"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transacoes_paciente_id_fkey"
             columns: ["paciente_id"]
             isOneToOne: false
@@ -1076,13 +1117,6 @@ export type Database = {
             columns: ["paciente_id"]
             isOneToOne: false
             referencedRelation: "v_pacientes_tabela"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transacoes_despesa_fixa_id_fkey"
-            columns: ["despesa_fixa_id"]
-            isOneToOne: false
-            referencedRelation: "despesas_fixas"
             referencedColumns: ["id"]
           },
         ]
@@ -1254,6 +1288,34 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "agendamentos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_atendimento"
+            referencedColumns: ["paciente_id"]
+          },
+          {
+            foreignKeyName: "agendamentos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_pacientes_tabela"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pacientes_clinica_id_fkey"
             columns: ["clinica_id"]
             isOneToOne: false
@@ -1379,20 +1441,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pacientes_clinica_id_fkey"
-            columns: ["clinica_id"]
-            isOneToOne: false
-            referencedRelation: "clinica"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pacientes_clinica_id_fkey"
-            columns: ["clinica_id"]
-            isOneToOne: false
-            referencedRelation: "v_clinica_planos"
-            referencedColumns: ["clinica_id"]
-          },
-          {
             foreignKeyName: "transacoes_agendamento_id_fkey"
             columns: ["agendamento_id"]
             isOneToOne: false
@@ -1405,6 +1453,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_agenda"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transacoes_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transacoes_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "v_clinica_planos"
+            referencedColumns: ["clinica_id"]
           },
           {
             foreignKeyName: "transacoes_paciente_id_fkey"
@@ -1426,6 +1488,57 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_pacientes_tabela"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_horarios_clinica: {
+        Row: {
+          aberto: boolean | null
+          clinica_id: string | null
+          dia_nome: string | null
+          dia_semana: number | null
+          hora_fim: string | null
+          hora_inicio: string | null
+          id: string | null
+          intervalo_fim: string | null
+          intervalo_inicio: string | null
+        }
+        Insert: {
+          aberto?: boolean | null
+          clinica_id?: string | null
+          dia_nome?: never
+          dia_semana?: number | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string | null
+          intervalo_fim?: string | null
+          intervalo_inicio?: string | null
+        }
+        Update: {
+          aberto?: boolean | null
+          clinica_id?: string | null
+          dia_nome?: never
+          dia_semana?: number | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string | null
+          intervalo_fim?: string | null
+          intervalo_inicio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horarios_funcionamento_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horarios_funcionamento_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "v_clinica_planos"
+            referencedColumns: ["clinica_id"]
           },
         ]
       }
@@ -1554,7 +1667,23 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_slots_disponiveis: {
+        Args: {
+          p_clinica_id: string
+          p_data: string
+          p_duracao_minutos?: number
+          p_intervalo_grade?: number
+          p_profissional_id?: string
+        }
+        Returns: {
+          data: string
+          especialidade: string
+          hora_fim: string
+          hora_inicio: string
+          profissional_id: string
+          profissional_nome: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

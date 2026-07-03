@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient, getCurrentUser } from '@/lib/supabase/server'
+import { createClient, getCurrentUser, getClinicaAtual, requireFeature } from '@/lib/supabase/server'
 import { PacientesView } from '@/components/pacientes-view'
 import { AtendimentoLocked } from '@/components/atendimento-locked'
 import { planoEfetivo } from '@/lib/plano'
@@ -7,41 +7,23 @@ import { planoEfetivo } from '@/lib/plano'
 export default async function AtendimentoPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
-  const supabase = await createClient()
 
-  const { data: prof } = await supabase
-    .from('profissionais')
-    .select('clinica_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  // Dois eixos independentes: feature (tipo de clínica) → 404; plano (billing) → upsell.
+  await requireFeature('atendimento')
+  const clinica = await getClinicaAtual() // cache: mesma query do requireFeature
 
-  let whatsapp = null
-  let plano_slug = 'gratuito'
-  let trial_ends_at: string | null = null
-
-  if (prof?.clinica_id) {
-    const [whatsappResult, clinicaResult] = await Promise.all([
-      supabase
-        .from('whatsapp_instancias')
-        .select('id, nome_instancia, numero, status, qrcode_base64, api_key')
-        .eq('clinica_id', prof.clinica_id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from('clinica')
-        .select('plano_slug, trial_ends_at')
-        .eq('id', prof.clinica_id)
-        .maybeSingle(),
-    ])
-    whatsapp = whatsappResult.data
-    plano_slug = clinicaResult.data?.plano_slug ?? 'gratuito'
-    trial_ends_at = clinicaResult.data?.trial_ends_at ?? null
-  }
-
-  if (planoEfetivo(plano_slug, trial_ends_at) !== 'completo') {
+  if (!clinica || planoEfetivo(clinica.plano_slug, clinica.trial_ends_at ?? null) !== 'completo') {
     return <AtendimentoLocked />
   }
+
+  const supabase = await createClient()
+  const { data: whatsapp } = await supabase
+    .from('whatsapp_instancias')
+    .select('id, nome_instancia, numero, status, qrcode_base64, api_key')
+    .eq('clinica_id', clinica.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
   return (
     <>

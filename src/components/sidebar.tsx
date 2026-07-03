@@ -14,16 +14,22 @@ import {
   WalletIcon,
 } from '@/components/icons'
 import { logoutAction } from '@/app/login/actions'
+import type { FeatureKey } from '@/lib/features'
 
 const NAV_BG = '#1e1b4b'
 const CONTENT_BG = '#f4f3f1' // cor de fundo do conteúdo — aba ativa e notch usam ela
 
-const navItems = [
+const navItems: {
+  href: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  feature?: FeatureKey // sem feature = sempre visível (Dashboard, Configurações)
+}[] = [
   { href: '/', label: 'Dashboard', icon: HomeIcon },
-  { href: '/financeiro', label: 'Financeiro', icon: WalletIcon },
-  { href: '/agenda', label: 'Agenda', icon: CalendarIcon },
-  { href: '/pacientes', label: 'Pacientes', icon: UsersIcon },
-  { href: '/atendimento', label: 'Atendimento', icon: HeadsetIcon },
+  { href: '/financeiro', label: 'Financeiro', icon: WalletIcon, feature: 'financeiro' },
+  { href: '/agenda', label: 'Agenda', icon: CalendarIcon, feature: 'agenda' },
+  { href: '/pacientes', label: 'Pacientes', icon: UsersIcon, feature: 'pacientes' },
+  { href: '/atendimento', label: 'Atendimento', icon: HeadsetIcon, feature: 'atendimento' },
   { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
 
@@ -51,14 +57,20 @@ export function Sidebar({
   userRole,
   userInitials,
   clinicLogoUrl,
+  enabledFeatures,
 }: {
   userName: string
   userRole: string
   userInitials: string
   clinicLogoUrl?: string | null
+  enabledFeatures?: Record<FeatureKey, boolean>
 }) {
   const pathname = usePathname()
   const suporteActive = pathname.startsWith('/configuracoes/suporte')
+  // Sem enabledFeatures (ex: clínica ainda não carregada) mostra tudo.
+  const items = enabledFeatures
+    ? navItems.filter((i) => !i.feature || enabledFeatures[i.feature])
+    : navItems
 
   return (
     <aside
@@ -78,7 +90,7 @@ export function Sidebar({
 
       {/* Navegação principal */}
       <nav className="flex flex-col gap-[3px]">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href) && !suporteActive
           return (
             <Link

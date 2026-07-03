@@ -1,7 +1,9 @@
 import { cache } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { notFound } from 'next/navigation'
 import type { Database } from '../database.types'
+import { hasFeature, type FeatureKey } from '../features'
 
 export async function createClient() {
   const cookieStore = await cookies()
@@ -61,4 +63,39 @@ export async function getProfissional(supabase: Awaited<ReturnType<typeof create
     .maybeSingle()
 
   return { user, prof }
+}
+
+/**
+ * Clínica do usuário logado, deduplicada por request com React `cache()` —
+ * layout do dashboard e guards de módulo (requireFeature) compartilham UMA
+ * query. Retorna null se não houver usuário ou clínica vinculada.
+ */
+export const getClinicaAtual = cache(async () => {
+  const user = await getCurrentUser()
+  if (!user) return null
+
+  const supabase = await createClient()
+  const { data: prof } = await supabase
+    .from('profissionais')
+    .select('clinica_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!prof?.clinica_id) return null
+
+  const { data: clinica } = await supabase
+    .from('clinica')
+    .select('*')
+    .eq('id', prof.clinica_id)
+    .maybeSingle()
+  return clinica
+})
+
+/**
+ * Guard de rota por feature: 404 se o módulo estiver desligado pro tipo (ou
+ * override) da clínica. Usar no topo do layout/page do módulo — esconder o
+ * item do menu não basta, a URL direta precisa bloquear também.
+ */
+export async function requireFeature(feat: FeatureKey) {
+  const clinica = await getClinicaAtual()
+  if (clinica && !hasFeature(clinica, feat)) notFound()
 }

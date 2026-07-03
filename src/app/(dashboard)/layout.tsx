@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
-import { createClient, getCurrentUser } from '@/lib/supabase/server'
+import { createClient, getCurrentUser, getClinicaAtual } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/sidebar'
 import { PlanoGate } from '@/components/plano-gate'
 import { isTrialAtivo, planoEfetivo, trialDiasRestantes } from '@/lib/plano'
+import { hasFeature, type FeatureKey } from '@/lib/features'
 
 export default async function DashboardLayout({
   children,
@@ -29,20 +30,18 @@ export default async function DashboardLayout({
   let clinicLogoUrl: string | null = null
   let trialBanner: { dias: number; expirou: boolean } | null = null
   let bloqueado = false
+  let enabledFeatures: Record<FeatureKey, boolean> | undefined
 
-  if (prof?.clinica_id) {
-    const { data: clinica } = await supabase
-      .from('clinica')
-      .select('nome, onboarding_completo, logo_url, plano_slug, trial_ends_at')
-      .eq('id', prof.clinica_id)
-      .maybeSingle()
+  // Deduplicada com os guards de módulo (requireFeature) via React cache().
+  const clinica = prof?.clinica_id ? await getClinicaAtual() : null
 
-    if (clinica && !clinica.onboarding_completo) {
+  if (clinica) {
+    if (!clinica.onboarding_completo) {
       redirect('/onboarding')
     }
-    clinicLogoUrl = clinica?.logo_url ?? null
+    clinicLogoUrl = clinica.logo_url ?? null
 
-    if (clinica?.plano_slug === 'gratuito') {
+    if (clinica.plano_slug === 'gratuito') {
       const ativo = isTrialAtivo(clinica.trial_ends_at ?? null)
       const dias = trialDiasRestantes(clinica.trial_ends_at ?? null)
       trialBanner = { dias, expirou: !ativo }
@@ -50,8 +49,13 @@ export default async function DashboardLayout({
 
     // Bloqueio total: gratuito com teste expirado (planoEfetivo retorna 'gratuito').
     // Planos pagos / trial ativo nunca caem aqui.
-    if (clinica) {
-      bloqueado = planoEfetivo(clinica.plano_slug, clinica.trial_ends_at ?? null) === 'gratuito'
+    bloqueado = planoEfetivo(clinica.plano_slug, clinica.trial_ends_at ?? null) === 'gratuito'
+
+    enabledFeatures = {
+      financeiro: hasFeature(clinica, 'financeiro'),
+      agenda: hasFeature(clinica, 'agenda'),
+      pacientes: hasFeature(clinica, 'pacientes'),
+      atendimento: hasFeature(clinica, 'atendimento'),
     }
   }
 
@@ -62,6 +66,7 @@ export default async function DashboardLayout({
         userRole={prof?.role === 'admin' ? 'Administrador' : 'Profissional'}
         userInitials={prof?.iniciais ?? user.email?.slice(0, 2).toUpperCase() ?? '??'}
         clinicLogoUrl={clinicLogoUrl}
+        enabledFeatures={enabledFeatures}
       />
       {/* Painel de conteúdo: fundo do projeto com cantos esquerdos arredondados,
           revelando o navy do container → curvas no topo e na base, conectando

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { TIPOS_CLINICA } from '@/lib/features'
 import { createClinicaAction } from './actions'
 
 export function NovaClinicaForm() {
@@ -71,6 +72,22 @@ export function NovaClinicaForm() {
           placeholder="Ex: Clínica Bella Vita"
           className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
         />
+      </div>
+
+      <div>
+        <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Tipo de clínica</label>
+        <select
+          name="tipo_clinica"
+          defaultValue="geral"
+          className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg"
+        >
+          {Object.entries(TIPOS_CLINICA).map(([slug, label]) => (
+            <option key={slug} value={slug}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <p className="text-[11px] text-muted mt-1.5">Define quais módulos a clínica usa por padrão.</p>
       </div>
 
       <div className="border-t border-border pt-5">
