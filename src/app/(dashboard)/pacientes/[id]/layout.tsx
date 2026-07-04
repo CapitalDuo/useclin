@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getClinicaAtual } from '@/lib/supabase/server'
+import { hasFeature } from '@/lib/features'
 import { Avatar } from '@/components/avatar'
 import { PacienteTabs } from '@/components/paciente-tabs'
 
@@ -14,13 +15,14 @@ export default async function PacienteLayout({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: paciente } = await supabase
-    .from('pacientes')
-    .select('id, nome, iniciais, cor, status')
-    .eq('id', id)
-    .maybeSingle()
+  const [{ data: paciente }, clinica] = await Promise.all([
+    supabase.from('pacientes').select('id, nome, iniciais, cor, status').eq('id', id).maybeSingle(),
+    getClinicaAtual(),
+  ])
 
   if (!paciente) notFound()
+
+  const crescimento = !!clinica && hasFeature(clinica, 'pediatria_completa')
 
   return (
     <div className="px-10 pt-7 pb-10">
@@ -42,7 +44,7 @@ export default async function PacienteLayout({
         </div>
       </div>
 
-      <PacienteTabs id={id} />
+      <PacienteTabs id={id} crescimento={crescimento} />
 
       {children}
     </div>
