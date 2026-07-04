@@ -12,6 +12,7 @@ import {
   LeafIcon,
   LogOutIcon,
   WalletIcon,
+  SmileIcon,
 } from '@/components/icons'
 import { logoutAction } from '@/app/login/actions'
 import type { FeatureKey } from '@/lib/features'
@@ -30,6 +31,7 @@ const navItems: {
   { href: '/agenda', label: 'Agenda', icon: CalendarIcon, feature: 'agenda' },
   { href: '/pacientes', label: 'Pacientes', icon: UsersIcon, feature: 'pacientes' },
   { href: '/atendimento', label: 'Atendimento', icon: HeadsetIcon, feature: 'atendimento' },
+  { href: '/pediatria', label: 'Pediatria Completa', icon: SmileIcon, feature: 'pediatria_completa' },
   { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
 

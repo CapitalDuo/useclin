@@ -14,7 +14,7 @@ describe('hasFeature — gating de módulo por tipo de clínica', () => {
 
   it('override pode LIGAR o que o tipo tem desligado', () => {
     expect(
-      hasFeature({ tipo_clinica: 'estetica', features: { atendimento: true } }, 'atendimento'),
+      hasFeature({ tipo_clinica: 'geral', features: { pediatria_completa: true } }, 'pediatria_completa'),
     ).toBe(true)
   })
 
@@ -25,5 +25,10 @@ describe('hasFeature — gating de módulo por tipo de clínica', () => {
   it('features null/undefined (linha antiga) não quebra', () => {
     expect(hasFeature({ tipo_clinica: 'geral', features: null }, 'agenda')).toBe(true)
     expect(hasFeature({ tipo_clinica: 'geral', features: undefined }, 'pacientes')).toBe(true)
+  })
+
+  it('pediatria_completa: ligada só por padrão pro tipo pediatrica', () => {
+    expect(hasFeature({ tipo_clinica: 'geral', features: {} }, 'pediatria_completa')).toBe(false)
+    expect(hasFeature({ tipo_clinica: 'pediatrica', features: {} }, 'pediatria_completa')).toBe(true)
   })
 })

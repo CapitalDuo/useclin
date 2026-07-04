@@ -5,29 +5,26 @@
 // valer pra todas as clínicas sem migration/backfill. A coluna clinica.features
 // (jsonb) guarda só overrides individuais, ex: '{"atendimento": false}'.
 
-export type FeatureKey = 'financeiro' | 'agenda' | 'pacientes' | 'atendimento'
+export type FeatureKey = 'financeiro' | 'agenda' | 'pacientes' | 'atendimento' | 'pediatria_completa'
 
 // slug → label (label usado no select do admin)
 export const TIPOS_CLINICA = {
   geral: 'Geral',
   pediatrica: 'Pediátrica',
-  estetica: 'Estética',
 } as const
 export type TipoClinica = keyof typeof TIPOS_CLINICA
 
-const TUDO_LIGADO: Record<FeatureKey, boolean> = {
+const BASE: Record<FeatureKey, boolean> = {
   financeiro: true,
   agenda: true,
   pacientes: true,
   atendimento: true,
+  pediatria_completa: false,
 }
 
-// ponytail: todos os tipos começam com tudo ligado — zero mudança de
-// comportamento no deploy. Ajustar por tipo quando a matriz real for definida.
 const FEATURE_DEFAULTS: Record<TipoClinica, Record<FeatureKey, boolean>> = {
-  geral: TUDO_LIGADO,
-  pediatrica: TUDO_LIGADO,
-  estetica: TUDO_LIGADO,
+  geral: BASE,
+  pediatrica: { ...BASE, pediatria_completa: true },
 }
 
 /**

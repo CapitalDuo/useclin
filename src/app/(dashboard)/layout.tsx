@@ -56,6 +56,7 @@ export default async function DashboardLayout({
       agenda: hasFeature(clinica, 'agenda'),
       pacientes: hasFeature(clinica, 'pacientes'),
       atendimento: hasFeature(clinica, 'atendimento'),
+      pediatria_completa: hasFeature(clinica, 'pediatria_completa'),
     }
   }
 
