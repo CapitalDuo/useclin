@@ -2,10 +2,25 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient, getProfissional } from '@/lib/supabase/server'
+import { createClient, getProfissional, getClinicaAtual } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { iniciais, randomColor } from '@/lib/avatar'
 import { parseBrlInput } from '@/lib/currency'
+import { hasFeature } from '@/lib/features'
+
+// Sexo é obrigatório só pra clínicas com pediatria_completa (curvas de
+// crescimento dependem dele). Validado aqui além do `required` do form.
+async function validarSexo(formData: FormData) {
+  const raw = String(formData.get('sexo') ?? '').trim()
+  const sexo = raw === 'M' || raw === 'F' ? raw : null
+  if (!sexo) {
+    const clinica = await getClinicaAtual()
+    if (clinica && hasFeature(clinica, 'pediatria_completa')) {
+      return { sexo, error: 'Sexo é obrigatório para clínicas pediátricas' }
+    }
+  }
+  return { sexo, error: null }
+}
 
 export async function createPacienteAction(formData: FormData) {
   const nome = String(formData.get('nome') ?? '').trim()
@@ -32,12 +47,16 @@ export async function createPacienteAction(formData: FormData) {
 
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
+  const { sexo, error: sexoError } = await validarSexo(formData)
+  if (sexoError) return { ok: false as const, error: sexoError }
+
   const valor = parseBrlInput(valor_plano_raw)?.valor ?? null
 
   const { error } = await supabase.from('pacientes').insert({
     clinica_id: prof.clinica_id,
     nome,
     cpf: cpf || null,
+    sexo,
     data_nascimento: data_nascimento || null,
     telefone: telefone || null,
     whatsapp: whatsapp || null,
@@ -72,6 +91,9 @@ export async function updatePacienteAction(id: string, formData: FormData) {
 
   if (!nome) return { ok: false as const, error: 'Nome é obrigatório' }
 
+  const { sexo, error: sexoError } = await validarSexo(formData)
+  if (sexoError) return { ok: false as const, error: sexoError }
+
   const supabase = await createClient()
   const valor = parseBrlInput(valor_plano_raw)?.valor ?? null
 
@@ -80,6 +102,7 @@ export async function updatePacienteAction(id: string, formData: FormData) {
     .update({
       nome,
       cpf: cpf || null,
+      sexo,
       data_nascimento: data_nascimento || null,
       telefone: telefone || null,
       whatsapp: whatsapp || null,

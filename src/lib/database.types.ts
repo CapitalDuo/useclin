@@ -434,6 +434,85 @@ export type Database = {
           },
         ]
       }
+      medicoes_pediatricas: {
+        Row: {
+          altura_cm: number | null
+          clinica_id: string
+          created_at: string
+          data: string
+          id: string
+          paciente_id: string
+          perimetro_cefalico_cm: number | null
+          peso_kg: number | null
+          registrado_por: string | null
+        }
+        Insert: {
+          altura_cm?: number | null
+          clinica_id: string
+          created_at?: string
+          data: string
+          id?: string
+          paciente_id: string
+          perimetro_cefalico_cm?: number | null
+          peso_kg?: number | null
+          registrado_por?: string | null
+        }
+        Update: {
+          altura_cm?: number | null
+          clinica_id?: string
+          created_at?: string
+          data?: string
+          id?: string
+          paciente_id?: string
+          perimetro_cefalico_cm?: number | null
+          peso_kg?: number | null
+          registrado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicoes_pediatricas_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_pediatricas_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "v_clinica_planos"
+            referencedColumns: ["clinica_id"]
+          },
+          {
+            foreignKeyName: "medicoes_pediatricas_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_pediatricas_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_atendimento"
+            referencedColumns: ["paciente_id"]
+          },
+          {
+            foreignKeyName: "medicoes_pediatricas_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_pacientes_tabela"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_pediatricas_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mensagens: {
         Row: {
           conteudo: string
@@ -596,6 +675,7 @@ export type Database = {
           observacoes: string | null
           plano_id: string | null
           protegido: boolean
+          sexo: string | null
           status: string
           telefone: string | null
           updated_at: string
@@ -620,6 +700,7 @@ export type Database = {
           observacoes?: string | null
           plano_id?: string | null
           protegido?: boolean
+          sexo?: string | null
           status?: string
           telefone?: string | null
           updated_at?: string
@@ -644,6 +725,7 @@ export type Database = {
           observacoes?: string | null
           plano_id?: string | null
           protegido?: boolean
+          sexo?: string | null
           status?: string
           telefone?: string | null
           updated_at?: string

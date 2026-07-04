@@ -8,7 +8,7 @@ import { usePendingAction } from '@/hooks/use-pending-action'
 
 type Plano = { id: string; nome: string; tipo: string }
 
-export function NovoPacienteForm({ planos }: { planos: Plano[] }) {
+export function NovoPacienteForm({ planos, sexoObrigatorio }: { planos: Plano[]; sexoObrigatorio: boolean }) {
   const { pending, error, run } = usePendingAction()
 
   function handleSubmit(formData: FormData) {
@@ -25,6 +25,19 @@ export function NovoPacienteForm({ planos }: { planos: Plano[] }) {
           <Field label="Nome completo" name="nome" placeholder="Maria Silva" required full />
           <Field label="CPF" name="cpf" placeholder="000.000.000-00" />
           <Field label="Data de nascimento" name="data_nascimento" type="date" />
+          <div>
+            <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Sexo</label>
+            <select
+              name="sexo"
+              required={sexoObrigatorio}
+              defaultValue=""
+              className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
+            >
+              <option value="">{sexoObrigatorio ? 'Selecione…' : 'Não informado'}</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </div>
         </div>
       </div>
 

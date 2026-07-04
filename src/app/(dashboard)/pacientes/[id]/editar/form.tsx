@@ -12,6 +12,7 @@ type Paciente = {
   id: string
   nome: string
   cpf: string | null
+  sexo: string | null
   data_nascimento: string | null
   telefone: string | null
   whatsapp: string | null
@@ -23,7 +24,15 @@ type Paciente = {
   status: string
 }
 
-export function EditarPacienteForm({ paciente, planos }: { paciente: Paciente; planos: Plano[] }) {
+export function EditarPacienteForm({
+  paciente,
+  planos,
+  sexoObrigatorio,
+}: {
+  paciente: Paciente
+  planos: Plano[]
+  sexoObrigatorio: boolean
+}) {
   const { pending, error: saveError, run: runSave } = usePendingAction()
   const { pending: deleting, error: deleteError, run: runDelete } = usePendingAction()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -50,6 +59,19 @@ export function EditarPacienteForm({ paciente, planos }: { paciente: Paciente; p
           <Field label="Nome completo" name="nome" required full defaultValue={paciente.nome} />
           <Field label="CPF" name="cpf" defaultValue={paciente.cpf ?? ''} />
           <Field label="Data de nascimento" name="data_nascimento" type="date" defaultValue={paciente.data_nascimento ?? ''} />
+          <div>
+            <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Sexo</label>
+            <select
+              name="sexo"
+              required={sexoObrigatorio}
+              defaultValue={paciente.sexo ?? ''}
+              className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
+            >
+              <option value="">{sexoObrigatorio ? 'Selecione…' : 'Não informado'}</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </div>
         </div>
       </div>
 

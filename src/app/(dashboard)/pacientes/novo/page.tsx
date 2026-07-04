@@ -1,13 +1,15 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getClinicaAtual } from '@/lib/supabase/server'
+import { hasFeature } from '@/lib/features'
 import { NovoPacienteForm } from './form'
 
 export default async function NovoPacientePage() {
   const supabase = await createClient()
-  const { data: planos } = await supabase
-    .from('planos')
-    .select('id, nome, tipo')
-    .order('nome', { ascending: true })
+  const [{ data: planos }, clinica] = await Promise.all([
+    supabase.from('planos').select('id, nome, tipo').order('nome', { ascending: true }),
+    getClinicaAtual(),
+  ])
+  const sexoObrigatorio = !!clinica && hasFeature(clinica, 'pediatria_completa')
 
   return (
     <div className="px-10 pt-7 pb-10 max-w-[780px]">
@@ -21,7 +23,7 @@ export default async function NovoPacientePage() {
         <p className="text-sm text-muted mt-0.5">Preencha os dados — só o nome é obrigatório</p>
       </div>
 
-      <NovoPacienteForm planos={planos ?? []} />
+      <NovoPacienteForm planos={planos ?? []} sexoObrigatorio={sexoObrigatorio} />
     </div>
   )
 }
