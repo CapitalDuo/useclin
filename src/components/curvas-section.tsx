@@ -34,15 +34,14 @@ export function CurvasSection({
 
     return {
       label: md.label,
-      conteudo: (
-        <div>
-          {/* Curvas de referência aparecem sempre — só a trajetória do paciente depende de haver medições */}
+      conteudo:
+        pontos.length === 0 ? (
+          <div className="rounded-[12px] border border-dashed border-border py-10 text-center text-sm text-muted">
+            Sem medições de {md.label.toLowerCase()} ainda.
+          </div>
+        ) : (
           <GrowthChart medida={md.key} sexo={sexo} pontos={pontos} unidade={md.unidade} />
-          {pontos.length === 0 && (
-            <p className="text-center text-sm text-muted mt-3">Sem medições de {md.label.toLowerCase()} ainda.</p>
-          )}
-        </div>
-      ),
+        ),
     }
   })
 

@@ -110,10 +110,12 @@ export default async function CrescimentoPage({ params }: { params: Promise<{ id
         )}
       </div>
 
-      <div className="bg-card border border-border rounded-[14px] p-6">
-        <h2 className="font-playfair text-lg font-bold tracking-tight mb-4">Curvas de crescimento</h2>
-        <CurvasSection medicoes={rows} sexo={sexo} nascimento={nascimento} />
-      </div>
+      {rows.length > 0 && (
+        <div className="bg-card border border-border rounded-[14px] p-6">
+          <h2 className="font-playfair text-lg font-bold tracking-tight mb-4">Curvas de crescimento</h2>
+          <CurvasSection medicoes={rows} sexo={sexo} nascimento={nascimento} />
+        </div>
+      )}
     </div>
   )
 }

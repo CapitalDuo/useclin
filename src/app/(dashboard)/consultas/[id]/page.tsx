@@ -109,14 +109,16 @@ export default async function AtendimentoConsultaPage({ params }: { params: Prom
         {dadosCompletos ? (
           <>
             <NovaMedicaoForm pacienteId={consulta.paciente_id} hoje={consulta.data} />
-            <div className="bg-card border border-border rounded-[14px] p-6">
-              <h2 className="font-playfair text-lg font-bold tracking-tight mb-4">Curvas de crescimento</h2>
-              <CurvasSection
-                medicoes={medicoes ?? []}
-                sexo={paciente!.sexo as Sexo}
-                nascimento={paciente!.data_nascimento!}
-              />
-            </div>
+            {(medicoes ?? []).length > 0 && (
+              <div className="bg-card border border-border rounded-[14px] p-6">
+                <h2 className="font-playfair text-lg font-bold tracking-tight mb-4">Curvas de crescimento</h2>
+                <CurvasSection
+                  medicoes={medicoes ?? []}
+                  sexo={paciente!.sexo as Sexo}
+                  nascimento={paciente!.data_nascimento!}
+                />
+              </div>
+            )}
           </>
         ) : (
           <div className="bg-card border border-border rounded-[14px] p-6 text-center text-sm text-muted">
