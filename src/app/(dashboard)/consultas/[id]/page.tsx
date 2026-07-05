@@ -3,10 +3,11 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { STATUS_COLORS, STATUS_LABEL } from '@/lib/agendamento-status'
 import type { Sexo } from '@/lib/growth'
+import { signPrescricaoUrls, toStoragePath } from '@/lib/prescricoes'
 import { Avatar } from '@/components/avatar'
 import { CurvasSection } from '@/components/curvas-section'
 import { NovaMedicaoForm } from '@/app/(dashboard)/pacientes/[id]/crescimento/form'
-import { RegistroForm, MudarStatusButton, ExcluirPrescricaoButton } from './form'
+import { RegistroForm, MudarStatusButton, ExcluirPrescricaoButton, NovaPrescricaoButton } from './form'
 
 type Med = { nome: string }
 
@@ -20,11 +21,6 @@ function formatDate(d: string) {
 }
 
 const hhmm = (t: string) => t.slice(0, 5)
-
-// pdf_url guarda o path do objeto; linhas antigas podem ter URL pública completa.
-function toStoragePath(u: string) {
-  return u.replace(/^.*\/storage\/v1\/object\/(?:public|sign)\/prescricoes\//, '').replace(/\?.*$/, '')
-}
 
 export default async function AtendimentoConsultaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -57,15 +53,7 @@ export default async function AtendimentoConsultaPage({ params }: { params: Prom
       .order('created_at', { ascending: false }),
   ])
 
-  // URLs assinadas dos PDFs (bucket privado)
-  const pdfPaths = (prescricoes ?? [])
-    .map((p) => p.pdf_url)
-    .filter((u): u is string => !!u)
-    .map(toStoragePath)
-  const { data: signed } = pdfPaths.length
-    ? await supabase.storage.from('prescricoes').createSignedUrls(pdfPaths, 120)
-    : { data: null }
-  const signedByPath = new Map((signed ?? []).filter((s) => s.signedUrl).map((s) => [s.path, s.signedUrl as string]))
+  const signedByPath = await signPrescricaoUrls(supabase, (prescricoes ?? []).map((p) => p.pdf_url))
 
   const status = consulta.status ?? 'agendado'
   const cor = STATUS_COLORS[status] ?? '#6d5ae6'
@@ -144,12 +132,11 @@ export default async function AtendimentoConsultaPage({ params }: { params: Prom
         <div className="bg-card border border-border rounded-[14px] p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-playfair text-lg font-bold tracking-tight">Prescrições desta consulta</h2>
-            <Link
-              href={`/pacientes/${consulta.paciente_id}/prescricoes/nova?de=${id}&voltar=/consultas/${id}`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-text text-white rounded-[11px] text-[13px] font-semibold hover:bg-[#333] transition-all"
-            >
-              + Nova prescrição
-            </Link>
+            <NovaPrescricaoButton
+              pacienteId={consulta.paciente_id}
+              agendamentoId={id}
+              dataConsultaDefault={consulta.data}
+            />
           </div>
 
           {(prescricoes ?? []).length === 0 ? (

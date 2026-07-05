@@ -1,6 +1,19 @@
 import Link from 'next/link'
 import { createClient, requireFeature } from '@/lib/supabase/server'
 import { STATUS_COLORS, STATUS_LABEL } from '@/lib/agendamento-status'
+import { idadeEmMeses, type Sexo } from '@/lib/growth'
+import { signPrescricaoUrls, toStoragePath } from '@/lib/prescricoes'
+import { MedidaValor } from '@/components/medida-valor'
+
+type Med = { nome: string }
+type MedicaoDia = { peso_kg: number | null; altura_cm: number | null; perimetro_cefalico_cm: number | null }
+type Prescricao = {
+  id: string
+  agendamento_id: string | null
+  diagnostico: string | null
+  medicamentos: unknown
+  pdf_url: string | null
+}
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', {
@@ -35,7 +48,8 @@ export default async function FichasPage({ params }: { params: Promise<{ id: str
   const rows = registros ?? []
   const agIds = rows.map((r) => r.agendamento_id)
 
-  const [{ data: consultas }, { data: prescricoes }] = await Promise.all([
+  const [{ data: paciente }, { data: consultas }, { data: prescricoes }, { data: medicoes }] = await Promise.all([
+    supabase.from('pacientes').select('sexo, data_nascimento').eq('id', id).maybeSingle(),
     agIds.length
       ? supabase
           .from('v_agenda')
@@ -43,17 +57,37 @@ export default async function FichasPage({ params }: { params: Promise<{ id: str
           .in('id', agIds)
       : Promise.resolve({ data: [] as never[] }),
     agIds.length
-      ? supabase.from('prescricoes').select('id, agendamento_id').in('agendamento_id', agIds)
-      : Promise.resolve({ data: [] as never[] }),
+      ? supabase
+          .from('prescricoes')
+          .select('id, agendamento_id, diagnostico, medicamentos, pdf_url')
+          .in('agendamento_id', agIds)
+      : Promise.resolve({ data: [] as Prescricao[] }),
+    supabase
+      .from('medicoes_pediatricas')
+      .select('data, peso_kg, altura_cm, perimetro_cefalico_cm')
+      .eq('paciente_id', id),
   ])
 
+  const sexo = paciente?.sexo as Sexo | null
+  const nascimento = paciente?.data_nascimento ?? null
+
   const consultaById = new Map((consultas ?? []).map((c) => [c.id, c]))
-  const prescricoesPorAg = new Map<string, number>()
-  for (const p of prescricoes ?? []) {
-    if (p.agendamento_id) {
-      prescricoesPorAg.set(p.agendamento_id, (prescricoesPorAg.get(p.agendamento_id) ?? 0) + 1)
-    }
+
+  const prescricoesPorAg = new Map<string, Prescricao[]>()
+  for (const p of (prescricoes ?? []) as Prescricao[]) {
+    if (!p.agendamento_id) continue
+    const lista = prescricoesPorAg.get(p.agendamento_id) ?? []
+    lista.push(p)
+    prescricoesPorAg.set(p.agendamento_id, lista)
   }
+  const signedByPath = await signPrescricaoUrls(
+    supabase,
+    ((prescricoes ?? []) as Prescricao[]).map((p) => p.pdf_url),
+  )
+
+  // Medições não têm agendamento_id — correlaciona pela data da consulta
+  // (mesma convenção usada ao registrar uma medição durante o atendimento).
+  const medicaoPorData = new Map<string, MedicaoDia>((medicoes ?? []).map((m) => [m.data, m]))
 
   // Mais recentes primeiro, pela data/hora da consulta
   const fichas = rows
@@ -80,7 +114,9 @@ export default async function FichasPage({ params }: { params: Promise<{ id: str
           {fichas.map(({ registro, consulta }) => {
             const status = consulta?.status ?? 'agendado'
             const cor = STATUS_COLORS[status] ?? '#6d5ae6'
-            const nPrescricoes = prescricoesPorAg.get(registro.agendamento_id) ?? 0
+            const prescricoesDaFicha = prescricoesPorAg.get(registro.agendamento_id) ?? []
+            const medicao = consulta?.data ? medicaoPorData.get(consulta.data) : undefined
+            const idade = sexo && nascimento && consulta?.data ? idadeEmMeses(nascimento, consulta.data) : null
             return (
               <div key={registro.id} className="bg-card border border-border rounded-[14px] p-6">
                 <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
@@ -117,10 +153,56 @@ export default async function FichasPage({ params }: { params: Promise<{ id: str
                   )}
                 </div>
 
-                {nPrescricoes > 0 && (
-                  <div className="mt-4 pt-3 border-t border-border text-xs text-muted">
-                    {nPrescricoes} {nPrescricoes === 1 ? 'prescrição emitida' : 'prescrições emitidas'} nesta
-                    consulta
+                {idade !== null && medicao && (medicao.peso_kg || medicao.altura_cm || medicao.perimetro_cefalico_cm) && (
+                  <div className="mt-4 pt-3.5 border-t border-border">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-muted mb-1.5">Medições</div>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+                      {medicao.peso_kg != null && (
+                        <MedidaValor medida="peso" valor={medicao.peso_kg} unidade="kg" sexo={sexo!} idade={idade} />
+                      )}
+                      {medicao.altura_cm != null && (
+                        <MedidaValor medida="altura" valor={medicao.altura_cm} unidade="cm" sexo={sexo!} idade={idade} />
+                      )}
+                      {medicao.perimetro_cefalico_cm != null && (
+                        <MedidaValor medida="pc" valor={medicao.perimetro_cefalico_cm} unidade="cm" sexo={sexo!} idade={idade} />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {prescricoesDaFicha.length > 0 && (
+                  <div className="mt-4 pt-3.5 border-t border-border">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2">
+                      {prescricoesDaFicha.length === 1 ? 'Prescrição' : 'Prescrições'}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {prescricoesDaFicha.map((p) => {
+                        const meds = Array.isArray(p.medicamentos) ? (p.medicamentos as Med[]) : []
+                        const pdfHref = p.pdf_url ? signedByPath.get(toStoragePath(p.pdf_url)) ?? null : null
+                        return (
+                          <div key={p.id} className="flex items-center gap-3 border border-border rounded-[12px] px-4 py-2.5 text-sm">
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold">
+                                {meds.length === 0 ? 'Sem medicamentos' : meds.length === 1 ? meds[0].nome : `${meds[0].nome} +${meds.length - 1}`}
+                              </span>
+                              {p.diagnostico && <span className="text-muted"> · {p.diagnostico}</span>}
+                            </div>
+                            {pdfHref ? (
+                              <a
+                                href={pdfHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] font-semibold px-3 py-1.5 rounded-[10px] bg-[#eeeaf9] text-[#5b4bd4] hover:bg-[#5b4bd4] hover:text-white transition-colors flex-shrink-0"
+                              >
+                                PDF
+                              </a>
+                            ) : (
+                              <span className="text-[11px] text-muted flex-shrink-0">Sem PDF</span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </div>

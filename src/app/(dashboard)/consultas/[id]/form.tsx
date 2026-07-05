@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { PrescricaoForm } from '@/app/(dashboard)/pacientes/[id]/prescricoes/nova/form'
 import { salvarRegistroAction, mudarStatusConsultaAction, excluirPrescricaoAction } from './actions'
 
 type Registro = { anamnese: string | null; exame_fisico: string | null; conclusao: string | null }
@@ -159,5 +160,88 @@ export function MudarStatusButton({
     >
       {isPending ? '…' : label}
     </button>
+  )
+}
+
+export function NovaPrescricaoButton({
+  pacienteId,
+  agendamentoId,
+  dataConsultaDefault,
+}: {
+  pacienteId: string
+  agendamentoId: string
+  dataConsultaDefault: string
+}) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [open])
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-text text-white rounded-[11px] text-[13px] font-semibold hover:bg-[#333] transition-all cursor-pointer"
+      >
+        + Nova prescrição
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center px-4 py-8 sm:py-10 bg-text/30 backdrop-blur-sm overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="nova-prescricao-title"
+          onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}
+        >
+          <div className="bg-card border border-border rounded-[18px] shadow-2xl w-full max-w-[700px] my-auto animate-[modalIn_180ms_ease-out]">
+            <div className="flex items-start justify-between px-7 pt-6 pb-4 border-b border-border">
+              <div>
+                <h2 id="nova-prescricao-title" className="font-playfair text-[22px] font-extrabold tracking-tight">
+                  Nova prescrição
+                </h2>
+                <p className="text-xs text-muted mt-0.5">Vinculada a esta consulta</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Fechar"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-bg transition-colors cursor-pointer -mr-2"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[18px] h-[18px]">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-7 py-6">
+              <PrescricaoForm
+                pacienteId={pacienteId}
+                agendamentoId={agendamentoId}
+                dataConsultaDefault={dataConsultaDefault}
+                onSuccess={() => {
+                  setOpen(false)
+                  router.refresh()
+                }}
+                onCancel={() => setOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

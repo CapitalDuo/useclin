@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache'
 import { createClient, getProfissional } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/ratelimit'
-import { syncTransacao } from '@/lib/agenda-sync'
 
 export async function salvarRegistroAction(agendamentoId: string, formData: FormData) {
   const anamnese = String(formData.get('anamnese') ?? '').trim()
@@ -83,30 +82,21 @@ export async function mudarStatusConsultaAction(agendamentoId: string, novoStatu
   const supabase = await createClient()
   const { data: ag } = await supabase
     .from('agendamentos')
-    .select('paciente_id, valor, data, notas')
+    .select('id')
     .eq('id', agendamentoId)
     .maybeSingle()
   if (!ag) return { ok: false as const, error: 'Consulta não encontrada' }
 
+  // Só marca o atendimento como feito — financeiro é decisão separada da
+  // Agenda/Financeiro, não uma consequência automática de finalizar a consulta.
   const { error } = await supabase
     .from('agendamentos')
     .update({ status: novoStatus })
     .eq('id', agendamentoId)
   if (error) return { ok: false as const, error: error.message }
 
-  // Mesmo sync da agenda: concluir a consulta marca a transação como paga.
-  await syncTransacao(supabase, {
-    agendamento_id: agendamentoId,
-    paciente_id: ag.paciente_id,
-    valor: ag.valor,
-    data: ag.data,
-    status: novoStatus,
-    descricao: ag.notas || 'Consulta',
-  })
-
   revalidatePath(`/consultas/${agendamentoId}`)
   revalidatePath('/consultas')
   revalidatePath('/agenda')
-  revalidatePath('/financeiro')
   return { ok: true as const }
 }

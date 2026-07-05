@@ -14,11 +14,16 @@ export function PrescricaoForm({
   agendamentoId,
   dataConsultaDefault,
   voltar,
+  onSuccess,
+  onCancel,
 }: {
   pacienteId: string
   agendamentoId?: string
   dataConsultaDefault: string
   voltar?: string
+  /** Usado quando o form roda embutido (ex.: modal na consulta) em vez de numa página própria. */
+  onSuccess?: () => void
+  onCancel?: () => void
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -39,6 +44,8 @@ export function PrescricaoForm({
       const result = await criarPrescricaoAction(pacienteId, new FormData(form))
       if (!result.ok) {
         setErro(result.error)
+      } else if (onSuccess) {
+        onSuccess()
       } else {
         router.push(voltar ?? `/pacientes/${pacienteId}`)
       }
@@ -190,7 +197,7 @@ export function PrescricaoForm({
         <div className="flex items-center justify-between border-t border-border pt-5">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => (onCancel ? onCancel() : router.back())}
             className="text-sm text-muted hover:text-text transition-colors font-semibold"
           >
             Cancelar

@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient, requireFeature } from '@/lib/supabase/server'
-import { idadeEmMeses, percentil, type Medida, type Sexo } from '@/lib/growth'
+import { idadeEmMeses, type Sexo } from '@/lib/growth'
 import { todayISO } from '@/lib/date'
 import { CurvasSection } from '@/components/curvas-section'
+import { MedidaValor } from '@/components/medida-valor'
 import { NovaMedicaoForm, ExcluirMedicaoButton } from './form'
 
 function formatDate(d: string) {
@@ -29,32 +30,6 @@ function formatIdade(nascimento: string, data: string): string {
   return resto ? `${anos}a ${resto}m` : `${anos}a`
 }
 
-function Valor({
-  medida,
-  valor,
-  unidade,
-  sexo,
-  idade,
-}: {
-  medida: Medida
-  valor: number | null
-  unidade: string
-  sexo: Sexo
-  idade: number
-}) {
-  if (valor == null) return <span className="text-muted">—</span>
-  const p = percentil(medida, sexo, idade, valor)
-  return (
-    <span>
-      <span className="font-semibold">{String(valor).replace('.', ',')} {unidade}</span>
-      {p !== null && (
-        <span className="text-[11px] font-semibold text-[#5b4bd4] bg-[#f0edfb] rounded-md px-1.5 py-0.5 ml-2">
-          P{Math.round(p)}
-        </span>
-      )}
-    </span>
-  )
-}
 
 export default async function CrescimentoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -124,9 +99,9 @@ export default async function CrescimentoPage({ params }: { params: Promise<{ id
                 >
                   <span className="font-semibold">{formatDate(m.data)}</span>
                   <span className="text-muted">{formatIdade(nascimento, m.data)}</span>
-                  <Valor medida="peso" valor={m.peso_kg} unidade="kg" sexo={sexo} idade={idade} />
-                  <Valor medida="altura" valor={m.altura_cm} unidade="cm" sexo={sexo} idade={idade} />
-                  <Valor medida="pc" valor={m.perimetro_cefalico_cm} unidade="cm" sexo={sexo} idade={idade} />
+                  <MedidaValor medida="peso" valor={m.peso_kg} unidade="kg" sexo={sexo} idade={idade} />
+                  <MedidaValor medida="altura" valor={m.altura_cm} unidade="cm" sexo={sexo} idade={idade} />
+                  <MedidaValor medida="pc" valor={m.perimetro_cefalico_cm} unidade="cm" sexo={sexo} idade={idade} />
                   <ExcluirMedicaoButton id={m.id} pacienteId={id} />
                 </div>
               )
@@ -135,12 +110,10 @@ export default async function CrescimentoPage({ params }: { params: Promise<{ id
         )}
       </div>
 
-      {rows.length > 0 && (
-        <div className="bg-card border border-border rounded-[14px] p-6">
-          <h2 className="font-playfair text-lg font-bold tracking-tight mb-4">Curvas de crescimento</h2>
-          <CurvasSection medicoes={rows} sexo={sexo} nascimento={nascimento} />
-        </div>
-      )}
+      <div className="bg-card border border-border rounded-[14px] p-6">
+        <h2 className="font-playfair text-lg font-bold tracking-tight mb-4">Curvas de crescimento</h2>
+        <CurvasSection medicoes={rows} sexo={sexo} nascimento={nascimento} />
+      </div>
     </div>
   )
 }
