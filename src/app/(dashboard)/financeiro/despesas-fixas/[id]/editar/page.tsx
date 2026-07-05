@@ -12,7 +12,7 @@ export default async function EditarDespesaFixaPage({
   if (!result.ok) notFound()
 
   return (
-    <div className="px-10 pt-7 pb-10 max-w-[640px]">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10 max-w-[640px]">
       <div className="mb-7">
         <h1 className="font-newsreader text-[28px] font-semibold tracking-tight leading-tight">
           Editar despesa fixa

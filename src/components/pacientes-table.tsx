@@ -56,9 +56,9 @@ export function PacientesTable({ pacientes }: { pacientes: PacienteRow[] }) {
   })
 
   return (
-    <div className="px-10 pt-5 pb-10">
-      <div className="flex items-center gap-4 mb-4">
-        <div className="relative flex-1 max-w-sm">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 pb-10">
+      <div className="flex items-center gap-4 mb-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
           <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
           <input
             type="text"
@@ -104,8 +104,8 @@ export function PacientesTable({ pacientes }: { pacientes: PacienteRow[] }) {
         )}
       </div>
 
-      <div className="bg-card border border-border rounded-[14px] overflow-hidden">
-        <table className="w-full table-fixed">
+      <div className="bg-card border border-border rounded-[14px] overflow-x-auto">
+        <table className="w-full min-w-[700px] table-fixed">
           <thead>
             <tr className="border-b border-border bg-bg/50">
               <th className="text-left px-4 py-3 text-xs font-semibold text-muted w-[50px]">ID</th>

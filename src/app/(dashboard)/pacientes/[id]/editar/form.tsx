@@ -55,7 +55,7 @@ export function EditarPacienteForm({
       <form action={handleSubmit} className="bg-card border border-border rounded-[14px] p-7 flex flex-col gap-5">
       <div>
         <h3 className="font-playfair text-base font-bold mb-4">Identificação</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Nome completo" name="nome" required full defaultValue={paciente.nome} />
           <Field label="CPF" name="cpf" defaultValue={paciente.cpf ?? ''} />
           <Field label="Data de nascimento" name="data_nascimento" type="date" defaultValue={paciente.data_nascimento ?? ''} />
@@ -77,7 +77,7 @@ export function EditarPacienteForm({
 
       <div className="border-t border-border pt-5">
         <h3 className="font-playfair text-base font-bold mb-4">Contato</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Telefone" name="telefone" defaultValue={paciente.telefone ?? ''} />
           <Field label="WhatsApp (com DDI)" name="whatsapp" defaultValue={paciente.whatsapp ?? ''} />
           <Field label="Email" name="email" type="email" full defaultValue={paciente.email ?? ''} />
@@ -87,7 +87,7 @@ export function EditarPacienteForm({
 
       <div className="border-t border-border pt-5">
         <h3 className="font-playfair text-base font-bold mb-4">Plano e status</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Plano</label>
             <select

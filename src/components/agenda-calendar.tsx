@@ -315,7 +315,7 @@ export function AgendaCalendar({
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">Agenda</h1>
         <button
           type="button"
@@ -342,8 +342,8 @@ export function AgendaCalendar({
         </label>
       </div>
 
-      <div className="flex items-center justify-between py-6">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 flex-wrap py-6">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-[13px] border border-border bg-card flex items-center justify-center cursor-pointer hover:bg-bg transition-colors">
             <ChevronLeftIcon className="w-4 h-4" />
           </button>
@@ -353,13 +353,13 @@ export function AgendaCalendar({
           <button onClick={goToday} className="px-[18px] py-2 rounded-[13px] border border-border bg-card text-[13px] font-semibold cursor-pointer hover:bg-bg transition-colors">
             Hoje
           </button>
-          <div className="flex items-center gap-2 ml-3 text-sm font-medium text-text">
-            <CalendarIcon className="w-[18px] h-[18px] text-muted" />
+          <div className="flex items-center gap-2 ml-1 sm:ml-3 text-sm font-medium text-text">
+            <CalendarIcon className="w-[18px] h-[18px] text-muted flex-shrink-0" />
             <span>{dateLabel}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="hidden md:flex items-center gap-3 mr-2">
             {STATUS_LEGEND.map((s) => (
               <div key={s.color} className="flex items-center gap-1.5">
@@ -390,7 +390,10 @@ export function AgendaCalendar({
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-[14px] overflow-hidden">
+      <div className="bg-card border border-border rounded-[14px] overflow-x-auto">
+        {/* Grade com largura mínima na visão Semana — 7 colunas legíveis rolam
+            horizontalmente em telas estreitas em vez de espremer cada dia. */}
+        <div className={view === 'week' ? 'min-w-[860px]' : 'min-w-[420px]'}>
         <div className={`grid ${gridCols} border-b border-border bg-bg`}>
           <div />
           {days.map((d, i) => {
@@ -556,6 +559,7 @@ export function AgendaCalendar({
               </div>
             )
           })}
+        </div>
         </div>
       </div>
 

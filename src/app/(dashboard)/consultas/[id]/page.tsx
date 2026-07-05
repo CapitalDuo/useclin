@@ -62,7 +62,7 @@ export default async function AtendimentoConsultaPage({ params }: { params: Prom
   const dadosCompletos = !!paciente?.sexo && !!paciente?.data_nascimento
 
   return (
-    <div className="px-10 pt-7 pb-10 max-w-[900px]">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10 max-w-[900px]">
       <div className="mb-5">
         <Link href={`/consultas?data=${consulta.data}`} className="text-xs text-muted hover:text-text font-medium">
           ← Voltar para consultas do dia

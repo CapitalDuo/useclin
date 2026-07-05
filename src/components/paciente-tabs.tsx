@@ -55,7 +55,7 @@ export function PacienteTabs({ id, pediatria = false }: { id: string; pediatria?
   ]
 
   return (
-    <div className="flex items-center gap-1.5 border-b border-border mb-7">
+    <div className="flex items-center gap-1.5 border-b border-border mb-7 overflow-x-auto">
       {tabs.map((tab) => {
         const active =
           pathname === tab.href ||

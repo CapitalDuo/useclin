@@ -27,7 +27,7 @@ export function NovaMedicaoForm({ pacienteId, hoje }: { pacienteId: string; hoje
   return (
     <form ref={formRef} action={handleSubmit} className="bg-card border border-border rounded-[14px] p-6">
       <h3 className="font-playfair text-base font-bold mb-4">Nova medição</h3>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Field label="Data" name="data" type="date" required defaultValue={hoje} />
         <Field label="Peso (kg)" name="peso_kg" placeholder="7,4" />
         <Field label="Altura (cm)" name="altura_cm" placeholder="68,5" />

@@ -52,7 +52,7 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
         </div>
 
         {/* Right panel — form */}
-        <div className="flex-1 bg-white flex flex-col justify-center px-10 py-12">
+        <div className="flex-1 bg-white flex flex-col justify-center px-6 sm:px-10 py-10 sm:py-12">
           <h1 className="text-2xl font-bold text-[#1e1b4b] mb-8">Bem vindo!</h1>
 
           <form action={handleSubmit} className="flex flex-col gap-6">

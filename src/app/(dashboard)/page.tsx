@@ -102,12 +102,12 @@ export default async function DashboardPage() {
   const userName = prof?.nome ?? user.email ?? 'Doutor(a)'
 
   return (
-    <div className="px-8 py-6 flex flex-col gap-[22px] max-w-[1500px] w-full mx-auto min-w-0">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-[22px] max-w-[1500px] w-full mx-auto min-w-0">
 
-      {/* Seção do topo: [botões + hero] à esquerda, Avisos à direita */}
-      <div className="flex gap-[26px] items-stretch">
+      {/* Seção do topo: [botões + hero] à esquerda, Avisos à direita — empilha abaixo de lg */}
+      <div className="flex flex-col lg:flex-row gap-[18px] lg:gap-[26px] items-stretch">
         <div className="flex-1 flex flex-col gap-[18px] min-w-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Link
               href="/agenda?new=1"
               className="inline-flex items-center gap-2 bg-[#5b4bd4] text-white px-5 py-2.5 rounded-[12px] text-[14px] font-semibold hover:bg-[#4f40c0] transition-colors shadow-sm"
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
           />
         </div>
 
-        <aside className="w-[300px] flex-none flex flex-col">
+        <aside className="w-full lg:w-[300px] flex-none flex flex-col">
           <div className="bg-card border border-border rounded-[18px] p-[18px] flex-1 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
             <div className="font-newsreader font-semibold text-[18px] text-text mb-3">Avisos</div>
             <div className="flex flex-col gap-2.5">
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* KPIs — largura completa, um pouco mais altos */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <KpiCard
           icon={<CalendarIcon className="w-[18px] h-[18px]" />}
           label="Consultas hoje"
@@ -184,7 +184,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Cards inferiores — largura completa, mais altos */}
-      <div className="grid grid-cols-2 gap-[22px] items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[22px] items-stretch">
         <div className="bg-card border border-border rounded-[18px] p-5 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
           <div className="flex justify-between items-center mb-3.5">
             <div className="font-newsreader font-semibold text-[17px] text-text">Atendimentos da semana</div>

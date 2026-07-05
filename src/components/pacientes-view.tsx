@@ -3,7 +3,7 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { SearchIcon, CalendarIcon, ChatIcon, SendIcon, PaperclipIcon, SmileIcon } from '@/components/icons'
+import { SearchIcon, CalendarIcon, ChatIcon, SendIcon, PaperclipIcon, SmileIcon, ChevronLeftIcon } from '@/components/icons'
 import { Avatar } from '@/components/avatar'
 import { corParaNome } from '@/lib/avatar'
 import {
@@ -373,11 +373,16 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
   )
 
   const selectedChat = chats.find((c) => c.id === selectedChatId) ?? null
+  // No mobile/tablet só um painel aparece por vez: durante a conexão (form/QR)
+  // o painel direito toma a tela; depois de conectado, alterna lista ↔ conversa.
+  const showRightOnMobile = connectionStatus !== 'connected' || !!selectedChatId
 
   return (
-    <div className="flex h-[calc(100vh-120px)] px-10 pb-10 gap-0">
-      {/* ── Left panel ── */}
-      <div className="w-80 flex-shrink-0 bg-card border border-border rounded-l-[14px] flex flex-col overflow-hidden">
+    <div className="flex h-[calc(100vh-180px)] lg:h-[calc(100vh-120px)] px-4 sm:px-6 lg:px-10 pb-10 gap-0">
+      {/* ── Left panel — no mobile/tablet vira tela cheia; some quando um chat é aberto */}
+      <div className={`w-full lg:w-80 flex-shrink-0 bg-card border border-border rounded-[14px] lg:rounded-l-[14px] lg:rounded-r-none flex-col overflow-hidden ${
+        showRightOnMobile ? 'hidden lg:flex' : 'flex'
+      }`}>
         <div className="p-4 border-b border-border">
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
@@ -460,8 +465,10 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
         )}
       </div>
 
-      {/* ── Right panel ── */}
-      <div className="flex-1 bg-card border border-border border-l-0 rounded-r-[14px] flex flex-col overflow-hidden">
+      {/* ── Right panel — no mobile/tablet só aparece durante a conexão ou com um chat selecionado */}
+      <div className={`flex-1 bg-card border border-border lg:border-l-0 rounded-[14px] lg:rounded-r-[14px] lg:rounded-l-none flex-col overflow-hidden ${
+        showRightOnMobile ? 'flex' : 'hidden lg:flex'
+      }`}>
         {connectionStatus === 'disconnected' ? (
           <EvolutionConnectForm onConnecting={handleConnecting} />
         ) : connectionStatus === 'scanning' ? (
@@ -476,10 +483,18 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
         ) : (
           <>
             {/* Header */}
-            <div className="flex items-center gap-4 px-7 py-5 border-b border-border">
+            <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-7 py-4 sm:py-5 border-b border-border flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSelectedChatId(null)}
+                aria-label="Voltar para conversas"
+                className="lg:hidden w-8 h-8 -mr-1 rounded-full flex items-center justify-center text-muted hover:text-text hover:bg-bg transition-colors cursor-pointer flex-shrink-0"
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </button>
               <ChatAvatar name={selectedChat.name} size="lg" />
-              <div className="flex-1">
-                <div className="font-playfair text-[20px] font-extrabold tracking-tight">{selectedChat.name}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-playfair text-[20px] font-extrabold tracking-tight truncate">{selectedChat.name}</div>
                 <div className="text-[12px] text-muted mt-0.5">{formatPhone(selectedChat.id)}</div>
               </div>
               <div className="flex gap-2.5">
@@ -493,7 +508,7 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-7 py-5 flex flex-col gap-4">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-7 py-5 flex flex-col gap-4">
               {loadingMessages ? (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-xs text-muted">Carregando mensagens...</p>
@@ -530,7 +545,7 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
             </div>
 
             {/* Input */}
-            <div className="px-7 py-4 border-t border-border flex items-center gap-2.5">
+            <div className="px-4 sm:px-7 py-4 border-t border-border flex items-center gap-2.5">
               <input type="text" placeholder="Escreva sua mensagem..." value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}

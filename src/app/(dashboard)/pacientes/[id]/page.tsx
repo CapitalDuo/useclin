@@ -127,10 +127,10 @@ function ConsultaItem({ c, pacienteId }: { c: Consulta; pacienteId: string }) {
   const label = STATUS_LABEL[c.status] ?? c.status
 
   return (
-    <div className="flex items-center gap-3 bg-card border border-border rounded-[14px] px-5 py-4 hover:border-text hover:shadow-sm transition-all">
+    <div className="flex flex-wrap items-center gap-3 bg-card border border-border rounded-[14px] px-5 py-4 hover:border-text hover:shadow-sm transition-all">
       <Link
         href={`/agenda?edit=${c.id}`}
-        className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer"
+        className="flex flex-wrap items-center gap-3 sm:gap-4 flex-1 min-w-[240px] cursor-pointer"
       >
         <div className="w-[88px] flex-shrink-0">
           <div className="text-sm font-semibold">{formatDate(c.data)}</div>

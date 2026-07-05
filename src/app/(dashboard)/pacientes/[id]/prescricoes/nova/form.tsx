@@ -137,7 +137,7 @@ export function PrescricaoForm({
                   placeholder="Nome do medicamento *"
                   className="w-full border border-border rounded-[10px] px-3 py-2 text-sm bg-card focus:outline-none focus:border-[#5b4bd4] transition-colors"
                 />
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <input
                     value={med.dosagem}
                     onChange={(e) => updateMed(i, 'dosagem', e.target.value)}

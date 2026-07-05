@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import {
   HomeIcon,
   CalendarIcon,
@@ -13,6 +14,8 @@ import {
   LogOutIcon,
   WalletIcon,
   ClipboardIcon,
+  MenuIcon,
+  XIcon,
 } from '@/components/icons'
 import { logoutAction } from '@/app/login/actions'
 import type { FeatureKey } from '@/lib/features'
@@ -74,23 +77,68 @@ export function Sidebar({
     ? navItems.filter((i) => !i.feature || enabledFeatures[i.feature])
     : navItems
 
+  const [open, setOpen] = useState(false)
+  // Fecha o drawer automaticamente ao navegar (mobile/tablet) — ajusta o
+  // estado durante o render em vez de um useEffect (evita re-render em cascata).
+  const [prevPathname, setPrevPathname] = useState(pathname)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
+    setOpen(false)
+  }
+
   return (
-    <aside
-      className="w-[232px] flex-none pl-4 pr-0 py-[26px] flex flex-col min-h-screen sticky top-0 self-start"
-      style={{ background: NAV_BG }}
-    >
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-2 pr-5 pb-[30px]">
-        <div className="w-11 h-11 rounded-full border-[1.5px] border-white/20 flex items-center justify-center">
-          <LeafIcon className="w-5 h-5 text-white/50" />
-        </div>
-        <div>
-          <div className="font-newsreader text-[23px] font-semibold text-white leading-none">Useclin</div>
-          <div className="text-[9px] font-bold tracking-[0.18em] text-white/35 mt-1">GESTÃO DE CLÍNICAS</div>
-        </div>
+    <>
+      {/* Barra superior mobile/tablet — só existe abaixo de lg, onde o sidebar vira drawer */}
+      <div
+        className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
+        style={{ background: NAV_BG }}
+      >
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Abrir menu"
+          className="w-9 h-9 -ml-1.5 rounded-[10px] flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+        >
+          <MenuIcon className="w-5 h-5" />
+        </button>
+        <span className="font-newsreader text-lg font-semibold text-white leading-none">Useclin</span>
       </div>
 
-      {/* Navegação principal */}
+      {/* Backdrop do drawer */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          onClick={() => setOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      <aside
+        className={`w-[232px] flex-none pl-4 pr-0 py-[26px] flex flex-col min-h-screen overflow-y-auto fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 lg:sticky lg:top-0 lg:translate-x-0 lg:self-start ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        style={{ background: NAV_BG }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-2 pr-5 pb-[30px]">
+          <div className="w-11 h-11 rounded-full border-[1.5px] border-white/20 flex items-center justify-center flex-shrink-0">
+            <LeafIcon className="w-5 h-5 text-white/50" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-newsreader text-[23px] font-semibold text-white leading-none">Useclin</div>
+            <div className="text-[9px] font-bold tracking-[0.18em] text-white/35 mt-1">GESTÃO DE CLÍNICAS</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Fechar menu"
+            className="lg:hidden w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer flex-shrink-0"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Navegação principal */}
       <nav className="flex flex-col gap-[3px]">
         {items.map((item) => {
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href) && !suporteActive
@@ -169,5 +217,6 @@ export function Sidebar({
         </form>
       </div>
     </aside>
+    </>
   )
 }

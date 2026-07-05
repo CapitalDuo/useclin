@@ -141,7 +141,7 @@ export function ConfiguracoesView({
   const horariosByDay = new Map(horarios.map((h) => [h.dia_semana, h]))
 
   return (
-    <div className="px-10 pt-7 pb-10 max-w-[920px] flex flex-col gap-6">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10 max-w-[920px] flex flex-col gap-6">
       <SectionCard title="Plano" icon={SECTION_ICONS.plano}>
         <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} plano_cancelando={clinica.plano_cancelando} trial_ends_at={clinica.trial_ends_at} />
       </SectionCard>

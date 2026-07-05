@@ -54,7 +54,7 @@ export function FinanceiroView({
   ultimasEntradas: EntradaRow[]
 }) {
   return (
-    <div className="px-10 pt-7 pb-10">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10">
       <div className="flex items-start justify-between mb-7 flex-wrap gap-4">
         <div>
           <h1 className="font-newsreader text-[36px] font-semibold tracking-tight leading-tight">
@@ -62,7 +62,7 @@ export function FinanceiroView({
           </h1>
           <p className="text-[15px] text-muted mt-1">Acompanhe suas receitas e recebimentos pendentes.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             type="button"
             disabled

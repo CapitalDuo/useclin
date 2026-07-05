@@ -26,7 +26,7 @@ export default async function ClienteTicketPage({
     .order('created_at', { ascending: true })
 
   return (
-    <div className="px-10 pt-7 pb-10 max-w-[820px]">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10 max-w-[820px]">
       <div className="mb-5">
         <Link href="/configuracoes/suporte" className="text-xs text-muted hover:text-text font-medium">
           ← Voltar para minhas solicitações

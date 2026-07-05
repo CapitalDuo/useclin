@@ -27,7 +27,7 @@ export default async function SuporteClientePage() {
     .order('updated_at', { ascending: false })
 
   return (
-    <div className="px-10 pt-7 pb-10 max-w-[820px]">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10 max-w-[820px]">
       <div className="mb-6">
         <h1 className="font-newsreader text-[28px] font-semibold tracking-tight">Suporte</h1>
         <p className="text-sm text-muted mt-0.5">Abra chamados e acompanhe suas solicitações</p>

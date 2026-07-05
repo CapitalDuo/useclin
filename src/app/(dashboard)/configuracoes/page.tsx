@@ -32,7 +32,7 @@ export default async function ConfiguracoesPage() {
 
   if (!prof?.clinica_id) {
     return (
-      <div className="px-10 pt-7 pb-10 max-w-[920px]">
+      <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10 max-w-[920px]">
         <div className="bg-card border border-border rounded-[14px] p-8 text-sm text-muted">
           Sua conta ainda não está vinculada a uma clínica.
         </div>
@@ -75,7 +75,7 @@ export default async function ConfiguracoesPage() {
 
   if (!clinica) {
     return (
-      <div className="px-10 pt-7 pb-10 max-w-[920px]">
+      <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10 max-w-[920px]">
         <div className="bg-card border border-border rounded-[14px] p-8 text-sm text-muted">
           Clínica não encontrada.
         </div>
@@ -105,7 +105,7 @@ export default async function ConfiguracoesPage() {
 
   return (
     <>
-      <div className="px-10 pt-7 pb-2">
+      <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-2">
         <h1 className="font-newsreader text-[28px] font-semibold tracking-tight">Configurações</h1>
         <p className="text-sm text-muted mt-0.5">Dados da clínica, agenda, integrações e perfil</p>
       </div>

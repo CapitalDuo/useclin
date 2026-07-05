@@ -21,7 +21,7 @@ export function NovoPacienteForm({ planos, sexoObrigatorio }: { planos: Plano[];
       <form action={handleSubmit} className="bg-card border border-border rounded-[14px] p-7 flex flex-col gap-5">
       <div>
         <h3 className="font-playfair text-base font-bold mb-4">Identificação</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Nome completo" name="nome" placeholder="Maria Silva" required full />
           <Field label="CPF" name="cpf" placeholder="000.000.000-00" />
           <Field label="Data de nascimento" name="data_nascimento" type="date" />
@@ -43,7 +43,7 @@ export function NovoPacienteForm({ planos, sexoObrigatorio }: { planos: Plano[];
 
       <div className="border-t border-border pt-5">
         <h3 className="font-playfair text-base font-bold mb-4">Contato</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Telefone" name="telefone" placeholder="(11) 99999-9999" />
           <Field label="WhatsApp (com DDI)" name="whatsapp" placeholder="5511999999999" />
           <Field label="Email" name="email" type="email" placeholder="maria@email.com" full />
@@ -53,7 +53,7 @@ export function NovoPacienteForm({ planos, sexoObrigatorio }: { planos: Plano[];
 
       <div className="border-t border-border pt-5">
         <h3 className="font-playfair text-base font-bold mb-4">Plano</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 block">Plano</label>
             <select

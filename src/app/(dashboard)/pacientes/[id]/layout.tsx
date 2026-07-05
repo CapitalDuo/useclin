@@ -25,14 +25,14 @@ export default async function PacienteLayout({
   const pediatria = !!clinica && hasFeature(clinica, 'pediatria_completa')
 
   return (
-    <div className="px-10 pt-7 pb-10">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10">
       <div className="mb-5">
         <Link href="/pacientes" className="text-xs text-muted hover:text-text font-medium">
           ← Voltar para pacientes
         </Link>
       </div>
 
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-6 flex-wrap">
         <Avatar initials={paciente.iniciais ?? paciente.nome.slice(0, 2).toUpperCase()} cor={paciente.cor} size="lg" />
         <div className="flex items-center gap-3">
           <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">{paciente.nome}</h1>

@@ -24,7 +24,7 @@ export default async function DespesasFixasPage() {
   const despesas = data ?? []
 
   return (
-    <div className="px-10 pt-7 pb-10">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10">
       <div className="flex items-start justify-between mb-7 flex-wrap gap-4">
         <div>
           <Link href="/financeiro" className="text-xs font-semibold text-muted hover:text-text transition-colors">

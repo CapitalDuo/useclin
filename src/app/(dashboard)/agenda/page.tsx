@@ -47,7 +47,7 @@ export default async function AgendaPage({
   ])
 
   return (
-    <div className="px-10 pt-7 pb-10">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10">
       <AgendaCalendar
         view={view}
         anchorISO={isoDate(anchor)}

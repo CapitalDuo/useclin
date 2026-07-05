@@ -13,7 +13,7 @@ const PREVIEW_CONVOS = [
 // disparar conexões WhatsApp/n8n) com o aviso de upgrade centralizado por cima.
 export function AtendimentoLocked() {
   return (
-    <div className="px-10 pt-7 pb-10">
+    <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10">
       <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">Atendimento</h1>
       <p className="text-sm text-muted mt-0.5">Converse com seus pacientes e gerencie atendimentos.</p>
 

@@ -27,7 +27,7 @@ export default async function AtendimentoPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between px-10 pt-7">
+      <div className="flex items-center justify-between gap-3 flex-wrap px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7">
         <div>
           <h1 className="font-playfair text-[28px] font-extrabold tracking-tight">Atendimento</h1>
           <p className="text-sm text-muted mt-0.5">Converse com seus pacientes e gerencie atendimentos.</p>
