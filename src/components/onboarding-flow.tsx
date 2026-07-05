@@ -481,7 +481,7 @@ export function OnboardingFlow({
                   </svg>
                 </div>
               </div>
-              <Field label="Nome da instância" placeholder="ex: rosan-clinica" value={whatsapp.instancia} onChange={v => setWhatsApp({ ...whatsapp, instancia: v })} />
+              <Field label="Nome da instância" placeholder="ex: useclin-clinica" value={whatsapp.instancia} onChange={v => setWhatsApp({ ...whatsapp, instancia: v })} />
               <Field label="Número (com DDD e país)" placeholder="5564999999999" value={whatsapp.numero} onChange={v => setWhatsApp({ ...whatsapp, numero: v })} />
               <button onClick={handleWhatsAppConnect} disabled={!whatsapp.instancia.trim() || !whatsapp.numero.trim()} className="w-full py-3.5 rounded-[13px] bg-green text-white text-sm font-semibold hover:bg-green/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">Conectar</button>
               <button onClick={next} className="text-xs text-muted hover:text-text font-medium text-center cursor-pointer transition-colors">Pular esta etapa</button>
