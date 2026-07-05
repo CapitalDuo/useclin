@@ -135,6 +135,7 @@ export async function criarPrescricaoAction(
 
   if (error) return { ok: false, error: error.message }
 
-  revalidatePath(`/pacientes/${pacienteId}/prescricoes`)
+  revalidatePath(`/pacientes/${pacienteId}/fichas`)
+  if (agendamentoId) revalidatePath(`/consultas/${agendamentoId}`)
   return { ok: true }
 }

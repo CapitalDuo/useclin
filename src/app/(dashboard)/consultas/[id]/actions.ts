@@ -44,6 +44,35 @@ export async function salvarRegistroAction(agendamentoId: string, formData: Form
   return { ok: true as const }
 }
 
+export async function excluirPrescricaoAction(prescricaoId: string, agendamentoId: string) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, error: 'Não autenticado' }
+
+  const { data: prescricao } = await supabase
+    .from('prescricoes')
+    .select('pdf_url')
+    .eq('id', prescricaoId)
+    .maybeSingle()
+  if (!prescricao) return { ok: false as const, error: 'Prescrição não encontrada' }
+
+  // Remove o PDF do Storage se existir. pdf_url guarda o path do objeto;
+  // linhas criadas antes da migration podem ainda ter a URL pública antiga.
+  if (prescricao.pdf_url) {
+    const path = prescricao.pdf_url.replace(/^.*\/storage\/v1\/object\/public\/prescricoes\//, '')
+    await supabase.storage.from('prescricoes').remove([decodeURIComponent(path)])
+  }
+
+  const { error } = await supabase.from('prescricoes').delete().eq('id', prescricaoId)
+  if (error) return { ok: false as const, error: error.message }
+
+  revalidatePath(`/consultas/${agendamentoId}`)
+  return { ok: true as const }
+}
+
 const STATUS_PERMITIDOS = ['em_atendimento', 'concluido'] as const
 
 export async function mudarStatusConsultaAction(agendamentoId: string, novoStatus: string) {

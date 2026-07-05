@@ -40,7 +40,7 @@ export function PrescricaoForm({
       if (!result.ok) {
         setErro(result.error)
       } else {
-        router.push(voltar ?? `/pacientes/${pacienteId}/prescricoes`)
+        router.push(voltar ?? `/pacientes/${pacienteId}`)
       }
     })
   }

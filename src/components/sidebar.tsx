@@ -29,9 +29,9 @@ const navItems: {
   { href: '/', label: 'Dashboard', icon: HomeIcon },
   { href: '/financeiro', label: 'Financeiro', icon: WalletIcon, feature: 'financeiro' },
   { href: '/agenda', label: 'Agenda', icon: CalendarIcon, feature: 'agenda' },
+  { href: '/consultas', label: 'Consultas', icon: ClipboardIcon, feature: 'pediatria_completa' },
   { href: '/pacientes', label: 'Pacientes', icon: UsersIcon, feature: 'pacientes' },
   { href: '/atendimento', label: 'Atendimento', icon: HeadsetIcon, feature: 'atendimento' },
-  { href: '/consultas', label: 'Consultas', icon: ClipboardIcon, feature: 'pediatria_completa' },
   { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
 

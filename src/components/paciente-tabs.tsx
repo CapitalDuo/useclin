@@ -21,10 +21,10 @@ function DadosIcon() {
   )
 }
 
-function PrescricoesIcon() {
+function FichasIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-      <path d="M9 12h6m-3-3v6m-7 3h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
     </svg>
   )
 }
@@ -37,15 +37,20 @@ function CrescimentoIcon() {
   )
 }
 
-export function PacienteTabs({ id, crescimento = false }: { id: string; crescimento?: boolean }) {
+export function PacienteTabs({ id, pediatria = false }: { id: string; pediatria?: boolean }) {
   const pathname = usePathname()
   const base = `/pacientes/${id}`
 
   // Prescrições saiu daqui — agora vive na tela de atendimento (/consultas/[id]).
+  // Fichas/Crescimento só pra clínicas com pediatria_completa (as páginas têm requireFeature também).
   const tabs: Tab[] = [
     { label: 'Consultas', href: base, icon: <ConsultasIcon /> },
-    // Só pra clínicas com pediatria_completa (a página tem requireFeature também)
-    ...(crescimento ? [{ label: 'Crescimento', href: `${base}/crescimento`, icon: <CrescimentoIcon /> }] : []),
+    ...(pediatria
+      ? [
+          { label: 'Fichas', href: `${base}/fichas`, icon: <FichasIcon /> },
+          { label: 'Crescimento', href: `${base}/crescimento`, icon: <CrescimentoIcon /> },
+        ]
+      : []),
     { label: 'Dados', href: `${base}/editar`, icon: <DadosIcon /> },
   ]
 

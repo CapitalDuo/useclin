@@ -6,7 +6,7 @@ import type { Sexo } from '@/lib/growth'
 import { Avatar } from '@/components/avatar'
 import { CurvasSection } from '@/components/curvas-section'
 import { NovaMedicaoForm } from '@/app/(dashboard)/pacientes/[id]/crescimento/form'
-import { RegistroForm, MudarStatusButton } from './form'
+import { RegistroForm, MudarStatusButton, ExcluirPrescricaoButton } from './form'
 
 type Med = { nome: string }
 
@@ -181,6 +181,7 @@ export default async function AtendimentoConsultaPage({ params }: { params: Prom
                     ) : (
                       <span className="text-[11px] text-muted flex-shrink-0">Sem PDF</span>
                     )}
+                    <ExcluirPrescricaoButton id={p.id} agendamentoId={id} />
                   </div>
                 )
               })}

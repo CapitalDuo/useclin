@@ -22,7 +22,7 @@ export default async function PacienteLayout({
 
   if (!paciente) notFound()
 
-  const crescimento = !!clinica && hasFeature(clinica, 'pediatria_completa')
+  const pediatria = !!clinica && hasFeature(clinica, 'pediatria_completa')
 
   return (
     <div className="px-10 pt-7 pb-10">
@@ -44,7 +44,7 @@ export default async function PacienteLayout({
         </div>
       </div>
 
-      <PacienteTabs id={id} crescimento={crescimento} />
+      <PacienteTabs id={id} pediatria={pediatria} />
 
       {children}
     </div>
