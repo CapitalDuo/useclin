@@ -11,10 +11,10 @@ Projeto: `imhsbmtmdsltbxpafsoj`
       "Prevent users from using a leaked password" (cruza com HaveIBeenPwned).
       Custo: zero. Bloqueia senhas vazadas conhecidas.
 
-- [ ] **Site URL** — Auth → URL Configuration → `https://rosan-clinica.vercel.app`
+- [ ] **Site URL** — Auth → URL Configuration → `https://useclin.vercel.app`
 
 - [ ] **Additional Redirect URLs** — Auth → URL Configuration:
-  - `https://rosan-clinica.vercel.app/**`
+  - `https://useclin.vercel.app/**`
   - `https://*.vercel.app/**` (pra preview deploys)
   - `http://localhost:3000/**` (dev local)
 
@@ -22,7 +22,7 @@ Projeto: `imhsbmtmdsltbxpafsoj`
 
 ## ⚙️ Vercel Dashboard
 
-Projeto: `rosan-clinica` (team `capitalschutz-8412`)
+Projeto: `useclin` (team `ones-project`)
 
 ### Environment Variables — Production + Preview
 
@@ -44,7 +44,7 @@ Projeto: `rosan-clinica` (team `capitalschutz-8412`)
 
 ## 🧪 Verificação pós-deploy
 
-- [ ] Login com conta de teste em `https://rosan-clinica.vercel.app/login`
+- [ ] Login com conta de teste em `https://useclin.vercel.app/login`
 - [ ] Tentar criar 30 consultas em 1 minuto → deve bloquear na 21ª com mensagem
       "Muitas requisições. Tente novamente em Ns." (só funciona se Upstash
       estiver configurado).
