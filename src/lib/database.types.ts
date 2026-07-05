@@ -966,6 +966,92 @@ export type Database = {
           },
         ]
       }
+      registros_consulta: {
+        Row: {
+          agendamento_id: string
+          anamnese: string | null
+          clinica_id: string
+          conclusao: string | null
+          created_at: string
+          exame_fisico: string | null
+          id: string
+          paciente_id: string
+          updated_at: string
+        }
+        Insert: {
+          agendamento_id: string
+          anamnese?: string | null
+          clinica_id: string
+          conclusao?: string | null
+          created_at?: string
+          exame_fisico?: string | null
+          id?: string
+          paciente_id: string
+          updated_at?: string
+        }
+        Update: {
+          agendamento_id?: string
+          anamnese?: string | null
+          clinica_id?: string
+          conclusao?: string | null
+          created_at?: string
+          exame_fisico?: string | null
+          id?: string
+          paciente_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_consulta_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: true
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_consulta_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: true
+            referencedRelation: "v_agenda"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_consulta_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_consulta_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "v_clinica_planos"
+            referencedColumns: ["clinica_id"]
+          },
+          {
+            foreignKeyName: "registros_consulta_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_consulta_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_atendimento"
+            referencedColumns: ["paciente_id"]
+          },
+          {
+            foreignKeyName: "registros_consulta_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "v_pacientes_tabela"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suporte_mensagens: {
         Row: {
           autor_id: string

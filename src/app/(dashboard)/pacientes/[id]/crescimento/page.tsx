@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient, requireFeature } from '@/lib/supabase/server'
 import { idadeEmMeses, percentil, type Medida, type Sexo } from '@/lib/growth'
 import { todayISO } from '@/lib/date'
+import { CurvasSection } from '@/components/curvas-section'
 import { NovaMedicaoForm, ExcluirMedicaoButton } from './form'
 
 function formatDate(d: string) {
@@ -96,15 +97,8 @@ export default async function CrescimentoPage({ params }: { params: Promise<{ id
       <NovaMedicaoForm pacienteId={id} hoje={todayISO()} />
 
       <div>
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-muted">
-            {rows.length} {rows.length === 1 ? 'medição' : 'medições'}
-          </div>
-          {rows.length > 0 && (
-            <Link href={`/pediatria?paciente=${id}`} className="text-xs font-semibold text-[#5b4bd4] hover:underline">
-              Ver curvas de crescimento →
-            </Link>
-          )}
+        <div className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2.5">
+          {rows.length} {rows.length === 1 ? 'medição' : 'medições'}
         </div>
 
         {rows.length === 0 ? (
@@ -140,6 +134,13 @@ export default async function CrescimentoPage({ params }: { params: Promise<{ id
           </div>
         )}
       </div>
+
+      {rows.length > 0 && (
+        <div className="bg-card border border-border rounded-[14px] p-6">
+          <h2 className="font-playfair text-lg font-bold tracking-tight mb-4">Curvas de crescimento</h2>
+          <CurvasSection medicoes={rows} sexo={sexo} nascimento={nascimento} />
+        </div>
+      )}
     </div>
   )
 }

@@ -13,10 +13,12 @@ export function PrescricaoForm({
   pacienteId,
   agendamentoId,
   dataConsultaDefault,
+  voltar,
 }: {
   pacienteId: string
   agendamentoId?: string
   dataConsultaDefault: string
+  voltar?: string
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -38,7 +40,7 @@ export function PrescricaoForm({
       if (!result.ok) {
         setErro(result.error)
       } else {
-        router.push(`/pacientes/${pacienteId}/prescricoes`)
+        router.push(voltar ?? `/pacientes/${pacienteId}/prescricoes`)
       }
     })
   }

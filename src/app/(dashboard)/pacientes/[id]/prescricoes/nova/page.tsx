@@ -7,10 +7,10 @@ export default async function NovaPrescricaoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ de?: string }>
+  searchParams: Promise<{ de?: string; voltar?: string }>
 }) {
   const { id } = await params
-  const { de: agendamentoId } = await searchParams
+  const { de: agendamentoId, voltar } = await searchParams
 
   const supabase = await createClient()
 
@@ -60,6 +60,7 @@ export default async function NovaPrescricaoPage({
           pacienteId={id}
           agendamentoId={agendamentoId}
           dataConsultaDefault={dataDefault}
+          voltar={voltar?.startsWith('/') ? voltar : undefined}
         />
       </div>
     </div>

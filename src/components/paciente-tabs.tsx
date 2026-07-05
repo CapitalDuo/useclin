@@ -41,12 +41,12 @@ export function PacienteTabs({ id, crescimento = false }: { id: string; crescime
   const pathname = usePathname()
   const base = `/pacientes/${id}`
 
+  // Prescrições saiu daqui — agora vive na tela de atendimento (/consultas/[id]).
   const tabs: Tab[] = [
     { label: 'Consultas', href: base, icon: <ConsultasIcon /> },
     // Só pra clínicas com pediatria_completa (a página tem requireFeature também)
     ...(crescimento ? [{ label: 'Crescimento', href: `${base}/crescimento`, icon: <CrescimentoIcon /> }] : []),
     { label: 'Dados', href: `${base}/editar`, icon: <DadosIcon /> },
-    { label: 'Prescrições', href: `${base}/prescricoes`, icon: <PrescricoesIcon /> },
   ]
 
   return (
