@@ -57,38 +57,25 @@ export function AgendamentoModal({
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const [pacienteId, setPacienteId] = useState('')
-  const [profissionalId, setProfissionalId] = useState('')
+  // Seed inicial a partir do modo. O call site passa `key` derivada do modo,
+  // então trocar de agendamento (ou de slot no 'new') remonta e re-seeda —
+  // padrão React de resetar estado por prop, sem setState síncrono em effect.
+  const [pacienteId, setPacienteId] = useState(() => (mode.kind === 'new' ? pacientes[0]?.id ?? '' : ''))
+  const [profissionalId, setProfissionalId] = useState(() => (mode.kind === 'new' ? profissionais[0]?.id ?? '' : ''))
   const [tipoId, setTipoId] = useState('none')
-  const [data, setData] = useState('')
-  const [horaInicio, setHoraInicio] = useState('09:00')
-  const [horaFim, setHoraFim] = useState('09:30')
+  const [data, setData] = useState(() => (mode.kind === 'new' ? mode.data ?? todayISO() : ''))
+  const [horaInicio, setHoraInicio] = useState(() => (mode.kind === 'new' ? mode.hora ?? '09:00' : '09:00'))
+  const [horaFim, setHoraFim] = useState(() =>
+    mode.kind === 'new' ? (mode.hora ? addMinutes(mode.hora, 30) : '09:30') : '09:30',
+  )
   const [status, setStatus] = useState('agendado')
   const [valor, setValor] = useState('')
   const [notas, setNotas] = useState('')
 
   useEffect(() => {
+    if (mode.kind !== 'edit') return
     let cancelled = false
 
-    if (mode.kind === 'new') {
-      setPacienteId(pacientes[0]?.id ?? '')
-      setProfissionalId(profissionais[0]?.id ?? '')
-      setTipoId('none')
-      setData(mode.data ?? todayISO())
-      setHoraInicio(mode.hora ?? '09:00')
-      setHoraFim(mode.hora ? addMinutes(mode.hora, 30) : '09:30')
-      setStatus('agendado')
-      setValor('')
-      setNotas('')
-      setError(null)
-      setConfirmDelete(false)
-      setLoading(false)
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-    setConfirmDelete(false)
     getAgendamentoAction(mode.id).then((res) => {
       if (cancelled) return
       if (res.ok) {
@@ -111,7 +98,7 @@ export function AgendamentoModal({
     return () => {
       cancelled = true
     }
-  }, [mode, pacientes, profissionais])
+  }, [mode])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

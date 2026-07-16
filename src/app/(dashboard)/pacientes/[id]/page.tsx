@@ -97,7 +97,7 @@ export default async function ConsultasPage({
 
       {consultas.length === 0 ? (
         <div className="text-center py-12 text-sm text-muted bg-card border border-border rounded-[14px]">
-          Nenhuma consulta registrada ainda. Use "Nova consulta" para agendar a primeira.
+          Nenhuma consulta registrada ainda. Use &ldquo;Nova consulta&rdquo; para agendar a primeira.
         </div>
       ) : (
         <div className="flex flex-col gap-7">

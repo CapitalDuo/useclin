@@ -577,6 +577,7 @@ export function AgendaCalendar({
 
       {modalMode && (
         <AgendamentoModal
+          key={editId ?? `new:${newData ?? ''}:${newHora ?? ''}`}
           mode={modalMode}
           onClose={closeModal}
           pacientes={pacientes}

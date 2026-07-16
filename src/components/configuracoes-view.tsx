@@ -334,7 +334,7 @@ function PlanCard({ plano_slug, plano_status, plano_periodo_fim, plano_canceland
         body: JSON.stringify({ plano }),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
+      if (data.url) window.location.assign(data.url)
       else {
         setError(data.error ?? 'Não foi possível iniciar o pagamento.')
         setLoading(null)
