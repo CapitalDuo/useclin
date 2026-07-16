@@ -1766,6 +1766,7 @@ export type Database = {
           total_mensagens: number | null
           ultima_mensagem: string | null
           ultima_mensagem_at: string | null
+          ultima_mensagem_autor_tipo: string | null
           updated_at: string | null
         }
         Relationships: [

@@ -37,7 +37,7 @@ export default async function DashboardPage() {
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
 
-  const [{ data: prof }, { data: kpis }, { data: hoje }, { data: candidates }, { data: monthAppts }, { data: weekAppts }] = await Promise.all([
+  const [{ data: prof }, { data: kpis }, { data: hoje }, { data: candidates }, { data: monthAppts }, { data: weekAppts }, { data: suporteRespostas }] = await Promise.all([
     supabase.from('profissionais').select('nome').eq('user_id', user.id).maybeSingle(),
     supabase.from('v_dashboard_kpis').select('*').maybeSingle(),
     supabase
@@ -62,6 +62,15 @@ export default async function DashboardPage() {
       .select('data, status')
       .gte('data', isoDate(monday))
       .lte('data', isoDate(sunday)),
+    // Avisos: tickets cuja última mensagem é do admin (resposta ainda não
+    // vista/respondida pelo cliente) e que não foram resolvidos/fechados.
+    supabase
+      .from('v_suporte_inbox')
+      .select('id, assunto, ultima_mensagem_at')
+      .eq('ultima_mensagem_autor_tipo', 'admin')
+      .not('status', 'in', '(resolvido,fechado)')
+      .order('ultima_mensagem_at', { ascending: false })
+      .limit(5),
   ])
 
   const proxima = candidates?.find(
@@ -134,8 +143,32 @@ export default async function DashboardPage() {
 
         <aside className="w-full lg:w-[300px] flex-none flex flex-col">
           <div className="bg-card border border-border rounded-[18px] p-[18px] flex-1 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
-            <div className="font-newsreader font-semibold text-[18px] text-text mb-3">Avisos</div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="font-newsreader font-semibold text-[18px] text-text">Avisos</div>
+              {(suporteRespostas?.length ?? 0) > 0 && (
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#e5534b] text-white text-[10.5px] font-bold flex items-center justify-center">
+                  {suporteRespostas!.length}
+                </span>
+              )}
+            </div>
             <div className="flex flex-col gap-2.5">
+              {(suporteRespostas ?? []).map((t) => (
+                <Link
+                  key={t.id}
+                  href={`/configuracoes/suporte/${t.id}`}
+                  className="flex items-start gap-3 bg-[#fcebea] rounded-[13px] px-3.5 py-3 hover:bg-[#f8dcda] transition-colors"
+                >
+                  <span className="mt-0.5 w-5 h-5 rounded-full bg-[#e5534b] flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-3 h-3">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                    </svg>
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-semibold text-[#7a2620] leading-snug">Suporte respondeu sua solicitação</div>
+                    <div className="text-[11.5px] text-[#b06a65] mt-0.5 truncate">{t.assunto}</div>
+                  </div>
+                </Link>
+              ))}
               <div className="flex items-start gap-3 bg-[#f1eefb] rounded-[13px] px-3.5 py-3">
                 <span className="mt-0.5 w-5 h-5 rounded-full bg-[#6d5ae6] flex items-center justify-center flex-shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-3 h-3">
@@ -147,9 +180,11 @@ export default async function DashboardPage() {
                   <div className="text-[11.5px] text-[#7c6fae] mt-0.5">Os avisos da clínica aparecerão aqui.</div>
                 </div>
               </div>
-              <div className="text-center py-4 text-[12px] text-muted">
-                Nenhum aviso no momento.
-              </div>
+              {(suporteRespostas?.length ?? 0) === 0 && (
+                <div className="text-center py-4 text-[12px] text-muted">
+                  Nenhum aviso no momento.
+                </div>
+              )}
             </div>
           </div>
         </aside>
