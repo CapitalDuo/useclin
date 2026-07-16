@@ -4,14 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { exportarTransacoesAction } from '@/app/(dashboard)/financeiro/actions'
 
-const DEFAULTS: Record<string, string> = { periodo: 'este_mes', tipo: 'todas', status: 'todos', busca: '' }
-
-const PERIODO_OPTIONS = [
-  { value: 'este_mes', label: 'Este mês' },
-  { value: 'mes_passado', label: 'Mês passado' },
-  { value: 'este_ano', label: 'Este ano' },
-  { value: 'tudo', label: 'Tudo' },
-]
+const DEFAULTS: Record<string, string> = { de: '', ate: '', tipo: 'todas', status: 'todos', busca: '' }
 
 const TIPO_OPTIONS = [
   { value: 'todas', label: 'Todas' },
@@ -30,11 +23,12 @@ export function FinanceiroFiltros() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const periodo = searchParams.get('periodo') ?? DEFAULTS.periodo
+  const de = searchParams.get('de') ?? DEFAULTS.de
+  const ate = searchParams.get('ate') ?? DEFAULTS.ate
   const tipo = searchParams.get('tipo') ?? DEFAULTS.tipo
   const status = searchParams.get('status') ?? DEFAULTS.status
   const buscaAtual = searchParams.get('busca') ?? DEFAULTS.busca
-  const filtrosAtivos = periodo !== DEFAULTS.periodo || tipo !== DEFAULTS.tipo || status !== DEFAULTS.status || buscaAtual !== DEFAULTS.busca
+  const filtrosAtivos = de !== DEFAULTS.de || ate !== DEFAULTS.ate || tipo !== DEFAULTS.tipo || status !== DEFAULTS.status || buscaAtual !== DEFAULTS.busca
 
   const [open, setOpen] = useState(filtrosAtivos)
   const [busca, setBusca] = useState(buscaAtual)
@@ -54,7 +48,7 @@ export function FinanceiroFiltros() {
 
   function handleExport() {
     startExport(async () => {
-      const result = await exportarTransacoesAction({ periodo, tipo, status, busca: buscaAtual })
+      const result = await exportarTransacoesAction({ de, ate, tipo, status, busca: buscaAtual })
       if (!result.ok) return
       const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
@@ -104,16 +98,22 @@ export function FinanceiroFiltros() {
       {open && (
         <div className="flex items-center gap-3 flex-wrap bg-card border border-border rounded-[13px] px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted font-medium">Período</span>
-            <select
-              value={periodo}
-              onChange={(e) => updateParam('periodo', e.target.value)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg border border-border outline-none cursor-pointer"
-            >
-              {PERIODO_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+            <span className="text-xs text-muted font-medium">De</span>
+            <input
+              type="date"
+              value={de}
+              max={ate || undefined}
+              onChange={(e) => updateParam('de', e.target.value)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg border border-border outline-none cursor-pointer focus:border-[#5b4bd4] transition-colors"
+            />
+            <span className="text-xs text-muted font-medium">Até</span>
+            <input
+              type="date"
+              value={ate}
+              min={de || undefined}
+              onChange={(e) => updateParam('ate', e.target.value)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg border border-border outline-none cursor-pointer focus:border-[#5b4bd4] transition-colors"
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted font-medium">Tipo</span>

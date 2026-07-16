@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient, getProfissional } from '@/lib/supabase/server'
 import { parseBrlInput } from '@/lib/currency'
-import { resolvePeriodo } from '@/lib/financeiro-periodo'
+import { isValidISODate } from '@/lib/financeiro-periodo'
 
 const EXPORT_COLS = 'data, tipo, status, paciente_nome, tipo_consulta_nome, descricao, forma_pagamento, valor'
 
@@ -13,7 +13,8 @@ function csvEscape(value: string): string {
 }
 
 export type FiltrosFinanceiro = {
-  periodo?: string
+  de?: string
+  ate?: string
   tipo?: string
   status?: string
   busca?: string
@@ -28,7 +29,8 @@ export async function exportarTransacoesAction(
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Não autenticado' }
 
-  const { start, end } = resolvePeriodo(filtros.periodo ?? 'este_mes', new Date())
+  const de = isValidISODate(filtros.de ?? '') ? filtros.de! : null
+  const ate = isValidISODate(filtros.ate ?? '') ? filtros.ate! : null
   const busca = (filtros.busca ?? '').replace(/[,()]/g, ' ').trim()
 
   let query = supabase
@@ -36,8 +38,8 @@ export async function exportarTransacoesAction(
     .select(EXPORT_COLS)
     .order('data', { ascending: false })
     .limit(5000)
-  if (start) query = query.gte('data', start)
-  if (end) query = query.lte('data', end)
+  if (de) query = query.gte('data', de)
+  if (ate) query = query.lte('data', ate)
   if (filtros.tipo && filtros.tipo !== 'todas') query = query.eq('tipo', filtros.tipo)
   if (filtros.status && filtros.status !== 'todos') query = query.eq('status', filtros.status)
   if (busca) query = query.or(`paciente_nome.ilike.%${busca}%,descricao.ilike.%${busca}%`)

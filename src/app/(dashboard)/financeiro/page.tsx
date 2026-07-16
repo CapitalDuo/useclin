@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, getProfissional } from '@/lib/supabase/server'
 import { FinanceiroView, type ContaAPagarRow, type EntradaRow, type SeriePonto } from '@/components/financeiro-view'
-import { iso, startOfMonth, endOfMonth, resolvePeriodo } from '@/lib/financeiro-periodo'
+import { iso, startOfMonth, endOfMonth, isValidISODate } from '@/lib/financeiro-periodo'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
 
@@ -78,18 +78,19 @@ function sanitizeBusca(busca: string) {
 export default async function FinanceiroPage({
   searchParams,
 }: {
-  searchParams: Promise<{ periodo?: string; tipo?: string; status?: string; busca?: string }>
+  searchParams: Promise<{ de?: string; ate?: string; tipo?: string; status?: string; busca?: string }>
 }) {
   const supabase = await createClient()
   const { user, prof } = await getProfissional(supabase)
   if (!user) redirect('/login')
 
   const sp = await searchParams
-  const periodo = sp.periodo ?? 'este_mes'
+  const de = isValidISODate(sp.de ?? '') ? sp.de! : null
+  const ate = isValidISODate(sp.ate ?? '') ? sp.ate! : null
   const tipoFiltro = sp.tipo ?? 'todas'
   const statusFiltro = sp.status ?? 'todos'
   const busca = sanitizeBusca(sp.busca ?? '')
-  const filtrosAtivos = periodo !== 'este_mes' || tipoFiltro !== 'todas' || statusFiltro !== 'todos' || busca !== ''
+  const filtrosAtivos = de !== null || ate !== null || tipoFiltro !== 'todas' || statusFiltro !== 'todos' || busca !== ''
 
   const today = new Date()
   const monthStart = startOfMonth(today)
@@ -133,15 +134,14 @@ export default async function FinanceiroPage({
   // que é a mesma lógica usada em exportarTransacoesAction.
   let recentes: Entrada[] | null = null
   if (filtrosAtivos) {
-    const { start, end } = resolvePeriodo(periodo, today)
     let query = supabase
       .from('v_financeiro_entradas')
       .select(ENTRADA_COLS)
       .order('data', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(100)
-    if (start) query = query.gte('data', start)
-    if (end) query = query.lte('data', end)
+    if (de) query = query.gte('data', de)
+    if (ate) query = query.lte('data', ate)
     if (tipoFiltro !== 'todas') query = query.eq('tipo', tipoFiltro)
     if (statusFiltro !== 'todos') query = query.eq('status', statusFiltro)
     if (busca) query = query.or(`paciente_nome.ilike.%${busca}%,descricao.ilike.%${busca}%`)
