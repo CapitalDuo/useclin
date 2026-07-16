@@ -3,6 +3,63 @@
 import { revalidatePath } from 'next/cache'
 import { createClient, getProfissional } from '@/lib/supabase/server'
 import { parseBrlInput } from '@/lib/currency'
+import { resolvePeriodo } from '@/lib/financeiro-periodo'
+
+const EXPORT_COLS = 'data, tipo, status, paciente_nome, tipo_consulta_nome, descricao, forma_pagamento, valor'
+
+function csvEscape(value: string): string {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`
+  return value
+}
+
+export type FiltrosFinanceiro = {
+  periodo?: string
+  tipo?: string
+  status?: string
+  busca?: string
+}
+
+export async function exportarTransacoesAction(
+  filtros: FiltrosFinanceiro,
+): Promise<{ ok: true; csv: string } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Não autenticado' }
+
+  const { start, end } = resolvePeriodo(filtros.periodo ?? 'este_mes', new Date())
+  const busca = (filtros.busca ?? '').replace(/[,()]/g, ' ').trim()
+
+  let query = supabase
+    .from('v_financeiro_entradas')
+    .select(EXPORT_COLS)
+    .order('data', { ascending: false })
+    .limit(5000)
+  if (start) query = query.gte('data', start)
+  if (end) query = query.lte('data', end)
+  if (filtros.tipo && filtros.tipo !== 'todas') query = query.eq('tipo', filtros.tipo)
+  if (filtros.status && filtros.status !== 'todos') query = query.eq('status', filtros.status)
+  if (busca) query = query.or(`paciente_nome.ilike.%${busca}%,descricao.ilike.%${busca}%`)
+
+  const { data, error } = await query
+  if (error) return { ok: false, error: error.message }
+
+  const header = 'Data,Tipo,Status,Paciente,Descrição,Forma de pagamento,Valor'
+  const rows = (data ?? []).map((r) =>
+    [
+      r.data ?? '',
+      r.tipo ?? '',
+      r.status ?? '',
+      csvEscape(r.paciente_nome ?? ''),
+      csvEscape(r.tipo_consulta_nome ?? r.descricao ?? ''),
+      r.forma_pagamento ?? '',
+      String(r.valor ?? 0).replace('.', ','),
+    ].join(','),
+  )
+
+  return { ok: true, csv: [header, ...rows].join('\n') }
+}
 
 export async function criarLancamentoAction(
   formData: FormData,

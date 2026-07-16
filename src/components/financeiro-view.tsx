@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { formatBrl, formatBrlPlain, parseBrlInput } from '@/lib/currency'
 import { excluirLancamentoAction, pagarDespesaFixaAction } from '@/app/(dashboard)/financeiro/actions'
+import { FinanceiroFiltros } from '@/components/financeiro-filtros'
 
 export type SeriePonto = { label: string; valor: number; data: string }
 
@@ -44,6 +45,7 @@ export function FinanceiroView({
   weekSerie,
   contasAPagar,
   ultimasEntradas,
+  filtrado,
 }: {
   faturamentoMensal: number
   recebidoPago: number
@@ -52,6 +54,7 @@ export function FinanceiroView({
   weekSerie: SeriePonto[]
   contasAPagar: ContaAPagarRow[]
   ultimasEntradas: EntradaRow[]
+  filtrado: boolean
 }) {
   return (
     <div className="px-4 sm:px-6 lg:px-10 pt-5 lg:pt-7 pb-10">
@@ -62,33 +65,8 @@ export function FinanceiroView({
           </h1>
           <p className="text-[15px] text-muted mt-1">Acompanhe suas receitas e recebimentos pendentes.</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            type="button"
-            disabled
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-[13px] border border-border bg-card text-sm font-semibold text-text hover:bg-bg transition-colors cursor-not-allowed opacity-60"
-            title="Em breve"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-              <line x1="4" y1="6" x2="20" y2="6" />
-              <line x1="7" y1="12" x2="17" y2="12" />
-              <line x1="10" y1="18" x2="14" y2="18" />
-            </svg>
-            Filtros
-          </button>
-          <button
-            type="button"
-            disabled
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-[13px] border border-border bg-card text-sm font-semibold text-text hover:bg-bg transition-colors cursor-not-allowed opacity-60"
-            title="Em breve"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Exportar
-          </button>
+        <div className="flex items-start gap-3 flex-wrap">
+          <FinanceiroFiltros />
           <Link
             href="/financeiro/nova"
             className="inline-flex items-center gap-2 px-5 py-3 rounded-[13px] bg-text text-white text-sm font-semibold hover:bg-[#333] transition-all hover:-translate-y-px hover:shadow-lg cursor-pointer"
@@ -163,7 +141,9 @@ export function FinanceiroView({
 
         <div className="bg-card border border-border rounded-[14px] p-6 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-newsreader text-[20px] font-semibold tracking-tight">Últimas entradas</h2>
+            <h2 className="font-newsreader text-[20px] font-semibold tracking-tight">
+              {filtrado ? 'Transações filtradas' : 'Últimas entradas'}
+            </h2>
             <span className="text-xs text-muted font-medium">
               {ultimasEntradas.length} {ultimasEntradas.length === 1 ? 'item' : 'itens'}
             </span>
@@ -171,7 +151,7 @@ export function FinanceiroView({
           <div className="flex flex-col gap-1 flex-1">
             {ultimasEntradas.length === 0 ? (
               <div className="text-center text-sm text-muted py-8">
-                Nenhuma entrada registrada ainda.
+                {filtrado ? 'Nenhuma transação encontrada com esses filtros.' : 'Nenhuma entrada registrada ainda.'}
               </div>
             ) : (
               ultimasEntradas.map((e) => (

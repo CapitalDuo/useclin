@@ -1,20 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient, getProfissional } from '@/lib/supabase/server'
 import { FinanceiroView, type ContaAPagarRow, type EntradaRow, type SeriePonto } from '@/components/financeiro-view'
+import { iso, startOfMonth, endOfMonth, resolvePeriodo } from '@/lib/financeiro-periodo'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
-
-function startOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), 1)
-}
-
-function endOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0)
-}
-
-function iso(d: Date) {
-  return d.toISOString().slice(0, 10)
-}
 
 function startOfWeek(d: Date) {
   const day = d.getDay() // 0=dom..6=sab
@@ -79,10 +68,28 @@ async function gerarDespesasFixasDoMes(
     .upsert(rows, { onConflict: 'despesa_fixa_id,mes_referencia', ignoreDuplicates: true })
 }
 
-export default async function FinanceiroPage() {
+function sanitizeBusca(busca: string) {
+  // Remove os caracteres com significado na gramática de filtro do PostgREST
+  // (vírgula separa condições, parênteses agrupam) pra não deixar o texto
+  // de busca do usuário injetar uma condição extra no .or().
+  return busca.replace(/[,()]/g, ' ').trim()
+}
+
+export default async function FinanceiroPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ periodo?: string; tipo?: string; status?: string; busca?: string }>
+}) {
   const supabase = await createClient()
   const { user, prof } = await getProfissional(supabase)
   if (!user) redirect('/login')
+
+  const sp = await searchParams
+  const periodo = sp.periodo ?? 'este_mes'
+  const tipoFiltro = sp.tipo ?? 'todas'
+  const statusFiltro = sp.status ?? 'todos'
+  const busca = sanitizeBusca(sp.busca ?? '')
+  const filtrosAtivos = periodo !== 'este_mes' || tipoFiltro !== 'todas' || statusFiltro !== 'todos' || busca !== ''
 
   const today = new Date()
   const monthStart = startOfMonth(today)
@@ -92,9 +99,9 @@ export default async function FinanceiroPage() {
     await gerarDespesasFixasDoMes(supabase, prof.clinica_id, monthStart)
   }
 
-  // Carrega TODAS as entradas do mês (faturamento mensal) +
-  // entradas pra montar sparkline (semana atual) + contas a pagar
-  const [{ data: entradasMes }, { data: despesasMesData }, { data: recentes }, { data: contasAPagarData }] = await Promise.all([
+  // KPIs do topo são sempre "mês atual", independente dos filtros —
+  // filtro só afeta a lista de transações abaixo e o que é exportado.
+  const [{ data: entradasMes }, { data: despesasMesData }, { data: contasAPagarData }] = await Promise.all([
     supabase
       .from('v_financeiro_entradas')
       .select(ENTRADA_COLS)
@@ -109,12 +116,6 @@ export default async function FinanceiroPage() {
       .gte('data', iso(monthStart))
       .lte('data', iso(monthEnd))
       .order('data', { ascending: true }),
-    supabase
-      .from('v_financeiro_entradas')
-      .select(ENTRADA_COLS)
-      .order('data', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(8),
     // Pendências de despesas fixas — inclui atrasadas de meses anteriores
     // (sem filtro de início de período: senão uma pendência esquecida
     // sumiria do radar assim que o mês virasse), exclui vencimentos futuros.
@@ -126,6 +127,35 @@ export default async function FinanceiroPage() {
       .lte('data', iso(monthEnd))
       .order('data', { ascending: true }),
   ])
+
+  // Sem filtro ativo: mantém o comportamento original (últimas 8 entradas).
+  // Com filtro ativo: troca pela consulta filtrada (até 100 resultados),
+  // que é a mesma lógica usada em exportarTransacoesAction.
+  let recentes: Entrada[] | null = null
+  if (filtrosAtivos) {
+    const { start, end } = resolvePeriodo(periodo, today)
+    let query = supabase
+      .from('v_financeiro_entradas')
+      .select(ENTRADA_COLS)
+      .order('data', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(100)
+    if (start) query = query.gte('data', start)
+    if (end) query = query.lte('data', end)
+    if (tipoFiltro !== 'todas') query = query.eq('tipo', tipoFiltro)
+    if (statusFiltro !== 'todos') query = query.eq('status', statusFiltro)
+    if (busca) query = query.or(`paciente_nome.ilike.%${busca}%,descricao.ilike.%${busca}%`)
+    const { data } = await query
+    recentes = data
+  } else {
+    const { data } = await supabase
+      .from('v_financeiro_entradas')
+      .select(ENTRADA_COLS)
+      .order('data', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(8)
+    recentes = data
+  }
 
   const entradas: Entrada[] = (entradasMes ?? []) as Entrada[]
   const despesasMes: Entrada[] = (despesasMesData ?? []) as Entrada[]
@@ -193,6 +223,7 @@ export default async function FinanceiroPage() {
       weekSerie={weekSerie}
       contasAPagar={contasAPagar}
       ultimasEntradas={ultimasEntradas}
+      filtrado={filtrosAtivos}
     />
   )
 }
