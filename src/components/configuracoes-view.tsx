@@ -150,7 +150,7 @@ export function ConfiguracoesView({
         <PlanCard plano_slug={clinica.plano_slug} plano_status={clinica.plano_status} plano_periodo_fim={clinica.plano_periodo_fim} plano_cancelando={clinica.plano_cancelando} trial_ends_at={clinica.trial_ends_at} />
       </SectionCard>
 
-      <SectionCard title="Perfil da Clínica" icon={SECTION_ICONS.clinica} onEdit={() => openEdit('clinica')}>
+      <SectionCard title="Perfil da Clínica" icon={SECTION_ICONS.clinica} onEdit={() => openEdit('clinica')} collapsible>
         {clinica.logo_url && (
           <div className="py-3 border-b border-border">
             <img src={clinica.logo_url} alt="Logo da clínica" className="w-16 h-16 rounded-full object-cover border border-border" />
@@ -173,7 +173,7 @@ export function ConfiguracoesView({
         )}
       </SectionCard>
 
-      <SectionCard title="Serviços e Convênios" icon={SECTION_ICONS.servicos} onEdit={() => openEdit('servicos')}>
+      <SectionCard title="Serviços e Convênios" icon={SECTION_ICONS.servicos} onEdit={() => openEdit('servicos')} collapsible>
         <div className="py-4">
           <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-2.5">Serviços prestados</div>
           {servicos.length > 0 ? (
@@ -200,7 +200,7 @@ export function ConfiguracoesView({
         </div>
       </SectionCard>
 
-      <SectionCard title="Meu Perfil" icon={SECTION_ICONS.perfil} onEdit={() => openEdit('meu-perfil')}>
+      <SectionCard title="Meu Perfil" icon={SECTION_ICONS.perfil} onEdit={() => openEdit('meu-perfil')} collapsible>
         <Row label="Nome completo" value={profissional.nome} />
         <Row label="Especialidade" value={profissional.especialidade ?? '—'} />
         <Row label="Registro (CRM/CRO)" value={profissional.registro ?? '—'} />
@@ -222,7 +222,7 @@ export function ConfiguracoesView({
         ))}
       </SectionCard>
 
-      <SectionCard title="Horário de Funcionamento" icon={SECTION_ICONS.horarios} onEdit={() => openEdit('horarios')}>
+      <SectionCard title="Horário de Funcionamento" icon={SECTION_ICONS.horarios} onEdit={() => openEdit('horarios')} collapsible>
         {DAY_ORDER.map((dia) => {
           const h = horariosByDay.get(dia)
           const label = DAY_LABELS[dia]
@@ -237,7 +237,7 @@ export function ConfiguracoesView({
         })}
       </SectionCard>
 
-      <SectionCard title="WhatsApp" icon={SECTION_ICONS.whatsapp} onEdit={() => openEdit('whatsapp')}>
+      <SectionCard title="WhatsApp" icon={SECTION_ICONS.whatsapp} onEdit={() => openEdit('whatsapp')} collapsible>
         {whatsapp ? (
           <>
             <Row label="Instância" value={whatsapp.nome_instancia} />
@@ -633,25 +633,46 @@ function SectionCard({
   title,
   icon,
   onEdit,
+  collapsible = false,
   children,
 }: {
   title: string
   icon?: React.ReactNode
   onEdit?: () => void
+  collapsible?: boolean
   children: React.ReactNode
 }) {
+  // ponytail: colapsável começa fechado; seções sempre-abertas (Plano/Notificações) não passam a prop
+  const [open, setOpen] = useState(!collapsible)
+  const showBody = !collapsible || open
+
   return (
     <section className="bg-card border border-border rounded-[14px] overflow-hidden">
-      <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-border">
-        <h2 className="font-playfair text-[20px] font-extrabold tracking-tight flex items-center gap-2.5">
-          {icon && <span className="flex-shrink-0">{icon}</span>}
-          {title}
-        </h2>
-        {onEdit && (
+      <div className={`flex items-center justify-between px-7 pt-6 pb-4 ${showBody ? 'border-b border-border' : ''}`}>
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer"
+          >
+            {icon && <span className="flex-shrink-0">{icon}</span>}
+            <h2 className="font-playfair text-[20px] font-extrabold tracking-tight">{title}</h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-4 h-4 text-muted transition-transform ${open ? 'rotate-180' : ''}`}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+        ) : (
+          <h2 className="font-playfair text-[20px] font-extrabold tracking-tight flex items-center gap-2.5">
+            {icon && <span className="flex-shrink-0">{icon}</span>}
+            {title}
+          </h2>
+        )}
+        {onEdit && showBody && (
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] border border-border text-xs font-semibold text-muted hover:text-text hover:bg-bg transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] border border-border text-xs font-semibold text-muted hover:text-text hover:bg-bg transition-colors cursor-pointer flex-shrink-0"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
               <path d="M12 20h9" />
@@ -661,7 +682,7 @@ function SectionCard({
           </button>
         )}
       </div>
-      <div className="px-7 py-2 flex flex-col">{children}</div>
+      {showBody && <div className="px-7 py-2 flex flex-col">{children}</div>}
     </section>
   )
 }
