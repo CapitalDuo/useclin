@@ -246,6 +246,38 @@ export async function enviarMensagemAction(
   }
 }
 
+export async function desconectarWhatsappAction(token: string): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { user, prof } = await getProfissional(supabase)
+  if (!user) return { ok: false, error: 'Não autenticado' }
+  if (!prof?.clinica_id) return { ok: false, error: 'Conta sem clínica vinculada' }
+
+  const webhookUrl = process.env.N8N_WEBHOOK_URL
+  if (!webhookUrl) return { ok: false, error: 'N8N_WEBHOOK_URL não configurado no servidor' }
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'desconectar', token }),
+    })
+    if (!res.ok) return { ok: false, error: `Erro ao desconectar (${res.status})` }
+  } catch {
+    return { ok: false, error: 'Falha ao conectar com o servidor de automação' }
+  }
+
+  const { error } = await supabase
+    .from('whatsapp_instancias')
+    .update({ status: 'desconectado' })
+    .eq('clinica_id', prof.clinica_id)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/atendimento')
+  revalidatePath('/configuracoes')
+  return { ok: true }
+}
+
 export async function updateMeuPerfilAction(formData: FormData) {
   const supabase = await createClient()
   const { user, prof } = await getProfissional(supabase)

@@ -12,6 +12,7 @@ import {
   buscarChatsAction,
   buscarMensagensAction,
   enviarMensagemAction,
+  desconectarWhatsappAction,
   type WaChat,
   type WaMessage,
 } from '@/app/(dashboard)/configuracoes/actions'
@@ -217,6 +218,8 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false)
+  const [disconnecting, setDisconnecting] = useState(false)
 
   // Refs para evitar closures stale e auto-scroll
   const selectedChatIdRef = useRef<string | null>(null)
@@ -342,6 +345,25 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
     setChats([]); setSelectedChatId(null); setMessages([])
   }
 
+  // Desconecta de verdade: logout na UAZAPI (via n8n) + status no banco.
+  // 2-step confirm: primeiro clique arma, segundo executa.
+  async function disconnectReal() {
+    if (!confirmDisconnect) {
+      setConfirmDisconnect(true)
+      setTimeout(() => setConfirmDisconnect(false), 4000)
+      return
+    }
+    if (!instToken || disconnecting) return
+    setDisconnecting(true)
+    const res = await desconectarWhatsappAction(instToken)
+    setDisconnecting(false)
+    setConfirmDisconnect(false)
+    if (res.ok) {
+      handleDisconnect()
+      router.refresh()
+    }
+  }
+
   async function refreshAll() {
     if (!instToken || loadingChats) return
     setLoadingChats(true)
@@ -394,14 +416,26 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
 
         {/* Connection status */}
         <div className="px-4 py-3 border-b border-border">
-          <button onClick={handleDisconnect}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[13px] bg-bg hover:bg-border/50 transition-colors cursor-pointer">
+          <div className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[13px] bg-bg">
             <WhatsAppIcon className={`w-4 h-4 ${connectionStatus === 'connected' ? 'text-green' : 'text-muted'}`} />
             <span className={`text-xs font-semibold flex-1 text-left ${connectionStatus === 'connected' ? 'text-green' : 'text-muted'}`}>
               {connectionStatus === 'connected' ? 'WhatsApp conectado' : connectionStatus === 'scanning' ? 'Aguardando scan...' : 'WhatsApp desconectado'}
             </span>
-            <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green' : connectionStatus === 'scanning' ? 'bg-orange animate-pulse' : 'bg-border'}`} />
-          </button>
+            {connectionStatus === 'connected' && (
+              <button
+                onClick={disconnectReal}
+                disabled={disconnecting}
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border transition-colors cursor-pointer disabled:opacity-50 ${
+                  confirmDisconnect
+                    ? 'border-red text-red bg-red-light'
+                    : 'border-border text-muted hover:text-red hover:border-red'
+                }`}
+              >
+                {disconnecting ? 'Saindo…' : confirmDisconnect ? 'Confirmar?' : 'Desconectar'}
+              </button>
+            )}
+            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${connectionStatus === 'connected' ? 'bg-green' : connectionStatus === 'scanning' ? 'bg-orange animate-pulse' : 'bg-border'}`} />
+          </div>
         </div>
 
         {/* Chat list */}
@@ -500,9 +534,6 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
               <div className="flex gap-2.5">
                 <button className="inline-flex items-center gap-2 px-4 py-2 rounded-[13px] border border-border bg-card text-[13px] font-semibold hover:bg-bg hover:border-text transition-all cursor-pointer">
                   <CalendarIcon className="w-4 h-4" />Agendar
-                </button>
-                <button className="inline-flex items-center gap-2 px-4 py-2 rounded-[13px] border border-border bg-card text-[13px] font-semibold hover:bg-bg hover:border-text transition-all cursor-pointer">
-                  <ChatIcon className="w-4 h-4" />Contato
                 </button>
               </div>
             </div>
