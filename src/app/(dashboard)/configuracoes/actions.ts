@@ -246,6 +246,28 @@ export async function enviarMensagemAction(
   }
 }
 
+// ponytail: host UAZAPI fixo (mesmo hardcoded nos nós do n8n). Marcar-lido vai
+// direto pra UAZAPI em vez de passar pelo n8n — evita reroteirar o Switch do
+// fluxo de produção por um clear de badge. Vira env se um dia for multi-servidor.
+const UAZAPI_BASE = 'https://httpsuseclin.uazapi.com'
+
+// Zera o contador de não-lidas de um chat na UAZAPI (POST /chat/read).
+// O badge da lista vem do wa_unreadCount da UAZAPI, então marcar só local não
+// basta: o polling de 30s traria o número de volta.
+export async function marcarChatLidoAction(token: string, remoteJid: string): Promise<{ ok: boolean }> {
+  if (!token || !remoteJid) return { ok: false }
+  try {
+    const res = await fetch(`${UAZAPI_BASE}/chat/read`, {
+      method: 'POST',
+      headers: { token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number: remoteJid, read: true }),
+    })
+    return { ok: res.ok }
+  } catch {
+    return { ok: false }
+  }
+}
+
 export async function desconectarWhatsappAction(token: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient()
   const { user, prof } = await getProfissional(supabase)

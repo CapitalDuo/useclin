@@ -13,6 +13,7 @@ import {
   buscarMensagensAction,
   enviarMensagemAction,
   desconectarWhatsappAction,
+  marcarChatLidoAction,
   type WaChat,
   type WaMessage,
 } from '@/app/(dashboard)/configuracoes/actions'
@@ -329,6 +330,14 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
       setMessages(messages)
       setLoadingMessages(false)
     })
+  }, [selectedChatId, instToken])
+
+  // Ao abrir um chat: zera o badge local na hora e marca lido na UAZAPI (senão
+  // o polling de 30s traz o contador de volta).
+  useEffect(() => {
+    if (!selectedChatId || !instToken) return
+    setChats((prev) => prev.map((c) => (c.id === selectedChatId ? { ...c, unread: 0 } : c)))
+    marcarChatLidoAction(instToken, selectedChatId)
   }, [selectedChatId, instToken])
 
   function handleConnecting(name: string, qr: string, token: string) {
