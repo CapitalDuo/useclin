@@ -312,21 +312,36 @@ export async function updateServicosEConveniosAction(
   return { ok: true as const }
 }
 
-const NOTIF_TIPOS = ['lembrete_consulta', 'confirmacao_whatsapp'] as const
+const NOTIF_TIPOS = ['lembrete_consulta', 'aniversario'] as const
 export type NotificacaoTipo = (typeof NOTIF_TIPOS)[number]
+// ponytail: mesma lista existe em configuracoes-view (não pode exportar de 'use server')
+const HORAS_ANTES_OPCOES = [1, 2, 6, 12, 24, 48]
 
-export async function toggleNotificacaoAction(tipo: NotificacaoTipo, ativo: boolean) {
+export async function toggleNotificacaoAction(
+  tipo: NotificacaoTipo,
+  ativo: boolean,
+  extra?: { horas_antes?: number; mensagem?: string },
+) {
   const supabase = await createClient()
   const { user, prof } = await getProfissional(supabase)
   if (!user) return { ok: false as const, error: 'Não autenticado' }
   if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
 
   if (!NOTIF_TIPOS.includes(tipo)) return { ok: false as const, error: 'Tipo inválido' }
+  if (tipo === 'lembrete_consulta' && extra?.horas_antes !== undefined && !HORAS_ANTES_OPCOES.includes(extra.horas_antes)) {
+    return { ok: false as const, error: 'Horas inválidas' }
+  }
 
   const { error } = await supabase
     .from('notificacao_config')
     .upsert(
-      { clinica_id: prof.clinica_id, tipo, ativo },
+      {
+        clinica_id: prof.clinica_id,
+        tipo,
+        ativo,
+        ...(extra?.horas_antes !== undefined && { horas_antes: extra.horas_antes }),
+        ...(extra?.mensagem !== undefined && { mensagem: extra.mensagem.trim() || null }),
+      },
       { onConflict: 'clinica_id,tipo' },
     )
 

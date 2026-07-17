@@ -4,6 +4,7 @@ import {
   ConfiguracoesView,
   type HorarioRow,
   type Notificacoes,
+  type NotificacaoExtra,
 } from '@/components/configuracoes-view'
 
 const DEFAULT_HORARIO: Omit<HorarioRow, 'dia_semana'> = {
@@ -16,7 +17,11 @@ const DEFAULT_HORARIO: Omit<HorarioRow, 'dia_semana'> = {
 
 const NOTIF_DEFAULTS: Notificacoes = {
   lembrete_consulta: true,
-  confirmacao_whatsapp: true,
+  aniversario: true,
+}
+const NOTIF_EXTRA_DEFAULTS: NotificacaoExtra = {
+  horas_antes: 24,
+  mensagem: '',
 }
 
 export default async function ConfiguracoesPage() {
@@ -59,7 +64,7 @@ export default async function ConfiguracoesPage() {
       .maybeSingle(),
     supabase
       .from('notificacao_config')
-      .select('tipo, ativo')
+      .select('tipo, ativo, horas_antes, mensagem')
       .eq('clinica_id', prof.clinica_id),
     supabase
       .from('clinica_servicos')
@@ -97,9 +102,16 @@ export default async function ConfiguracoesPage() {
   })
 
   const notif: Notificacoes = { ...NOTIF_DEFAULTS }
+  const notifExtra: NotificacaoExtra = { ...NOTIF_EXTRA_DEFAULTS }
   for (const row of notificacoes ?? []) {
-    if (row.tipo === 'lembrete_consulta' || row.tipo === 'confirmacao_whatsapp') {
+    if (row.tipo === 'lembrete_consulta' || row.tipo === 'aniversario') {
       notif[row.tipo] = row.ativo ?? false
+    }
+    if (row.tipo === 'lembrete_consulta' && row.horas_antes != null) {
+      notifExtra.horas_antes = row.horas_antes
+    }
+    if (row.tipo === 'aniversario' && row.mensagem != null) {
+      notifExtra.mensagem = row.mensagem
     }
   }
 
@@ -123,6 +135,7 @@ export default async function ConfiguracoesPage() {
         role: prof.role,
       }}
       notificacoes={notif}
+      notificacoesExtra={notifExtra}
       servicos={servicos ?? []}
       convenios={convenios ?? []}
     />

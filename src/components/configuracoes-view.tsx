@@ -72,12 +72,14 @@ export type WhatsappInstancia = {
 } | null
 
 export type Notificacoes = Record<NotificacaoTipo, boolean>
+export type NotificacaoExtra = { horas_antes: number; mensagem: string }
+const HORAS_ANTES_OPCOES = [1, 2, 6, 12, 24, 48]
 
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
 const NOTIF_ITEMS: { tipo: NotificacaoTipo; label: string; descricao: string }[] = [
-  { tipo: 'lembrete_consulta', label: 'Lembrete de consulta', descricao: 'Enviar lembrete 24h antes da consulta' },
-  { tipo: 'confirmacao_whatsapp', label: 'Confirmação por WhatsApp', descricao: 'Solicitar confirmação via mensagem' },
+  { tipo: 'lembrete_consulta', label: 'Lembrete de consulta', descricao: 'Enviar lembrete antes da consulta' },
+  { tipo: 'aniversario', label: 'Mensagem de aniversário', descricao: 'Enviar mensagem no aniversário do paciente' },
 ]
 
 const WHATSAPP_STATUS_LABEL: Record<string, string> = {
@@ -110,6 +112,7 @@ export function ConfiguracoesView({
   whatsapp,
   profissional,
   notificacoes,
+  notificacoesExtra,
   servicos,
   convenios,
 }: {
@@ -118,6 +121,7 @@ export function ConfiguracoesView({
   whatsapp: WhatsappInstancia
   profissional: Profissional
   notificacoes: Notificacoes
+  notificacoesExtra: NotificacaoExtra
   servicos: ServicoRow[]
   convenios: ConvenioRow[]
 }) {
@@ -212,6 +216,8 @@ export function ConfiguracoesView({
             descricao={item.descricao}
             tipo={item.tipo}
             ativo={notificacoes[item.tipo] ?? false}
+            horasAntes={notificacoesExtra.horas_antes}
+            mensagem={notificacoesExtra.mensagem}
           />
         ))}
       </SectionCard>
@@ -687,13 +693,19 @@ function NotificacaoRow({
   descricao,
   tipo,
   ativo: initialAtivo,
+  horasAntes: initialHorasAntes,
+  mensagem: initialMensagem,
 }: {
   label: string
   descricao: string
   tipo: NotificacaoTipo
   ativo: boolean
+  horasAntes: number
+  mensagem: string
 }) {
   const [ativo, setAtivo] = useState(initialAtivo)
+  const [horasAntes, setHorasAntes] = useState(initialHorasAntes)
+  const [mensagem, setMensagem] = useState(initialMensagem)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -710,29 +722,76 @@ function NotificacaoRow({
     })
   }
 
+  function salvarHorasAntes(next: number) {
+    setHorasAntes(next)
+    setError(null)
+    startTransition(async () => {
+      const result = await toggleNotificacaoAction(tipo, ativo, { horas_antes: next })
+      if (!result.ok) setError(result.error)
+    })
+  }
+
+  function salvarMensagem() {
+    if (mensagem === initialMensagem) return
+    setError(null)
+    startTransition(async () => {
+      const result = await toggleNotificacaoAction(tipo, ativo, { mensagem })
+      if (!result.ok) setError(result.error)
+    })
+  }
+
   return (
-    <div className="flex items-center justify-between gap-4 py-4 border-b border-border last:border-0">
-      <div>
-        <div className="text-[14px] font-semibold text-text">{label}</div>
-        <div className="text-xs text-muted mt-0.5">{descricao}</div>
-        {error && <div className="text-xs text-red mt-1">{error}</div>}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={ativo}
-        onClick={toggle}
-        disabled={pending}
-        className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
-          ativo ? 'bg-[#2fb98a]' : 'bg-[#d4d2cd]'
-        }`}
-      >
-        <span
-          className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform mt-1 ${
-            ativo ? 'translate-x-6' : 'translate-x-1'
+    <div className="py-4 border-b border-border last:border-0">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-[14px] font-semibold text-text">{label}</div>
+          <div className="text-xs text-muted mt-0.5">{descricao}</div>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={ativo}
+          onClick={toggle}
+          disabled={pending}
+          className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
+            ativo ? 'bg-[#2fb98a]' : 'bg-[#d4d2cd]'
           }`}
+        >
+          <span
+            className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform mt-1 ${
+              ativo ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+      {error && <div className="text-xs text-red mt-1">{error}</div>}
+      {ativo && tipo === 'lembrete_consulta' && (
+        <div className="mt-3 flex items-center gap-2">
+          <label className="text-xs text-muted" htmlFor="horas-antes-select">Enviar</label>
+          <select
+            id="horas-antes-select"
+            value={horasAntes}
+            onChange={(e) => salvarHorasAntes(Number(e.target.value))}
+            disabled={pending}
+            className="text-sm border border-border rounded-[8px] px-2 py-1 bg-card disabled:opacity-50"
+          >
+            {HORAS_ANTES_OPCOES.map((h) => (
+              <option key={h} value={h}>{h}h antes</option>
+            ))}
+          </select>
+        </div>
+      )}
+      {ativo && tipo === 'aniversario' && (
+        <textarea
+          value={mensagem}
+          onChange={(e) => setMensagem(e.target.value)}
+          onBlur={salvarMensagem}
+          disabled={pending}
+          placeholder="Escreva a mensagem que será enviada no aniversário do paciente"
+          rows={3}
+          className="mt-3 w-full text-sm border border-border rounded-[8px] px-3 py-2 bg-card resize-none disabled:opacity-50"
         />
-      </button>
+      )}
     </div>
   )
 }

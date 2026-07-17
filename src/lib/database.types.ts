@@ -580,19 +580,25 @@ export type Database = {
         Row: {
           ativo: boolean
           clinica_id: string
+          horas_antes: number | null
           id: string
+          mensagem: string | null
           tipo: string
         }
         Insert: {
           ativo?: boolean
           clinica_id: string
+          horas_antes?: number | null
           id?: string
+          mensagem?: string | null
           tipo: string
         }
         Update: {
           ativo?: boolean
           clinica_id?: string
+          horas_antes?: number | null
           id?: string
+          mensagem?: string | null
           tipo?: string
         }
         Relationships: [
@@ -1985,4 +1991,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
