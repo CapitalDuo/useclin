@@ -155,7 +155,16 @@ export async function verificarStatusWhatsappAction(token: string): Promise<{
     })
     if (!res.ok) return { connected: false, state: 'erro' }
     const data = await res.json()
-    return { connected: !!data.connected, state: data.state ?? 'close' }
+    const connected = !!data.connected
+
+    if (connected) {
+      const supabase = await createClient()
+      await supabase.from('whatsapp_instancias').update({ status: 'conectado' }).eq('api_key', token)
+      revalidatePath('/atendimento')
+      revalidatePath('/configuracoes')
+    }
+
+    return { connected, state: data.state ?? 'close' }
   } catch {
     return { connected: false, state: 'erro' }
   }
