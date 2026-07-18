@@ -13,7 +13,7 @@ import { formatBrlPlain, parseBrlInput } from '@/lib/currency'
 import { todayISO } from '@/lib/date'
 import { PageLoader } from '@/components/page-loader'
 
-type Paciente = { id: string; nome: string }
+type Paciente = { id: string; nome: string; protegido?: boolean }
 type Profissional = { id: string; nome: string; especialidade: string | null }
 type Tipo = { id: string; nome: string; cor: string; duracao_padrao: string | null }
 
@@ -57,10 +57,19 @@ export function AgendamentoModal({
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
+  // "Sem cadastro" (protegido) fica sempre no topo da lista, destacado — é a
+  // opção pra agendar sem saber ainda quem é o paciente. Default de seleção
+  // continua no primeiro paciente real (não pula direto pro protegido).
+  const semCadastro = pacientes.find((p) => p.protegido)
+  const outros = pacientes.filter((p) => !p.protegido)
+  const pacientesOrdenados = semCadastro ? [semCadastro, ...outros] : outros
+
   // Seed inicial a partir do modo. O call site passa `key` derivada do modo,
   // então trocar de agendamento (ou de slot no 'new') remonta e re-seeda —
   // padrão React de resetar estado por prop, sem setState síncrono em effect.
-  const [pacienteId, setPacienteId] = useState(() => (mode.kind === 'new' ? pacientes[0]?.id ?? '' : ''))
+  const [pacienteId, setPacienteId] = useState(() =>
+    mode.kind === 'new' ? outros[0]?.id ?? semCadastro?.id ?? '' : '',
+  )
   const [profissionalId, setProfissionalId] = useState(() => (mode.kind === 'new' ? profissionais[0]?.id ?? '' : ''))
   const [tipoId, setTipoId] = useState('none')
   const [data, setData] = useState(() => (mode.kind === 'new' ? mode.data ?? todayISO() : ''))
@@ -227,8 +236,10 @@ export function AgendamentoModal({
                 onChange={(e) => setPacienteId(e.target.value)}
                 className="w-full px-4 py-3 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-bg cursor-pointer"
               >
-                {pacientes.map((p) => (
-                  <option key={p.id} value={p.id}>{p.nome}</option>
+                {pacientesOrdenados.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.protegido ? 'Sem cadastro (paciente não identificado)' : p.nome}
+                  </option>
                 ))}
               </select>
             </div>

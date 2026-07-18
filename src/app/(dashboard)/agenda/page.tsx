@@ -38,7 +38,7 @@ export default async function AgendaPage({
       .lte('data', isoDate(to))
       .order('data')
       .order('hora_inicio'),
-    supabase.from('pacientes').select('id, nome').eq('status', 'ativo').order('nome'),
+    supabase.from('pacientes').select('id, nome, protegido').eq('status', 'ativo').order('nome'),
     supabase.from('profissionais').select('id, nome, especialidade').eq('ativo', true).order('nome'),
     supabase.from('tipos_consulta').select('id, nome, cor, duracao_padrao').order('nome'),
     prof?.clinica_id

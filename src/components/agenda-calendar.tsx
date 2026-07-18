@@ -23,7 +23,7 @@ export type AgendaEvento = {
 
 export type AgendaView = 'day' | 'week'
 
-type Paciente = { id: string; nome: string }
+type Paciente = { id: string; nome: string; protegido?: boolean }
 type Profissional = { id: string; nome: string; especialidade: string | null }
 type Tipo = { id: string; nome: string; cor: string; duracao_padrao: string | null }
 
