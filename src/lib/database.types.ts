@@ -221,6 +221,48 @@ export type Database = {
           },
         ]
       }
+      clinica_faq: {
+        Row: {
+          clinica_id: string
+          created_at: string
+          id: string
+          ordem: number
+          pergunta: string
+          resposta: string
+        }
+        Insert: {
+          clinica_id: string
+          created_at?: string
+          id?: string
+          ordem?: number
+          pergunta: string
+          resposta: string
+        }
+        Update: {
+          clinica_id?: string
+          created_at?: string
+          id?: string
+          ordem?: number
+          pergunta?: string
+          resposta?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinica_faq_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinica_faq_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "v_clinica_planos"
+            referencedColumns: ["clinica_id"]
+          },
+        ]
+      }
       clinica_servicos: {
         Row: {
           ativo: boolean

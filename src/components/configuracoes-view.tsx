@@ -12,9 +12,10 @@ import {
   updateMeuPerfilAction,
   toggleNotificacaoAction,
   updateServicosEConveniosAction,
+  updateFaqAction,
   type NotificacaoTipo,
 } from '@/app/(dashboard)/configuracoes/actions'
-import { WalletIcon, HomeIcon, UserIcon, BellIcon, ClockIcon, ChatIcon } from '@/components/icons'
+import { WalletIcon, HomeIcon, UserIcon, BellIcon, ClockIcon, ChatIcon, ClipboardIcon } from '@/components/icons'
 import { WEEKDAY_KEYS, DAY_LABELS } from '@/lib/weekdays'
 
 export type Clinica = {
@@ -63,6 +64,12 @@ export type ServicoRow = {
 
 export type ConvenioRow = ServicoRow
 
+export type FaqRow = {
+  id: string
+  pergunta: string
+  resposta: string
+}
+
 export type WhatsappInstancia = {
   id: string
   nome_instancia: string
@@ -104,6 +111,7 @@ const SECTION_ICONS = {
   horarios: <ClockIcon className={ICON_CLS} />,
   whatsapp: <ChatIcon className={ICON_CLS} />,
   servicos: <WalletIcon className={ICON_CLS} />,
+  faq: <ClipboardIcon className={ICON_CLS} />,
 }
 
 export function ConfiguracoesView({
@@ -115,6 +123,7 @@ export function ConfiguracoesView({
   notificacoesExtra,
   servicos,
   convenios,
+  faq,
 }: {
   clinica: Clinica
   horarios: HorarioRow[]
@@ -124,12 +133,13 @@ export function ConfiguracoesView({
   notificacoesExtra: NotificacaoExtra
   servicos: ServicoRow[]
   convenios: ConvenioRow[]
+  faq: FaqRow[]
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editKind = searchParams.get('edit')
 
-  function openEdit(kind: 'clinica' | 'horarios' | 'whatsapp' | 'meu-perfil' | 'servicos') {
+  function openEdit(kind: 'clinica' | 'horarios' | 'whatsapp' | 'meu-perfil' | 'servicos' | 'faq') {
     const params = new URLSearchParams(searchParams.toString())
     params.set('edit', kind)
     router.push(`/configuracoes?${params.toString()}`)
@@ -200,6 +210,24 @@ export function ConfiguracoesView({
         </div>
       </SectionCard>
 
+      <SectionCard title="FAQ — Perguntas frequentes" icon={SECTION_ICONS.faq} onEdit={() => openEdit('faq')} collapsible>
+        <div className="py-3">
+          <p className="text-xs text-muted mb-3">Perguntas que seus clientes costumam fazer. Servem de base para o agente de atendimento responder no WhatsApp.</p>
+          {faq.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {faq.map((f) => (
+                <div key={f.id} className="border-b border-border last:border-0 pb-3 last:pb-0">
+                  <div className="text-[14px] font-semibold text-text">{f.pergunta}</div>
+                  <p className="text-sm text-muted mt-0.5 whitespace-pre-line">{f.resposta}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted py-2">Nenhuma pergunta cadastrada ainda.</p>
+          )}
+        </div>
+      </SectionCard>
+
       <SectionCard title="Meu Perfil" icon={SECTION_ICONS.perfil} onEdit={() => openEdit('meu-perfil')} collapsible>
         <Row label="Nome completo" value={profissional.nome} />
         <Row label="Especialidade" value={profissional.especialidade ?? '—'} />
@@ -261,6 +289,7 @@ export function ConfiguracoesView({
       {editKind === 'whatsapp' && <WhatsappModal initial={whatsapp} onClose={closeModal} />}
       {editKind === 'meu-perfil' && <MeuPerfilModal profissional={profissional} onClose={closeModal} />}
       {editKind === 'servicos' && <ServicosConveniosModal initialServicos={servicos} initialConvenios={convenios} onClose={closeModal} />}
+      {editKind === 'faq' && <FaqModal initial={faq} onClose={closeModal} />}
     </div>
   )
 }
@@ -1473,6 +1502,80 @@ function ServicosConveniosModal({
             </button>
           </div>
         </div>
+
+        {error && <div className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium">{error}</div>}
+
+        <ModalFooter onClose={onClose} pending={pending} submitLabel="Salvar alterações" />
+      </form>
+    </ModalShell>
+  )
+}
+
+// -----------------------------------------------------------------------------
+// FAQ modal
+// -----------------------------------------------------------------------------
+
+type FaqInput = { pergunta: string; resposta: string }
+
+function FaqModal({ initial, onClose }: { initial: FaqRow[]; onClose: () => void }) {
+  const router = useRouter()
+  const [itens, setItens] = useState<FaqInput[]>(
+    initial.length > 0
+      ? initial.map((f) => ({ pergunta: f.pergunta, resposta: f.resposta }))
+      : [{ pergunta: '', resposta: '' }],
+  )
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEscClose(onClose)
+
+  function update(i: number, field: keyof FaqInput, value: string) {
+    setItens((prev) => prev.map((f, j) => (j === i ? { ...f, [field]: value } : f)))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setPending(true)
+    setError(null)
+    const result = await updateFaqAction(itens)
+    if (!result.ok) {
+      setPending(false)
+      setError(result.error)
+      return
+    }
+    router.refresh()
+    onClose()
+  }
+
+  return (
+    <ModalShell title="FAQ — Perguntas frequentes" subtitle="Perguntas que seus clientes geralmente fazem" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="px-7 py-6 flex flex-col gap-4">
+        {itens.map((f, i) => (
+          <div key={i} className="flex flex-col gap-2 bg-bg rounded-[15px] p-4 border border-border">
+            <div className="flex items-start gap-2">
+              <input
+                type="text"
+                placeholder="Pergunta"
+                value={f.pergunta}
+                onChange={(e) => update(i, 'pergunta', e.target.value)}
+                className="flex-1 px-4 py-2.5 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-card"
+              />
+              {itens.length > 1 && (
+                <button type="button" onClick={() => setItens(itens.filter((_, j) => j !== i))} className="w-9 h-9 rounded-lg flex items-center justify-center text-muted hover:text-red hover:bg-red-light transition-colors cursor-pointer text-sm shrink-0">✕</button>
+              )}
+            </div>
+            <textarea
+              placeholder="Resposta"
+              value={f.resposta}
+              onChange={(e) => update(i, 'resposta', e.target.value)}
+              rows={3}
+              className="w-full px-4 py-2.5 rounded-[13px] border border-border text-sm outline-none focus:border-[#5b4bd4] transition-colors bg-card resize-y"
+            />
+          </div>
+        ))}
+        <button type="button" onClick={() => setItens([...itens, { pergunta: '', resposta: '' }])} className="text-xs text-[#5b4bd4] font-semibold hover:underline text-left cursor-pointer w-fit">
+          + Adicionar pergunta
+        </button>
 
         {error && <div className="text-xs text-red bg-red-light rounded-lg px-3 py-2 font-medium">{error}</div>}
 

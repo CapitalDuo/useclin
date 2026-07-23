@@ -45,7 +45,7 @@ export default async function ConfiguracoesPage() {
     )
   }
 
-  const [{ data: clinica }, { data: horarios }, { data: whatsapp }, { data: notificacoes }, { data: servicos }, { data: convenios }] = await Promise.all([
+  const [{ data: clinica }, { data: horarios }, { data: whatsapp }, { data: notificacoes }, { data: servicos }, { data: convenios }, { data: faq }] = await Promise.all([
     supabase
       .from('clinica')
       .select('id, nome, subtitulo, descricao, cnpj, telefone, email, endereco, logo_url, maps_url, plano_slug, plano_status, plano_periodo_fim, plano_cancelando, trial_ends_at')
@@ -76,6 +76,11 @@ export default async function ConfiguracoesPage() {
       .select('id, nome, valor, ativo')
       .eq('clinica_id', prof.clinica_id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('clinica_faq')
+      .select('id, pergunta, resposta')
+      .eq('clinica_id', prof.clinica_id)
+      .order('ordem', { ascending: true }),
   ])
 
   if (!clinica) {
@@ -138,6 +143,7 @@ export default async function ConfiguracoesPage() {
       notificacoesExtra={notifExtra}
       servicos={servicos ?? []}
       convenios={convenios ?? []}
+      faq={faq ?? []}
     />
     </>
   )

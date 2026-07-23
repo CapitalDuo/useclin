@@ -382,6 +382,35 @@ export async function updateServicosEConveniosAction(
   return { ok: true as const }
 }
 
+export async function updateFaqAction(
+  faq: { pergunta: string; resposta: string }[],
+) {
+  const supabase = await createClient()
+  const { user, prof } = await getProfissional(supabase)
+  if (!user) return { ok: false as const, error: 'Não autenticado' }
+  if (!prof?.clinica_id) return { ok: false as const, error: 'Conta sem clínica vinculada' }
+
+  const toSave = faq
+    .filter((f) => f.pergunta.trim() && f.resposta.trim())
+    .map((f, i) => ({
+      clinica_id: prof.clinica_id!,
+      pergunta: f.pergunta.trim(),
+      resposta: f.resposta.trim(),
+      ordem: i,
+    }))
+
+  const { error: delError } = await supabase.from('clinica_faq').delete().eq('clinica_id', prof.clinica_id)
+  if (delError) return { ok: false as const, error: delError.message }
+
+  if (toSave.length > 0) {
+    const { error } = await supabase.from('clinica_faq').insert(toSave)
+    if (error) return { ok: false as const, error: error.message }
+  }
+
+  revalidatePath('/configuracoes')
+  return { ok: true as const }
+}
+
 const NOTIF_TIPOS = ['lembrete_consulta', 'aniversario'] as const
 export type NotificacaoTipo = (typeof NOTIF_TIPOS)[number]
 // ponytail: mesma lista existe em configuracoes-view (não pode exportar de 'use server')
