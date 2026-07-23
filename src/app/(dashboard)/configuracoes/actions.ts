@@ -5,6 +5,13 @@ import { createClient, getProfissional } from '@/lib/supabase/server'
 import { WEEKDAY_KEYS } from '@/lib/weekdays'
 import { parseBrlInput } from '@/lib/currency'
 
+// Item 1 do plano de segurança (sessão 13): n8n vai gatear /webhook/whatsapp
+// por esse header. Rollout em 2 passos — mandar o header primeiro, publicar
+// o gate no n8n depois — evita outage.
+function n8nHeaders() {
+  return { 'Content-Type': 'application/json', 'x-webhook-secret': process.env.N8N_WEBHOOK_SECRET ?? '' }
+}
+
 export async function updateClinicaAction(formData: FormData) {
   const supabase = await createClient()
   const { user, prof } = await getProfissional(supabase)
@@ -113,7 +120,7 @@ export async function criarConexaoWhatsappAction(formData: FormData): Promise<
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: n8nHeaders(),
       body: JSON.stringify({
         acao: 'criar',
         instanceName: nome_instancia,
@@ -150,7 +157,7 @@ export async function verificarStatusWhatsappAction(token: string): Promise<{
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: n8nHeaders(),
       body: JSON.stringify({ acao: 'status', token }),
     })
     if (!res.ok) return { connected: false, state: 'erro' }
@@ -203,7 +210,7 @@ export async function buscarChatsAction(token: string): Promise<{ chats: WaChat[
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: n8nHeaders(),
       body: JSON.stringify({ acao: 'chats', token }),
     })
     if (!res.ok) return { chats: [] }
@@ -224,7 +231,7 @@ export async function buscarMensagensAction(
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: n8nHeaders(),
       body: JSON.stringify({ acao: 'mensagens', token, remoteJid }),
     })
     if (!res.ok) return { messages: [] }
@@ -246,7 +253,7 @@ export async function enviarMensagemAction(
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: n8nHeaders(),
       body: JSON.stringify({ acao: 'enviar', token, remoteJid, text }),
     })
     return { ok: res.ok }
@@ -289,7 +296,7 @@ export async function desconectarWhatsappAction(token: string): Promise<{ ok: bo
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: n8nHeaders(),
       body: JSON.stringify({ acao: 'desconectar', token }),
     })
     if (!res.ok) return { ok: false, error: `Erro ao desconectar (${res.status})` }
