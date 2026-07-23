@@ -230,7 +230,7 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
   // Fetch chats when connected
   useEffect(() => {
     if (connectionStatus !== 'connected' || !instToken) return
-    setLoadingChats(true)
+    queueMicrotask(() => setLoadingChats(true))
     buscarChatsAction(instToken).then(({ chats }) => {
       setChats(chats)
       setLoadingChats(false)
@@ -325,7 +325,7 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
   // Fetch messages when chat selected
   useEffect(() => {
     if (!selectedChatId || !instToken) return
-    setLoadingMessages(true)
+    queueMicrotask(() => setLoadingMessages(true))
     buscarMensagensAction(instToken, selectedChatId).then(({ messages }) => {
       setMessages(messages)
       setLoadingMessages(false)
@@ -336,7 +336,7 @@ export function PacientesView({ whatsapp }: { whatsapp?: WhatsappInfo }) {
   // o polling de 30s traz o contador de volta).
   useEffect(() => {
     if (!selectedChatId || !instToken) return
-    setChats((prev) => prev.map((c) => (c.id === selectedChatId ? { ...c, unread: 0 } : c)))
+    queueMicrotask(() => setChats((prev) => prev.map((c) => (c.id === selectedChatId ? { ...c, unread: 0 } : c))))
     marcarChatLidoAction(instToken, selectedChatId)
   }, [selectedChatId, instToken])
 

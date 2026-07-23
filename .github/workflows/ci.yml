@@ -28,9 +28,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-      # lint não entra aqui ainda: há 10 erros pré-existentes no projeto
-      # (setState síncrono em useEffect em pacientes-view.tsx/sidebar.tsx),
-      # não relacionados a esta mudança — precisam ser corrigidos antes de
-      # tornar lint um gate obrigatório do CI.
+      - run: npm run lint
       - run: npm test
       - run: npm run build
