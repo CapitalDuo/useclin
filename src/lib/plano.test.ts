@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isTrialAtivo, trialDiasRestantes, planoEfetivo } from './plano'
+import { isTrialAtivo, trialDiasRestantes, planoEfetivo, diasAtePeriodoFim } from './plano'
 
 describe('isTrialAtivo', () => {
   it('é falso sem trial_ends_at', () => {
@@ -47,5 +47,21 @@ describe('planoEfetivo — gating de acesso', () => {
   it('plano pago nunca é afetado pelo trial', () => {
     expect(planoEfetivo('completo', null)).toBe('completo')
     expect(planoEfetivo('basico', null)).toBe('basico')
+  })
+})
+
+describe('diasAtePeriodoFim', () => {
+  it('é null sem plano_periodo_fim', () => {
+    expect(diasAtePeriodoFim(null)).toBeNull()
+  })
+
+  it('conta dias positivos até uma data futura', () => {
+    const em3dias = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+    expect(diasAtePeriodoFim(em3dias)).toBe(3)
+  })
+
+  it('fica negativo depois que a data passou (diferente de trialDiasRestantes)', () => {
+    const ontem = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    expect(diasAtePeriodoFim(ontem)).toBeLessThan(0)
   })
 })

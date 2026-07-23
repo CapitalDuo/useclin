@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient, getCurrentUser } from '@/lib/supabase/server'
+import { createClient, getCurrentUser, getClinicaAtual } from '@/lib/supabase/server'
 import { TZ, todayISO, mondayOf, isoDate } from '@/lib/date'
+import { diasAtePeriodoFim } from '@/lib/plano'
 import { KpiCard } from '@/components/kpi-card'
 import { CalendarIcon, WalletIcon } from '@/components/icons'
 import { DonutChart, WeekChart, type WeekPoint } from '@/components/dashboard-charts'
@@ -36,6 +37,8 @@ export default async function DashboardPage() {
   const monday = mondayOf(new Date(ty, tm - 1, td))
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
+
+  const clinicaPromise = getClinicaAtual()
 
   const [{ data: prof }, { data: kpis }, { data: hoje }, { data: candidates }, { data: monthAppts }, { data: weekAppts }, { data: suporteRespostas }] = await Promise.all([
     supabase.from('profissionais').select('nome').eq('user_id', user.id).maybeSingle(),
@@ -110,6 +113,13 @@ export default async function DashboardPage() {
 
   const userName = prof?.nome ?? user.email ?? 'Doutor(a)'
 
+  const clinica = await clinicaPromise
+  const diasFimPlano = diasAtePeriodoFim(clinica?.plano_periodo_fim ?? null)
+  // ponytail: 7 dias de antecedência é fixo — vira config se algum dia precisar variar por plano
+  const planoExpirando = !!(clinica?.plano_cancelando && diasFimPlano !== null && diasFimPlano >= 0 && diasFimPlano <= 7)
+  const fimPlanoFmt = clinica?.plano_periodo_fim ? new Date(clinica.plano_periodo_fim).toLocaleDateString('pt-BR') : null
+  const totalAvisos = (suporteRespostas?.length ?? 0) + (planoExpirando ? 1 : 0)
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-[22px] max-w-[1500px] w-full mx-auto min-w-0">
 
@@ -145,9 +155,9 @@ export default async function DashboardPage() {
           <div className="bg-card border border-border rounded-[18px] p-[18px] flex-1 flex flex-col" style={{ boxShadow: CARD_SHADOW }}>
             <div className="flex items-center gap-2 mb-3">
               <div className="font-newsreader font-semibold text-[18px] text-text">Avisos</div>
-              {(suporteRespostas?.length ?? 0) > 0 && (
+              {totalAvisos > 0 && (
                 <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#e5534b] text-white text-[10.5px] font-bold flex items-center justify-center">
-                  {suporteRespostas!.length}
+                  {totalAvisos}
                 </span>
               )}
             </div>
@@ -169,6 +179,24 @@ export default async function DashboardPage() {
                   </div>
                 </Link>
               ))}
+              {planoExpirando && (
+                <Link
+                  href="/configuracoes"
+                  className="flex items-start gap-3 bg-[#fff4e0] rounded-[13px] px-3.5 py-3 hover:bg-[#ffecc9] transition-colors"
+                >
+                  <span className="mt-0.5 w-5 h-5 rounded-full bg-[#f5a623] flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-3 h-3">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-semibold text-[#8a5a00] leading-snug">Sua assinatura está terminando</div>
+                    <div className="text-[11.5px] text-[#b98a3a] mt-0.5">Acesso até {fimPlanoFmt} — renove pra não perder o acesso</div>
+                  </div>
+                </Link>
+              )}
               <div className="flex items-start gap-3 bg-[#f1eefb] rounded-[13px] px-3.5 py-3">
                 <span className="mt-0.5 w-5 h-5 rounded-full bg-[#6d5ae6] flex items-center justify-center flex-shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-3 h-3">
@@ -180,7 +208,7 @@ export default async function DashboardPage() {
                   <div className="text-[11.5px] text-[#7c6fae] mt-0.5">Os avisos da clínica aparecerão aqui.</div>
                 </div>
               </div>
-              {(suporteRespostas?.length ?? 0) === 0 && (
+              {totalAvisos === 0 && (
                 <div className="text-center py-4 text-[12px] text-muted">
                   Nenhum aviso no momento.
                 </div>
